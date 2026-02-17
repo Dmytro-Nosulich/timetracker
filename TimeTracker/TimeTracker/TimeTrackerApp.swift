@@ -1,18 +1,15 @@
-//
-//  TimeTrackerApp.swift
-//  TimeTracker
-//
-//  Created by Dmytro Nosulich on 18.01.26.
-//
-
 import SwiftUI
 import SwiftData
 
 @main
 struct TimeTrackerApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            TaskEntity.self,
+            TimeEntryEntity.self,
+            TagEntity.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -25,8 +22,14 @@ struct TimeTrackerApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainWindowModuleBuilder.build(
+                localStorageService: SwiftDataLocalStorageService(
+                    modelContext: sharedModelContainer.mainContext
+                )
+            )
+            .frame(minWidth: 500, minHeight: 400)
         }
-        .modelContainer(sharedModelContainer)
+        .defaultSize(width: 700, height: 500)
+        .windowResizability(.contentMinSize)
     }
 }

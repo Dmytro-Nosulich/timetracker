@@ -14,20 +14,22 @@
 			remoteGlobalIDString = C35FCB262F1D84D10021B973;
 			remoteInfo = TimeTracker;
 		};
-		C35FCB412F1D84D10021B973 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = C35FCB1F2F1D84D10021B973 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = C35FCB262F1D84D10021B973;
-			remoteInfo = TimeTracker;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		C35FCB272F1D84D10021B973 /* TimeTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TimeTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C35FCB362F1D84D10021B973 /* TimeTrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeTrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		C35FCB402F1D84D10021B973 /* TimeTrackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeTrackerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C3C6A1EF2F450AEB00CE9A3A /* Exceptions for "TimeTrackerTests" folder in "TimeTrackerTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Services/LocalStorage/SwiftDataLocalStorageServiceTests.swift,
+			);
+			target = C35FCB352F1D84D10021B973 /* TimeTrackerTests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C35FCB292F1D84D10021B973 /* TimeTracker */ = {
@@ -37,12 +39,10 @@
 		};
 		C35FCB392F1D84D10021B973 /* TimeTrackerTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C3C6A1EF2F450AEB00CE9A3A /* Exceptions for "TimeTrackerTests" folder in "TimeTrackerTests" target */,
+			);
 			path = TimeTrackerTests;
-			sourceTree = "<group>";
-		};
-		C35FCB432F1D84D10021B973 /* TimeTrackerUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = TimeTrackerUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -62,13 +62,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		C35FCB3D2F1D84D10021B973 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -77,7 +70,6 @@
 			children = (
 				C35FCB292F1D84D10021B973 /* TimeTracker */,
 				C35FCB392F1D84D10021B973 /* TimeTrackerTests */,
-				C35FCB432F1D84D10021B973 /* TimeTrackerUITests */,
 				C35FCB282F1D84D10021B973 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -87,7 +79,6 @@
 			children = (
 				C35FCB272F1D84D10021B973 /* TimeTracker.app */,
 				C35FCB362F1D84D10021B973 /* TimeTrackerTests.xctest */,
-				C35FCB402F1D84D10021B973 /* TimeTrackerUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -140,29 +131,6 @@
 			productReference = C35FCB362F1D84D10021B973 /* TimeTrackerTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		C35FCB3F2F1D84D10021B973 /* TimeTrackerUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = C35FCB502F1D84D10021B973 /* Build configuration list for PBXNativeTarget "TimeTrackerUITests" */;
-			buildPhases = (
-				C35FCB3C2F1D84D10021B973 /* Sources */,
-				C35FCB3D2F1D84D10021B973 /* Frameworks */,
-				C35FCB3E2F1D84D10021B973 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				C35FCB422F1D84D10021B973 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				C35FCB432F1D84D10021B973 /* TimeTrackerUITests */,
-			);
-			name = TimeTrackerUITests;
-			packageProductDependencies = (
-			);
-			productName = TimeTrackerUITests;
-			productReference = C35FCB402F1D84D10021B973 /* TimeTrackerUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -171,16 +139,12 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2600;
-				LastUpgradeCheck = 2600;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					C35FCB262F1D84D10021B973 = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
 					C35FCB352F1D84D10021B973 = {
-						CreatedOnToolsVersion = 26.0.1;
-						TestTargetID = C35FCB262F1D84D10021B973;
-					};
-					C35FCB3F2F1D84D10021B973 = {
 						CreatedOnToolsVersion = 26.0.1;
 						TestTargetID = C35FCB262F1D84D10021B973;
 					};
@@ -202,7 +166,6 @@
 			targets = (
 				C35FCB262F1D84D10021B973 /* TimeTracker */,
 				C35FCB352F1D84D10021B973 /* TimeTrackerTests */,
-				C35FCB3F2F1D84D10021B973 /* TimeTrackerUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -216,13 +179,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		C35FCB342F1D84D10021B973 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		C35FCB3E2F1D84D10021B973 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -246,13 +202,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		C35FCB3C2F1D84D10021B973 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -260,11 +209,6 @@
 			isa = PBXTargetDependency;
 			target = C35FCB262F1D84D10021B973 /* TimeTracker */;
 			targetProxy = C35FCB372F1D84D10021B973 /* PBXContainerItemProxy */;
-		};
-		C35FCB422F1D84D10021B973 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = C35FCB262F1D84D10021B973 /* TimeTracker */;
-			targetProxy = C35FCB412F1D84D10021B973 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -303,6 +247,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 3T8F5HX53K;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -328,6 +273,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -367,6 +313,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 3T8F5HX53K;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -385,6 +332,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
@@ -397,6 +345,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 3T8F5HX53K;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -408,14 +357,16 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 15.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = dmytro.TimeTracker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -429,6 +380,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 3T8F5HX53K;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -440,14 +392,16 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 15.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = dmytro.TimeTracker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -459,6 +413,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 3T8F5HX53K;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
@@ -480,6 +435,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 3T8F5HX53K;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
@@ -492,44 +448,6 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TimeTracker.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TimeTracker";
-			};
-			name = Release;
-		};
-		C35FCB512F1D84D10021B973 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 3T8F5HX53K;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dmytro.TimeTrackerUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = TimeTracker;
-			};
-			name = Debug;
-		};
-		C35FCB522F1D84D10021B973 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 3T8F5HX53K;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dmytro.TimeTrackerUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = TimeTracker;
 			};
 			name = Release;
 		};
@@ -559,15 +477,6 @@
 			buildConfigurations = (
 				C35FCB4E2F1D84D10021B973 /* Debug */,
 				C35FCB4F2F1D84D10021B973 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		C35FCB502F1D84D10021B973 /* Build configuration list for PBXNativeTarget "TimeTrackerUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				C35FCB512F1D84D10021B973 /* Debug */,
-				C35FCB522F1D84D10021B973 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
