@@ -7,6 +7,7 @@ struct TaskListView: View {
     let onDelete: (TaskItem) -> Void
     let onStartTimer: (TaskItem) -> Void
     let onPauseTimer: () -> Void
+    let onOpenTaskDetail: (TaskItem) -> Void
 
     @State private var taskToDelete: TaskItem?
 
@@ -39,7 +40,7 @@ struct TaskListView: View {
                     )
                     .contentShape(Rectangle())
                     .onTapGesture(count: 2) {
-                        // Phase 4: open task detail window
+                        onOpenTaskDetail(task)
                     }
                     .contextMenu {
                         Button(role: .destructive) {

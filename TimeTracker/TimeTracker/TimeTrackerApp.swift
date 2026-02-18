@@ -4,10 +4,12 @@ import SwiftData
 @main
 struct TimeTrackerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @State private var taskDetailCoordinator = TaskDetailCoordinator()
 
     let sharedModelContainer: ModelContainer
     let localStorageService: SwiftDataLocalStorageService
     let timerService: DefaultTimerService
+    let userPreferencesService: UserPreferencesService
 
     init() {
         let schema = Schema([
@@ -29,6 +31,8 @@ struct TimeTrackerApp: App {
         let timer = DefaultTimerService(localStorage: localStorage)
         self.timerService = timer
 
+        self.userPreferencesService = UserDefaultsUserPreferencesService()
+
         TimerServiceHolder.shared = timer
         timer.recoverFromCrashIfNeeded()
     }
@@ -37,7 +41,8 @@ struct TimeTrackerApp: App {
         WindowGroup {
             MainWindowModuleBuilder.build(
                 localStorageService: localStorageService,
-                timerService: timerService
+                timerService: timerService,
+                coordinator: taskDetailCoordinator
             )
             .frame(minWidth: 500, minHeight: 400)
         }
@@ -52,5 +57,15 @@ struct TimeTrackerApp: App {
         }
         .windowResizability(.contentSize)
         .defaultSize(width: 300, height: 280)
+
+        Window("Task Details", id: "task-detail") {
+            TaskDetailWindowContent(
+                container: sharedModelContainer,
+                coordinator: taskDetailCoordinator,
+                userPreferencesService: userPreferencesService
+            )
+        }
+        .windowResizability(.contentMinSize)
+        .defaultSize(width: 600, height: 700)
     }
 }

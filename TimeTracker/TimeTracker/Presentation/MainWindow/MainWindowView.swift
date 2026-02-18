@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MainWindowView<AddTaskContent: View>: View {
     @State var viewModel: MainWindowViewModel
+    @Bindable var coordinator: TaskDetailCoordinator
     @Environment(\.openWindow) private var openWindow
     let addTaskViewBuilder: () -> AddTaskContent
 
@@ -22,6 +23,11 @@ struct MainWindowView<AddTaskContent: View>: View {
                 },
                 onPauseTimer: {
                     viewModel.pauseTimer()
+                },
+                onOpenTaskDetail: { task in
+                    coordinator.requestOpen(taskId: task.id) {
+                        openWindow(id: "task-detail")
+                    }
                 }
             )
 
@@ -55,6 +61,16 @@ struct MainWindowView<AddTaskContent: View>: View {
         }
         .onAppear {
             viewModel.loadData()
+        }
+        .confirmationDialog("You have unsaved changes. Discard?", isPresented: $coordinator.showDiscardConfirmation) {
+            Button("Discard", role: .destructive) {
+                coordinator.confirmDiscard()
+            }
+            Button("Keep Editing", role: .cancel) {
+                coordinator.cancelDiscard()
+            }
+        } message: {
+            Text("Your changes will be lost if you switch to another task.")
         }
     }
 }
