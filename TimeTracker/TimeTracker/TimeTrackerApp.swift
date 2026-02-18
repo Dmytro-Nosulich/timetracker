@@ -10,6 +10,7 @@ struct TimeTrackerApp: App {
     let localStorageService: SwiftDataLocalStorageService
     let timerService: DefaultTimerService
     let userPreferencesService: UserPreferencesService
+    let idleMonitorService: DefaultIdleMonitorService
 
     init() {
         let schema = Schema([
@@ -27,18 +28,23 @@ struct TimeTrackerApp: App {
 
         let localStorage = SwiftDataLocalStorageService(modelContext: sharedModelContainer.mainContext)
         self.localStorageService = localStorage
-
-        let timer = DefaultTimerService(localStorage: localStorage)
-        self.timerService = timer
+        LocalStorageServiceHolder.shared = localStorage
 
         self.userPreferencesService = UserDefaultsUserPreferencesService()
 
+        let timer = DefaultTimerService(localStorage: localStorage, userPreferences: userPreferencesService)
+        self.timerService = timer
+
         TimerServiceHolder.shared = timer
         timer.recoverFromCrashIfNeeded()
+
+        let idleMonitor = DefaultIdleMonitorService(timerService: timer, userPreferences: userPreferencesService, localStorage: localStorage)
+        self.idleMonitorService = idleMonitor
+        idleMonitor.start()
     }
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup(id: "main-window") {
             MainWindowModuleBuilder.build(
                 localStorageService: localStorageService,
                 timerService: timerService,
@@ -48,6 +54,7 @@ struct TimeTrackerApp: App {
         }
         .defaultSize(width: 700, height: 500)
         .windowResizability(.contentMinSize)
+        .handlesExternalEvents(matching: Set(["main-window"]))
 
         Window("Timer", id: "timer-window") {
             TimerWindowModuleBuilder.build(
@@ -57,6 +64,7 @@ struct TimeTrackerApp: App {
         }
         .windowResizability(.contentSize)
         .defaultSize(width: 300, height: 280)
+        .handlesExternalEvents(matching: Set(["timer-window"]))
 
         Window("Task Details", id: "task-detail") {
             TaskDetailWindowContent(

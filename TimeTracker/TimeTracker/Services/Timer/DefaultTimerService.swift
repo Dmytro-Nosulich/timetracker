@@ -5,6 +5,7 @@ import Foundation
 final class DefaultTimerService: TimerService {
     private let localStorage: LocalStorageService
     private let dateProvider: DateProvider
+    private let userPreferences: UserPreferencesService
 
     // MARK: - Observable State
 
@@ -12,6 +13,7 @@ final class DefaultTimerService: TimerService {
     private(set) var sessionStartDate: Date?
     private(set) var sessionElapsed: TimeInterval = 0
     private(set) var state: TimerState = .idle
+    private(set) var inactivityPauseDate: Date?
 
     // MARK: - Internal Tracking
 
@@ -21,9 +23,10 @@ final class DefaultTimerService: TimerService {
 
     // MARK: - Init
 
-    init(localStorage: LocalStorageService, dateProvider: DateProvider = SystemDateProvider()) {
+    init(localStorage: LocalStorageService, dateProvider: DateProvider = SystemDateProvider(), userPreferences: UserPreferencesService) {
         self.localStorage = localStorage
         self.dateProvider = dateProvider
+        self.userPreferences = userPreferences
     }
 
     // MARK: - Public Methods
@@ -41,6 +44,7 @@ final class DefaultTimerService: TimerService {
 
         case .pausedByUser, .pausedByInactivity:
             // Resume from pause: reset session
+            inactivityPauseDate = nil
             createNewEntry(for: task.id, startDate: now)
             currentTaskId = task.id
             sessionStartDate = now
@@ -65,6 +69,7 @@ final class DefaultTimerService: TimerService {
         let now = dateProvider.now()
         closeCurrentEntry(endDate: now)
         sessionElapsed = 0
+        inactivityPauseDate = nil
         state = .pausedByUser
         stopInternalTimer()
     }
@@ -74,6 +79,7 @@ final class DefaultTimerService: TimerService {
               state == .pausedByUser || state == .pausedByInactivity else { return }
 
         let now = dateProvider.now()
+        inactivityPauseDate = nil
         createNewEntry(for: taskId, startDate: now)
         sessionStartDate = now
         sessionElapsed = 0
@@ -86,9 +92,22 @@ final class DefaultTimerService: TimerService {
         guard state == .running else { return }
 
         let now = dateProvider.now()
-        closeCurrentEntry(endDate: now)
+        let endDate: Date
+        if userPreferences.subtractIdleTimeFromTrackedTime {
+            endDate = now.addingTimeInterval(-idleDuration)
+        } else {
+            endDate = now
+        }
+        closeCurrentEntry(endDate: endDate)
+        inactivityPauseDate = now
         state = .pausedByInactivity
         stopInternalTimer()
+    }
+
+    func setPausedByUser() {
+        guard state == .pausedByInactivity else { return }
+        inactivityPauseDate = nil
+        state = .pausedByUser
     }
 
     @discardableResult
@@ -128,6 +147,7 @@ final class DefaultTimerService: TimerService {
         let now = dateProvider.now()
         closeCurrentEntry(endDate: now)
         stopInternalTimer()
+        inactivityPauseDate = nil
         state = .idle
         currentTaskId = nil
         sessionStartDate = nil

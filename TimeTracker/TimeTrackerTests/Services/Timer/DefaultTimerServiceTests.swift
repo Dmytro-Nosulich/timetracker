@@ -32,18 +32,20 @@ struct DefaultTimerServiceTests {
 
     private func makeService(
         localStorage: MockLocalStorageService? = nil,
-        dateProvider: MockDateProvider? = nil
-    ) -> (service: DefaultTimerService, storage: MockLocalStorageService, dateProvider: MockDateProvider) {
+        dateProvider: MockDateProvider? = nil,
+        userPreferences: MockUserPreferencesService? = nil
+    ) -> (service: DefaultTimerService, storage: MockLocalStorageService, dateProvider: MockDateProvider, userPreferences: MockUserPreferencesService) {
         let storage = localStorage ?? makeMock()
         let dp = dateProvider ?? makeDateProvider()
-        let service = DefaultTimerService(localStorage: storage, dateProvider: dp)
-        return (service, storage, dp)
+        let prefs = userPreferences ?? MockUserPreferencesService()
+        let service = DefaultTimerService(localStorage: storage, dateProvider: dp, userPreferences: prefs)
+        return (service, storage, dp, prefs)
     }
 
     // MARK: - startTimer
 
     @Test func startTimerFromIdle() {
-        let (service, storage, _) = makeService()
+        let (service, storage, _, _) = makeService()
         let task = makeTask()
 
         service.startTimer(for: task)
@@ -57,7 +59,7 @@ struct DefaultTimerServiceTests {
     }
 
     @Test func startTimerSameTaskWhileRunningIsNoOp() {
-        let (service, storage, _) = makeService()
+        let (service, storage, _, _) = makeService()
         let task = makeTask()
 
         service.startTimer(for: task)
@@ -70,7 +72,7 @@ struct DefaultTimerServiceTests {
     }
 
     @Test func startTimerDifferentTaskWhileRunning() {
-        let (service, storage, _) = makeService()
+        let (service, storage, _, _) = makeService()
         let task1 = makeTask(title: "Task 1")
         let task2 = makeTask(title: "Task 2")
 
@@ -87,7 +89,7 @@ struct DefaultTimerServiceTests {
     }
 
     @Test func startTimerFromPausedByUser() {
-        let (service, storage, _) = makeService()
+        let (service, storage, _, _) = makeService()
         let task = makeTask()
 
         service.startTimer(for: task)
@@ -102,7 +104,7 @@ struct DefaultTimerServiceTests {
     }
 
     @Test func startTimerFromPausedByInactivity() {
-        let (service, storage, _) = makeService()
+        let (service, storage, _, _) = makeService()
         let task = makeTask()
 
         service.startTimer(for: task)
@@ -119,7 +121,7 @@ struct DefaultTimerServiceTests {
     // MARK: - pauseTimer
 
     @Test func pauseTimerWhileRunning() {
-        let (service, storage, _) = makeService()
+        let (service, storage, _, _) = makeService()
         let task = makeTask()
 
         service.startTimer(for: task)
@@ -132,7 +134,7 @@ struct DefaultTimerServiceTests {
     }
 
     @Test func pauseTimerWhileIdleIsNoOp() {
-        let (service, storage, _) = makeService()
+        let (service, storage, _, _) = makeService()
 
         service.pauseTimer()
 
@@ -143,7 +145,7 @@ struct DefaultTimerServiceTests {
     // MARK: - resumeTimer
 
     @Test func resumeTimerFromPausedByUser() {
-        let (service, storage, _) = makeService()
+        let (service, storage, _, _) = makeService()
         let task = makeTask()
 
         service.startTimer(for: task)
@@ -159,7 +161,7 @@ struct DefaultTimerServiceTests {
     }
 
     @Test func resumeTimerFromIdleIsNoOp() {
-        let (service, storage, _) = makeService()
+        let (service, storage, _, _) = makeService()
 
         service.resumeTimer()
 
@@ -170,7 +172,7 @@ struct DefaultTimerServiceTests {
     // MARK: - pauseDueToInactivity
 
     @Test func pauseDueToInactivity() {
-        let (service, storage, _) = makeService()
+        let (service, storage, dp, _) = makeService()
         let task = makeTask()
 
         service.startTimer(for: task)
@@ -178,12 +180,55 @@ struct DefaultTimerServiceTests {
 
         #expect(service.state == .pausedByInactivity)
         #expect(storage.closeTimeEntryCallCount == 1)
+        #expect(service.inactivityPauseDate == dp.currentDate)
+        // Default: subtract idle time off → endDate should be now
+        #expect(storage.closeTimeEntryLastEndDate == dp.currentDate)
+    }
+
+    @Test func pauseDueToInactivityWithSubtractIdleTime() {
+        let (service, storage, dp, prefs) = makeService()
+        prefs.stubbedSubtractIdleTimeFromTrackedTime = true
+        let task = makeTask()
+
+        service.startTimer(for: task)
+        let idleDuration: TimeInterval = 300 // 5 minutes
+        service.pauseDueToInactivity(idleDuration: idleDuration)
+
+        #expect(service.state == .pausedByInactivity)
+        #expect(storage.closeTimeEntryCallCount == 1)
+        let expectedEndDate = dp.currentDate.addingTimeInterval(-idleDuration)
+        #expect(storage.closeTimeEntryLastEndDate == expectedEndDate)
+    }
+
+    @Test func setPausedByUserFromPausedByInactivity() {
+        let (service, _, _, _) = makeService()
+        let task = makeTask()
+
+        service.startTimer(for: task)
+        service.pauseDueToInactivity(idleDuration: 60)
+
+        #expect(service.state == .pausedByInactivity)
+        #expect(service.inactivityPauseDate != nil)
+
+        service.setPausedByUser()
+
+        #expect(service.state == .pausedByUser)
+        #expect(service.inactivityPauseDate == nil)
+        #expect(service.currentTaskId == task.id)
+    }
+
+    @Test func setPausedByUserFromIdleIsNoOp() {
+        let (service, _, _, _) = makeService()
+
+        service.setPausedByUser()
+
+        #expect(service.state == .idle)
     }
 
     // MARK: - saveAndStop
 
     @Test func saveAndStopWhileRunning() {
-        let (service, storage, _) = makeService()
+        let (service, storage, _, _) = makeService()
         let task = makeTask()
 
         service.startTimer(for: task)
@@ -197,7 +242,7 @@ struct DefaultTimerServiceTests {
     }
 
     @Test func saveAndStopWhileIdleIsNoOp() {
-        let (service, storage, _) = makeService()
+        let (service, storage, _, _) = makeService()
 
         service.saveAndStop()
 
@@ -208,7 +253,7 @@ struct DefaultTimerServiceTests {
     // MARK: - recoverFromCrashIfNeeded
 
     @Test func recoverNoOpenEntry() {
-        let (service, storage, _) = makeService()
+        let (service, storage, _, _) = makeService()
         storage.stubbedOpenTimeEntry = nil
 
         let result = service.recoverFromCrashIfNeeded()
@@ -229,7 +274,8 @@ struct DefaultTimerServiceTests {
             taskId: taskId
         )
 
-        let service = DefaultTimerService(localStorage: storage, dateProvider: dp)
+        let prefs = MockUserPreferencesService()
+        let service = DefaultTimerService(localStorage: storage, dateProvider: dp, userPreferences: prefs)
         let result = service.recoverFromCrashIfNeeded()
 
         #expect(result == .resumedRecent(taskId: taskId))
@@ -250,7 +296,8 @@ struct DefaultTimerServiceTests {
             taskId: taskId
         )
 
-        let service = DefaultTimerService(localStorage: storage, dateProvider: dp)
+        let prefs = MockUserPreferencesService()
+        let service = DefaultTimerService(localStorage: storage, dateProvider: dp, userPreferences: prefs)
         let result = service.recoverFromCrashIfNeeded()
 
         #expect(result == .staleEntry(entryId: entryId, taskId: taskId, startDate: staleStart))
@@ -272,7 +319,8 @@ struct DefaultTimerServiceTests {
         let beforeMidnight = calendar.date(from: components)!
         dp.currentDate = beforeMidnight
 
-        let service = DefaultTimerService(localStorage: storage, dateProvider: dp)
+        let prefs = MockUserPreferencesService()
+        let service = DefaultTimerService(localStorage: storage, dateProvider: dp, userPreferences: prefs)
         let task = makeTask()
 
         service.startTimer(for: task)
@@ -305,7 +353,8 @@ struct DefaultTimerServiceTests {
         let startTime = Date()
         dp.currentDate = startTime
 
-        let service = DefaultTimerService(localStorage: storage, dateProvider: dp)
+        let prefs = MockUserPreferencesService()
+        let service = DefaultTimerService(localStorage: storage, dateProvider: dp, userPreferences: prefs)
         let task1 = makeTask(title: "Task 1")
         let task2 = makeTask(title: "Task 2")
 

@@ -11,6 +11,9 @@ final class MockTimerService: TimerService {
     var stubbedState: TimerState = .idle
     var stubbedCrashRecoveryResult: CrashRecoveryResult = .noOpenEntry
 
+    var stubbedInactivityPauseDate: Date?
+    var inactivityPauseDate: Date? { stubbedInactivityPauseDate }
+
     var currentTaskId: UUID? { stubbedCurrentTaskId }
     var sessionStartDate: Date? { stubbedSessionStartDate }
     var sessionElapsed: TimeInterval { stubbedSessionElapsed }
@@ -24,6 +27,7 @@ final class MockTimerService: TimerService {
     var resumeTimerCallCount = 0
     var pauseDueToInactivityCallCount = 0
     var pauseDueToInactivityLastDuration: TimeInterval?
+    var setPausedByUserCallCount = 0
     var recoverFromCrashCallCount = 0
     var saveAndStopCallCount = 0
 
@@ -45,6 +49,10 @@ final class MockTimerService: TimerService {
     func pauseDueToInactivity(idleDuration: TimeInterval) {
         pauseDueToInactivityCallCount += 1
         pauseDueToInactivityLastDuration = idleDuration
+    }
+
+    func setPausedByUser() {
+        setPausedByUserCallCount += 1
     }
 
     @discardableResult

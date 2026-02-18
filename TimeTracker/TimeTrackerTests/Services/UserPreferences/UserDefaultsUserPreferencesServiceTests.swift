@@ -49,4 +49,45 @@ struct UserDefaultsUserPreferencesServiceTests {
         #expect(service1.currencySymbol == "€")
         #expect(service2.currencySymbol == "$")
     }
+
+    // MARK: - Idle timeout
+
+    @Test func idleTimeoutMinutesDefaultsToTen() {
+        let (service, _) = makeService()
+        #expect(service.idleTimeoutMinutes == 10)
+    }
+
+    @Test func setIdleTimeoutMinutesPersistsValue() {
+        let (service, _) = makeService()
+        service.setIdleTimeoutMinutes(5)
+        #expect(service.idleTimeoutMinutes == 5)
+    }
+
+    @Test func setIdleTimeoutMinutesOverwritesPrevious() {
+        let (service, _) = makeService()
+        service.setIdleTimeoutMinutes(15)
+        service.setIdleTimeoutMinutes(1)
+        #expect(service.idleTimeoutMinutes == 1)
+    }
+
+    // MARK: - Subtract idle time
+
+    @Test func subtractIdleTimeFromTrackedTimeDefaultsToFalse() {
+        let (service, _) = makeService()
+        #expect(service.subtractIdleTimeFromTrackedTime == false)
+    }
+
+    @Test func setSubtractIdleTimeFromTrackedTimePersistsValue() {
+        let (service, _) = makeService()
+        service.setSubtractIdleTimeFromTrackedTime(true)
+        #expect(service.subtractIdleTimeFromTrackedTime == true)
+    }
+
+    @Test func subtractIdleTimeRoundtrip() {
+        let (service, _) = makeService()
+        service.setSubtractIdleTimeFromTrackedTime(true)
+        #expect(service.subtractIdleTimeFromTrackedTime == true)
+        service.setSubtractIdleTimeFromTrackedTime(false)
+        #expect(service.subtractIdleTimeFromTrackedTime == false)
+    }
 }

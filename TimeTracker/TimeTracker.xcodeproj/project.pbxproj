@@ -29,11 +29,21 @@
 			);
 			target = C35FCB352F1D84D10021B973 /* TimeTrackerTests */;
 		};
+		C3C6A1F02F450B0000CE9A3A /* Exceptions for "TimeTracker" folder in "TimeTracker" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C35FCB262F1D84D10021B973 /* TimeTracker */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C35FCB292F1D84D10021B973 /* TimeTracker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C3C6A1F02F450B0000CE9A3A /* Exceptions for "TimeTracker" folder in "TimeTracker" target */,
+			);
 			path = TimeTracker;
 			sourceTree = "<group>";
 		};
@@ -352,6 +362,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TimeTracker/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -387,6 +398,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TimeTracker/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
