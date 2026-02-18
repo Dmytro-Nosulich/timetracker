@@ -30,17 +30,11 @@ final class TimerWindowViewModel {
     var todayThisTask: TimeInterval {
         guard let taskId = currentTaskId else { return 0 }
         let persisted = localStorageService.trackedTimeToday(for: taskId)
-        if timerService.state == .running {
-            return persisted + timerService.sessionElapsed
-        }
         return persisted
     }
 
     var todayAllTasks: TimeInterval {
         let persisted = localStorageService.totalTrackedTimeToday()
-        if timerService.state == .running {
-            return persisted + timerService.sessionElapsed
-        }
         return persisted
     }
 
