@@ -8,6 +8,10 @@ final class MockLocalStorageService: LocalStorageService {
     var stubbedTags: [TagItem] = []
     var stubbedTotalToday: TimeInterval = 0
     var stubbedCreatedTask: TaskItem?
+    var stubbedCreatedTimeEntry: TimeEntryItem?
+    var stubbedOpenTimeEntry: (entry: TimeEntryItem, taskId: UUID)?
+    var stubbedTrackedTimeTodayForTask: TimeInterval = 0
+    var stubbedFetchedTask: TaskItem?
 
     // MARK: - Call Tracking
 
@@ -20,6 +24,19 @@ final class MockLocalStorageService: LocalStorageService {
     var deleteTaskCallCount = 0
     var deleteTaskLastId: UUID?
     var totalTrackedTimeTodayCallCount = 0
+    var createTimeEntryCallCount = 0
+    var createTimeEntryLastTaskId: UUID?
+    var createTimeEntryLastStartDate: Date?
+    var closeTimeEntryCallCount = 0
+    var closeTimeEntryLastId: UUID?
+    var closeTimeEntryLastEndDate: Date?
+    var fetchOpenTimeEntryCallCount = 0
+    var trackedTimeTodayForTaskCallCount = 0
+    var trackedTimeTodayLastTaskId: UUID?
+    var fetchTaskCallCount = 0
+    var fetchTaskLastId: UUID?
+    var deleteTimeEntryCallCount = 0
+    var deleteTimeEntryLastId: UUID?
 
     // MARK: - LocalStorageService
 
@@ -62,5 +79,45 @@ final class MockLocalStorageService: LocalStorageService {
     func totalTrackedTimeToday() -> TimeInterval {
         totalTrackedTimeTodayCallCount += 1
         return stubbedTotalToday
+    }
+
+    // MARK: - Time Entry Operations
+
+    @discardableResult
+    func createTimeEntry(startDate: Date, for taskId: UUID) -> TimeEntryItem? {
+        createTimeEntryCallCount += 1
+        createTimeEntryLastTaskId = taskId
+        createTimeEntryLastStartDate = startDate
+        return stubbedCreatedTimeEntry ?? TimeEntryItem(
+            id: UUID(), startDate: startDate, endDate: nil, isManual: false, note: nil
+        )
+    }
+
+    func closeTimeEntry(id: UUID, endDate: Date) {
+        closeTimeEntryCallCount += 1
+        closeTimeEntryLastId = id
+        closeTimeEntryLastEndDate = endDate
+    }
+
+    func fetchOpenTimeEntry() -> (entry: TimeEntryItem, taskId: UUID)? {
+        fetchOpenTimeEntryCallCount += 1
+        return stubbedOpenTimeEntry
+    }
+
+    func trackedTimeToday(for taskId: UUID) -> TimeInterval {
+        trackedTimeTodayForTaskCallCount += 1
+        trackedTimeTodayLastTaskId = taskId
+        return stubbedTrackedTimeTodayForTask
+    }
+
+    func fetchTask(id: UUID) -> TaskItem? {
+        fetchTaskCallCount += 1
+        fetchTaskLastId = id
+        return stubbedFetchedTask
+    }
+
+    func deleteTimeEntry(id: UUID) {
+        deleteTimeEntryCallCount += 1
+        deleteTimeEntryLastId = id
     }
 }

@@ -168,4 +168,129 @@ struct SwiftDataLocalStorageServiceTests {
         let total = service.totalTrackedTimeToday()
         #expect(total >= 3599 && total <= 3601)
     }
+
+    // MARK: - createTimeEntry
+
+    @Test func createTimeEntryReturnsItem() throws {
+        let (service, context) = try makeService()
+        let task = TrackerTask(title: "Task")
+        context.insert(task)
+        try context.save()
+
+        let entry = service.createTimeEntry(startDate: Date(), for: task.id)
+
+        #expect(entry != nil)
+        #expect(entry?.endDate == nil)
+        #expect(entry?.isManual == false)
+    }
+
+    @Test func createTimeEntryReturnsNilForNonExistentTask() throws {
+        let (service, _) = try makeService()
+
+        let entry = service.createTimeEntry(startDate: Date(), for: UUID())
+
+        #expect(entry == nil)
+    }
+
+    // MARK: - closeTimeEntry
+
+    @Test func closeTimeEntrySetsEndDate() throws {
+        let (service, context) = try makeService()
+        let task = TrackerTask(title: "Task")
+        context.insert(task)
+        try context.save()
+
+        let entry = service.createTimeEntry(startDate: Date(), for: task.id)!
+        let endDate = Date()
+        service.closeTimeEntry(id: entry.id, endDate: endDate)
+
+        let openEntry = service.fetchOpenTimeEntry()
+        #expect(openEntry == nil)
+    }
+
+    // MARK: - fetchOpenTimeEntry
+
+    @Test func fetchOpenTimeEntryReturnsNilWhenNone() throws {
+        let (service, _) = try makeService()
+
+        let result = service.fetchOpenTimeEntry()
+
+        #expect(result == nil)
+    }
+
+    @Test func fetchOpenTimeEntryReturnsOpenEntry() throws {
+        let (service, context) = try makeService()
+        let task = TrackerTask(title: "Task")
+        context.insert(task)
+        try context.save()
+
+        service.createTimeEntry(startDate: Date(), for: task.id)
+
+        let result = service.fetchOpenTimeEntry()
+
+        #expect(result != nil)
+        #expect(result?.taskId == task.id)
+        #expect(result?.entry.endDate == nil)
+    }
+
+    // MARK: - trackedTimeToday(for:)
+
+    @Test func trackedTimeTodayForTask() throws {
+        let (service, context) = try makeService()
+        let task = TrackerTask(title: "Task")
+        context.insert(task)
+
+        let now = Date()
+        let entry = TimeEntry(task: task, startDate: now.addingTimeInterval(-1800), endDate: now)
+        context.insert(entry)
+        task.timeEntries = [entry]
+        try context.save()
+
+        let time = service.trackedTimeToday(for: task.id)
+        #expect(time >= 1799 && time <= 1801)
+    }
+
+    @Test func trackedTimeTodayForNonExistentTaskReturnsZero() throws {
+        let (service, _) = try makeService()
+
+        let time = service.trackedTimeToday(for: UUID())
+        #expect(time == 0)
+    }
+
+    // MARK: - fetchTask
+
+    @Test func fetchTaskReturnsItem() throws {
+        let (service, context) = try makeService()
+        let task = TrackerTask(title: "My Task")
+        context.insert(task)
+        try context.save()
+
+        let item = service.fetchTask(id: task.id)
+
+        #expect(item != nil)
+        #expect(item?.title == "My Task")
+    }
+
+    @Test func fetchTaskReturnsNilForNonExistent() throws {
+        let (service, _) = try makeService()
+
+        let item = service.fetchTask(id: UUID())
+
+        #expect(item == nil)
+    }
+
+    // MARK: - deleteTimeEntry
+
+    @Test func deleteTimeEntryRemovesIt() throws {
+        let (service, context) = try makeService()
+        let task = TrackerTask(title: "Task")
+        context.insert(task)
+        try context.save()
+
+        let entry = service.createTimeEntry(startDate: Date(), for: task.id)!
+        service.deleteTimeEntry(id: entry.id)
+
+        let openEntry = service.fetchOpenTimeEntry()
+        #expect(openEntry == nil)
+    }
 }

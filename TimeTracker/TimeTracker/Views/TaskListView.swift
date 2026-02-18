@@ -2,7 +2,11 @@ import SwiftUI
 
 struct TaskListView: View {
     let tasks: [TaskItem]
+    let currentTimerTaskId: UUID?
+    let timerState: TimerState
     let onDelete: (TaskItem) -> Void
+    let onStartTimer: (TaskItem) -> Void
+    let onPauseTimer: () -> Void
 
     @State private var taskToDelete: TaskItem?
 
@@ -27,7 +31,12 @@ struct TaskListView: View {
             }
 
             ForEach(tasks) { task in
-                TaskRowView(task: task)
+                TaskRowView(
+                        task: task,
+                        isRunning: timerState == .running && currentTimerTaskId == task.id,
+                        onStart: { onStartTimer(task) },
+                        onPause: { onPauseTimer() }
+                    )
                     .contentShape(Rectangle())
                     .onTapGesture(count: 2) {
                         // Phase 4: open task detail window

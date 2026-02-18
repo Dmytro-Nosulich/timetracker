@@ -5,7 +5,11 @@ import SwiftData
 struct TimeTrackerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
-    var sharedModelContainer: ModelContainer = {
+    let sharedModelContainer: ModelContainer
+    let localStorageService: SwiftDataLocalStorageService
+    let timerService: DefaultTimerService
+
+    init() {
         let schema = Schema([
             TaskEntity.self,
             TimeEntryEntity.self,
@@ -14,22 +18,39 @@ struct TimeTrackerApp: App {
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            sharedModelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }
-    }()
+
+        let localStorage = SwiftDataLocalStorageService(modelContext: sharedModelContainer.mainContext)
+        self.localStorageService = localStorage
+
+        let timer = DefaultTimerService(localStorage: localStorage)
+        self.timerService = timer
+
+        TimerServiceHolder.shared = timer
+        timer.recoverFromCrashIfNeeded()
+    }
 
     var body: some Scene {
         WindowGroup {
             MainWindowModuleBuilder.build(
-                localStorageService: SwiftDataLocalStorageService(
-                    modelContext: sharedModelContainer.mainContext
-                )
+                localStorageService: localStorageService,
+                timerService: timerService
             )
             .frame(minWidth: 500, minHeight: 400)
         }
         .defaultSize(width: 700, height: 500)
         .windowResizability(.contentMinSize)
+
+        Window("Timer", id: "timer-window") {
+            TimerWindowModuleBuilder.build(
+                localStorageService: localStorageService,
+                timerService: timerService
+            )
+        }
+        .windowResizability(.contentSize)
+        .defaultSize(width: 300, height: 280)
     }
 }

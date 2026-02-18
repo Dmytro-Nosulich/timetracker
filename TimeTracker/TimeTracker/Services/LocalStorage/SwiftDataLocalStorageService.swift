@@ -56,6 +56,65 @@ final class SwiftDataLocalStorageService: LocalStorageService {
         return tasks.reduce(0) { $0 + $1.trackedTimeToday }
     }
 
+    // MARK: - Time Entry Operations
+
+    @discardableResult
+    func createTimeEntry(startDate: Date, for taskId: UUID) -> TimeEntryItem? {
+        let descriptor = FetchDescriptor<TaskEntity>(
+            predicate: #Predicate { $0.id == taskId }
+        )
+        guard let task = try? modelContext.fetch(descriptor).first else { return nil }
+        let entry = TimeEntryEntity(task: task, startDate: startDate)
+        modelContext.insert(entry)
+        try? modelContext.save()
+        return mapTimeEntry(entry)
+    }
+
+    func closeTimeEntry(id: UUID, endDate: Date) {
+        let descriptor = FetchDescriptor<TimeEntryEntity>(
+            predicate: #Predicate { $0.id == id }
+        )
+        if let entry = try? modelContext.fetch(descriptor).first {
+            entry.endDate = endDate
+            try? modelContext.save()
+        }
+    }
+
+    func fetchOpenTimeEntry() -> (entry: TimeEntryItem, taskId: UUID)? {
+        let descriptor = FetchDescriptor<TimeEntryEntity>(
+            predicate: #Predicate { $0.endDate == nil }
+        )
+        guard let entity = try? modelContext.fetch(descriptor).first,
+              let taskId = entity.task?.id else { return nil }
+        return (mapTimeEntry(entity), taskId)
+    }
+
+    func trackedTimeToday(for taskId: UUID) -> TimeInterval {
+        let descriptor = FetchDescriptor<TaskEntity>(
+            predicate: #Predicate { $0.id == taskId }
+        )
+        guard let task = try? modelContext.fetch(descriptor).first else { return 0 }
+        return task.trackedTimeToday
+    }
+
+    func fetchTask(id: UUID) -> TaskItem? {
+        let descriptor = FetchDescriptor<TaskEntity>(
+            predicate: #Predicate { $0.id == id }
+        )
+        guard let task = try? modelContext.fetch(descriptor).first else { return nil }
+        return mapTask(task)
+    }
+
+    func deleteTimeEntry(id: UUID) {
+        let descriptor = FetchDescriptor<TimeEntryEntity>(
+            predicate: #Predicate { $0.id == id }
+        )
+        if let entry = try? modelContext.fetch(descriptor).first {
+            modelContext.delete(entry)
+            try? modelContext.save()
+        }
+    }
+
     // MARK: - Mapping
 
     private func mapTask(_ task: TaskEntity) -> TaskItem {

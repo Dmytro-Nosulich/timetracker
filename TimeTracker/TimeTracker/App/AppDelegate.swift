@@ -11,8 +11,30 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return false
     }
 
-	@MainActor
-	private func setupStatusBar() {
+    @MainActor
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard let timerService = TimerServiceHolder.shared,
+              timerService.state == .running else {
+            return .terminateNow
+        }
+
+        let alert = NSAlert()
+        alert.messageText = "Timer is running"
+        alert.informativeText = "A timer is currently running. Quit anyway?"
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Save & Quit")
+        alert.addButton(withTitle: "Cancel")
+
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+            timerService.saveAndStop()
+            return .terminateNow
+        }
+        return .terminateCancel
+    }
+
+    @MainActor
+    private func setupStatusBar() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = statusItem?.button {
             button.image = NSImage(systemSymbolName: "clock.fill", accessibilityDescription: "Time Tracker")
@@ -23,8 +45,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem?.menu = menu
     }
 
-	@MainActor
-	@objc private func quitApp() {
+    @MainActor
+    @objc private func quitApp() {
         NSApplication.shared.terminate(nil)
     }
 }

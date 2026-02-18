@@ -2,6 +2,9 @@ import SwiftUI
 
 struct TaskRowView: View {
     let task: TaskItem
+    let isRunning: Bool
+    let onStart: () -> Void
+    let onPause: () -> Void
 
     var body: some View {
         HStack {
@@ -25,10 +28,19 @@ struct TaskRowView: View {
                 .frame(width: 100, alignment: .trailing)
 
             Button {
-                // Phase 3: start/pause timer
+                if isRunning {
+                    onPause()
+                } else {
+                    onStart()
+                }
             } label: {
-                Label("Start", systemImage: "play.fill")
-                    .labelStyle(.titleAndIcon)
+                if isRunning {
+                    Label("Pause", systemImage: "pause.fill")
+                        .labelStyle(.titleAndIcon)
+                } else {
+                    Label("Start", systemImage: "play.fill")
+                        .labelStyle(.titleAndIcon)
+                }
             }
             .buttonStyle(.bordered)
             .controlSize(.small)

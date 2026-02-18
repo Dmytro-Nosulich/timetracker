@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MainWindowView<AddTaskContent: View>: View {
     @State var viewModel: MainWindowViewModel
+    @Environment(\.openWindow) private var openWindow
     let addTaskViewBuilder: () -> AddTaskContent
 
     var body: some View {
@@ -12,12 +13,21 @@ struct MainWindowView<AddTaskContent: View>: View {
 
             TaskListView(
                 tasks: viewModel.filteredTasks,
-                onDelete: { task in viewModel.deleteTask(id: task.id) }
+                currentTimerTaskId: viewModel.currentTimerTaskId,
+                timerState: viewModel.timerState,
+                onDelete: { task in viewModel.deleteTask(id: task.id) },
+                onStartTimer: { task in
+                    viewModel.startTimer(for: task)
+                    openWindow(id: "timer-window")
+                },
+                onPauseTimer: {
+                    viewModel.pauseTimer()
+                }
             )
 
             Divider()
 
-            BottomStatusBar(totalToday: viewModel.totalToday)
+            BottomStatusBar(totalToday: viewModel.liveTotalToday)
         }
         .navigationTitle("Time Tracker")
         .toolbar {
