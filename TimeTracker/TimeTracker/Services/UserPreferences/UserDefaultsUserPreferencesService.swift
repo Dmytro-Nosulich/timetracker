@@ -5,6 +5,9 @@ final class UserDefaultsUserPreferencesService: UserPreferencesService {
     private let currencySymbolKey = "currencySymbol"
     private let idleTimeoutMinutesKey = "idleTimeoutMinutes"
     private let subtractIdleTimeFromTrackedTimeKey = "subtractIdleTimeFromTrackedTime"
+    private let businessNameKey = "businessName"
+    private let defaultHourlyRateKey = "defaultHourlyRate"
+    private let timeRoundingKey = "timeRounding"
 
     static let defaultIdleTimeoutMinutes = 10
     static let defaultSubtractIdleTimeFromTrackedTime = false
@@ -39,5 +42,33 @@ final class UserDefaultsUserPreferencesService: UserPreferencesService {
 
     func setSubtractIdleTimeFromTrackedTime(_ value: Bool) {
         userDefaults.set(value, forKey: subtractIdleTimeFromTrackedTimeKey)
+    }
+
+    var businessName: String {
+        userDefaults.string(forKey: businessNameKey) ?? ""
+    }
+
+    func setBusinessName(_ value: String) {
+        userDefaults.set(value, forKey: businessNameKey)
+    }
+
+    var defaultHourlyRate: Double? {
+        userDefaults.object(forKey: defaultHourlyRateKey) as? Double
+    }
+
+    func setDefaultHourlyRate(_ value: Double?) {
+        if let value {
+            userDefaults.set(value, forKey: defaultHourlyRateKey)
+        } else {
+            userDefaults.removeObject(forKey: defaultHourlyRateKey)
+        }
+    }
+
+    var timeRounding: String {
+        userDefaults.string(forKey: timeRoundingKey) ?? "none"
+    }
+
+    func setTimeRounding(_ value: String) {
+        userDefaults.set(value, forKey: timeRoundingKey)
     }
 }

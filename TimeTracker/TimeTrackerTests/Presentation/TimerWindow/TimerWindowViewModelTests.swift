@@ -132,7 +132,7 @@ struct TimerWindowViewModelTests {
         #expect(vm.sessionElapsed == 300)
     }
 
-    @Test func todayThisTaskIncludesSessionElapsedWhenRunning() {
+    @Test func todayThisTaskIsNotIncludesSessionElapsedWhenRunning() {
         let mock = makeMock()
         mock.stubbedTrackedTimeTodayForTask = 3600
         let timerMock = makeTimerMock()
@@ -143,10 +143,10 @@ struct TimerWindowViewModelTests {
 
         let vm = TimerWindowViewModel(localStorageService: mock, timerService: timerMock)
 
-        #expect(vm.todayThisTask == 3900)
+        #expect(vm.todayThisTask == 3600)
     }
 
-    @Test func todayAllTasksIncludesSessionElapsedWhenRunning() {
+    @Test func todayAllTasksIsNotIncludesSessionElapsedWhenRunning() {
         let mock = makeMock()
         mock.stubbedTotalToday = 7200
         let timerMock = makeTimerMock()
@@ -155,7 +155,7 @@ struct TimerWindowViewModelTests {
 
         let vm = TimerWindowViewModel(localStorageService: mock, timerService: timerMock)
 
-        #expect(vm.todayAllTasks == 7800)
+        #expect(vm.todayAllTasks == 7200)
     }
 
     @Test func todayAllTasksDoesNotAddElapsedWhenPaused() {

@@ -75,5 +75,14 @@ struct TimeTrackerApp: App {
         }
         .windowResizability(.contentMinSize)
         .defaultSize(width: 600, height: 700)
+
+        Window("Report", id: "report-window") {
+            ReportModuleBuilder.build(
+                localStorageService: localStorageService,
+                userPreferencesService: userPreferencesService
+            )
+        }
+        .windowResizability(.contentMinSize)
+        .defaultSize(width: 700, height: 600)
     }
 }

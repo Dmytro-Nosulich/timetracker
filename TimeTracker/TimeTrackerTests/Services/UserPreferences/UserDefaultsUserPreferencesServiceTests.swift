@@ -90,4 +90,80 @@ struct UserDefaultsUserPreferencesServiceTests {
         service.setSubtractIdleTimeFromTrackedTime(false)
         #expect(service.subtractIdleTimeFromTrackedTime == false)
     }
+
+    // MARK: - Business name
+
+    @Test func businessNameDefaultsToEmpty() {
+        let (service, _) = makeService()
+        #expect(service.businessName == "")
+    }
+
+    @Test func setBusinessNamePersistsValue() {
+        let (service, _) = makeService()
+        service.setBusinessName("Acme Corp")
+        #expect(service.businessName == "Acme Corp")
+    }
+
+    @Test func setBusinessNameOverwritesPrevious() {
+        let (service, _) = makeService()
+        service.setBusinessName("First")
+        service.setBusinessName("Second")
+        #expect(service.businessName == "Second")
+    }
+
+    // MARK: - Default hourly rate
+
+    @Test func defaultHourlyRateDefaultsToNil() {
+        let (service, _) = makeService()
+        #expect(service.defaultHourlyRate == nil)
+    }
+
+    @Test func setDefaultHourlyRatePersistsValue() {
+        let (service, _) = makeService()
+        service.setDefaultHourlyRate(50.0)
+        #expect(service.defaultHourlyRate == 50.0)
+    }
+
+    @Test func setDefaultHourlyRateToNilRemovesValue() {
+        let (service, _) = makeService()
+        service.setDefaultHourlyRate(75.0)
+        #expect(service.defaultHourlyRate == 75.0)
+        service.setDefaultHourlyRate(nil)
+        #expect(service.defaultHourlyRate == nil)
+    }
+
+    @Test func setDefaultHourlyRateOverwritesPrevious() {
+        let (service, _) = makeService()
+        service.setDefaultHourlyRate(50.0)
+        service.setDefaultHourlyRate(100.0)
+        #expect(service.defaultHourlyRate == 100.0)
+    }
+
+    // MARK: - Time rounding
+
+    @Test func timeRoundingDefaultsToNone() {
+        let (service, _) = makeService()
+        #expect(service.timeRounding == "none")
+    }
+
+    @Test func setTimeRoundingPersistsValue() {
+        let (service, _) = makeService()
+        service.setTimeRounding("15")
+        #expect(service.timeRounding == "15")
+    }
+
+    @Test func setTimeRoundingOverwritesPrevious() {
+        let (service, _) = makeService()
+        service.setTimeRounding("5")
+        service.setTimeRounding("30")
+        #expect(service.timeRounding == "30")
+    }
+
+    @Test func timeRoundingRoundtrip() {
+        let (service, _) = makeService()
+        for value in ["none", "5", "15", "30"] {
+            service.setTimeRounding(value)
+            #expect(service.timeRounding == value)
+        }
+    }
 }

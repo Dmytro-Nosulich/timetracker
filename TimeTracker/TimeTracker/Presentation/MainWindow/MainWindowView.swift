@@ -47,7 +47,7 @@ struct MainWindowView<AddTaskContent: View>: View {
             }
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    // Phase 7: open report window
+                    openWindow(id: "report-window")
                 } label: {
                     Label("Report", systemImage: "chart.bar")
                 }

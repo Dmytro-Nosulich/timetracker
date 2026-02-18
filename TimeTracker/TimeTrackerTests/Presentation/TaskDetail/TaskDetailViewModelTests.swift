@@ -21,14 +21,13 @@ struct TaskDetailViewModelTests {
         try mainContext.save()
 
         let coordinator = TaskDetailCoordinator()
-        var closeCalled = false
 
         let vm = TaskDetailViewModel(
             taskId: task.id,
             modelContainer: container,
             coordinator: coordinator,
             currencySymbol: "$",
-            onClose: { closeCalled = true }
+            onClose: { }
         )
 
         #expect(vm.task != nil)
