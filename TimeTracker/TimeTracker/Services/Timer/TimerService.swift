@@ -1,5 +1,9 @@
 import Foundation
 
+extension Notification.Name {
+    static let timerDisplayDidUpdate = Notification.Name("timerDisplayDidUpdate")
+}
+
 enum CrashRecoveryResult: Equatable {
     case noOpenEntry
     case resumedRecent(taskId: UUID)

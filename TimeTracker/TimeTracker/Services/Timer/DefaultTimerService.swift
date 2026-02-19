@@ -20,6 +20,7 @@ final class DefaultTimerService: TimerService {
     private var currentEntryId: UUID?
     private var tickTimer: Timer?
     private var lastTickDate: Date?
+    private var lastEmittedMinute: Int = -1
 
     // MARK: - Init
 
@@ -49,6 +50,7 @@ final class DefaultTimerService: TimerService {
             currentTaskId = task.id
             sessionStartDate = now
             sessionElapsed = 0
+            lastEmittedMinute = -1
 
         case .idle:
             // Start fresh
@@ -56,6 +58,7 @@ final class DefaultTimerService: TimerService {
             currentTaskId = task.id
             sessionStartDate = now
             sessionElapsed = 0
+            lastEmittedMinute = -1
         }
 
         state = .running
@@ -69,6 +72,7 @@ final class DefaultTimerService: TimerService {
         let now = dateProvider.now()
         closeCurrentEntry(endDate: now)
         sessionElapsed = 0
+        lastEmittedMinute = -1
         inactivityPauseDate = nil
         state = .pausedByUser
         stopInternalTimer()
@@ -83,6 +87,7 @@ final class DefaultTimerService: TimerService {
         createNewEntry(for: taskId, startDate: now)
         sessionStartDate = now
         sessionElapsed = 0
+        lastEmittedMinute = -1
         state = .running
         lastTickDate = now
         startInternalTimer()
@@ -152,6 +157,7 @@ final class DefaultTimerService: TimerService {
         currentTaskId = nil
         sessionStartDate = nil
         sessionElapsed = 0
+        lastEmittedMinute = -1
     }
 
     // MARK: - Internal Timer
@@ -175,6 +181,13 @@ final class DefaultTimerService: TimerService {
 
         let now = dateProvider.now()
         sessionElapsed = now.timeIntervalSince(start)
+
+        let currentMinute = Int(sessionElapsed) / 60
+        if currentMinute != lastEmittedMinute {
+            lastEmittedMinute = currentMinute
+            NotificationCenter.default.post(name: .timerDisplayDidUpdate, object: nil)
+        }
+
         handleMidnightRollover(now: now)
         lastTickDate = now
     }

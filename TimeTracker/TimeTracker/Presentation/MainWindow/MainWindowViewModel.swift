@@ -1,10 +1,12 @@
 import Foundation
+import Combine
 
 @Observable
 @MainActor
 final class MainWindowViewModel {
     private let localStorageService: LocalStorageService
     private let timerService: TimerService
+    private var cancellables = Set<AnyCancellable>()
 
     var tasks: [TaskItem] = []
     var tags: [TagItem] = []
@@ -37,6 +39,24 @@ final class MainWindowViewModel {
     init(localStorageService: LocalStorageService, timerService: TimerService) {
         self.localStorageService = localStorageService
         self.timerService = timerService
+
+        NotificationCenter.default
+            .publisher(for: .timerDisplayDidUpdate)
+            .sink { [weak self] _ in
+                Task { @MainActor in
+                    self?.loadData()
+                }
+            }
+            .store(in: &cancellables)
+
+        NotificationCenter.default
+            .publisher(for: .taskDetailDidSave)
+            .sink { [weak self] _ in
+                Task { @MainActor in
+                    self?.loadData()
+                }
+            }
+            .store(in: &cancellables)
     }
 
     func loadData() {
