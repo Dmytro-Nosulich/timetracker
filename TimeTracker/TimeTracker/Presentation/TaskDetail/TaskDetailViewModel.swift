@@ -1,6 +1,10 @@
 import Foundation
 import SwiftData
 
+extension Notification.Name {
+    static let taskDetailDidSave = Notification.Name("taskDetailDidSave")
+}
+
 @Observable
 @MainActor
 final class TaskDetailViewModel {
@@ -119,6 +123,7 @@ final class TaskDetailViewModel {
         task?.title = task?.title.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         try? childContext.save()
 		markClean()
+        NotificationCenter.default.post(name: .taskDetailDidSave, object: nil)
         onClose()
     }
 

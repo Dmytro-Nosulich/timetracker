@@ -151,4 +151,39 @@ struct TaskDetailViewModelTests {
 
         #expect(vm.task == nil)
     }
+
+    @Test func savePostsNotification() throws {
+        let container = try makeInMemoryContainer()
+        let mainContext = container.mainContext
+
+        let task = TaskEntity(title: "Task", taskDescription: "")
+        mainContext.insert(task)
+        try mainContext.save()
+
+        let coordinator = TaskDetailCoordinator()
+        let mockStorage = MockLocalStorageService()
+        var notificationReceived = false
+
+        let vm = TaskDetailViewModel(
+            taskId: task.id,
+            modelContainer: container,
+            coordinator: coordinator,
+            currencySymbol: "$",
+            onClose: {}
+        )
+
+        let observer = NotificationCenter.default.addObserver(
+            forName: .taskDetailDidSave,
+            object: nil,
+            queue: .main
+        ) { _ in
+            notificationReceived = true
+        }
+
+        vm.save()
+
+        #expect(notificationReceived)
+        NotificationCenter.default.removeObserver(observer)
+    }
+
 }

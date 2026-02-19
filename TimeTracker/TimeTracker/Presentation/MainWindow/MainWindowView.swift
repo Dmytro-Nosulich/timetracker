@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct MainWindowView<AddTaskContent: View>: View {
     @State var viewModel: MainWindowViewModel
@@ -60,6 +61,9 @@ struct MainWindowView<AddTaskContent: View>: View {
             addTaskViewBuilder()
         }
         .onAppear {
+            viewModel.loadData()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .taskDetailDidSave)) { _ in
             viewModel.loadData()
         }
         .confirmationDialog("You have unsaved changes. Discard?", isPresented: $coordinator.showDiscardConfirmation) {
