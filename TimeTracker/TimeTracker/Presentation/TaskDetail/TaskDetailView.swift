@@ -35,6 +35,18 @@ struct TaskDetailView: View {
                 .disabled(!viewModel.isValid)
             }
         }
+        .background(WindowCloseInterceptor(
+            onWindowShouldClose: {
+                if viewModel.hasUnsavedChanges {
+                    viewModel.showCancelConfirmation = true
+                    return true
+                }
+                return false
+            },
+            onWindowWillClose: {
+                viewModel.handleWindowWillClose()
+            }
+        ))
         .confirmationDialog("You have unsaved changes. Discard?", isPresented: $viewModel.showCancelConfirmation) {
             Button("Discard", role: .destructive) {
                 viewModel.confirmCancelDiscard()

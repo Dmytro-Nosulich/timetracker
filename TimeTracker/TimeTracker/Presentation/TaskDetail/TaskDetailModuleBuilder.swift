@@ -8,7 +8,7 @@ struct TaskDetailModuleBuilder {
         modelContainer: ModelContainer,
         coordinator: TaskDetailCoordinator,
         userPreferencesService: UserPreferencesService,
-        onClose: @escaping () -> Void
+        onClose: @MainActor @escaping () -> Void
     ) -> some View {
         let viewModel = TaskDetailViewModel(
             taskId: taskId,

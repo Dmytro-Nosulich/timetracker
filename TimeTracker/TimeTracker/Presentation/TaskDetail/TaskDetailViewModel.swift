@@ -9,7 +9,7 @@ final class TaskDetailViewModel {
     private let childContext: ModelContext
     private let coordinator: TaskDetailCoordinator
     private let currencySymbol: String
-    private let onClose: () -> Void
+    private let onClose: @MainActor () -> Void
 
     var task: TaskEntity?
     var selectedDate: Date
@@ -74,7 +74,7 @@ final class TaskDetailViewModel {
         modelContainer: ModelContainer,
         coordinator: TaskDetailCoordinator,
         currencySymbol: String,
-        onClose: @escaping () -> Void
+        onClose: @MainActor @escaping () -> Void
     ) {
         self.taskId = taskId
         self.modelContainer = modelContainer
@@ -109,11 +109,16 @@ final class TaskDetailViewModel {
         coordinator.hasUnsavedChanges = true
     }
 
+	func markClean() {
+		hasUnsavedChanges = false
+		coordinator.hasUnsavedChanges = false
+	}
+
     func save() {
         guard isValid else { return }
         task?.title = task?.title.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         try? childContext.save()
-        coordinator.close()
+		markClean()
         onClose()
     }
 
@@ -121,15 +126,20 @@ final class TaskDetailViewModel {
         if hasUnsavedChanges {
             showCancelConfirmation = true
         } else {
-            coordinator.close()
             onClose()
         }
     }
 
     func confirmCancelDiscard() {
         showCancelConfirmation = false
-        coordinator.close()
+        markClean()
         onClose()
+    }
+ 
+    /// Called by `WindowCloseInterceptor` when `windowWillClose` fires.
+    /// Ensures coordinator state is reset regardless of how the window was closed.
+    func handleWindowWillClose() {
+        coordinator.close()
     }
 
     func cancelDiscardAndKeepEditing() {
