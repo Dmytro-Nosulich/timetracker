@@ -120,4 +120,55 @@ final class MockLocalStorageService: LocalStorageService {
         deleteTimeEntryCallCount += 1
         deleteTimeEntryLastId = id
     }
+
+    // MARK: - Tag Operations
+
+    var stubbedCreatedTag: TagItem?
+    var createTagCallCount = 0
+    var createTagLastName: String?
+    var createTagLastColorHex: String?
+    var updateTagCallCount = 0
+    var updateTagLastId: UUID?
+    var updateTagLastName: String?
+    var updateTagLastColorHex: String?
+    var deleteTagCallCount = 0
+    var deleteTagLastId: UUID?
+
+    @discardableResult
+    func createTag(name: String, colorHex: String) -> TagItem {
+        createTagCallCount += 1
+        createTagLastName = name
+        createTagLastColorHex = colorHex
+
+        let tag = stubbedCreatedTag ?? TagItem(
+            id: UUID(),
+            name: name,
+            colorHex: colorHex,
+            createdAt: Date()
+        )
+        stubbedTags.append(tag)
+        return tag
+    }
+
+    func updateTag(id: UUID, name: String, colorHex: String) {
+        updateTagCallCount += 1
+        updateTagLastId = id
+        updateTagLastName = name
+        updateTagLastColorHex = colorHex
+
+        if let index = stubbedTags.firstIndex(where: { $0.id == id }) {
+            stubbedTags[index] = TagItem(
+                id: id,
+                name: name,
+                colorHex: colorHex,
+                createdAt: stubbedTags[index].createdAt
+            )
+        }
+    }
+
+    func deleteTag(id: UUID) {
+        deleteTagCallCount += 1
+        deleteTagLastId = id
+        stubbedTags.removeAll { $0.id == id }
+    }
 }

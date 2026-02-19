@@ -17,4 +17,11 @@ protocol LocalStorageService {
     func trackedTimeToday(for taskId: UUID) -> TimeInterval
     func fetchTask(id: UUID) -> TaskItem?
     func deleteTimeEntry(id: UUID)
+
+    // MARK: - Tag Operations
+
+    @discardableResult
+    func createTag(name: String, colorHex: String) -> TagItem
+    func updateTag(id: UUID, name: String, colorHex: String)
+    func deleteTag(id: UUID)
 }

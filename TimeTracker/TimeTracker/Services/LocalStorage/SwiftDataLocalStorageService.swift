@@ -115,6 +115,40 @@ final class SwiftDataLocalStorageService: LocalStorageService {
         }
     }
 
+    // MARK: - Tag Operations
+
+    @discardableResult
+    func createTag(name: String, colorHex: String) -> TagItem {
+        let tag = TagEntity(name: name, colorHex: colorHex)
+        modelContext.insert(tag)
+        try? modelContext.save()
+        return mapTag(tag)
+    }
+
+    func updateTag(id: UUID, name: String, colorHex: String) {
+        let descriptor = FetchDescriptor<TagEntity>(
+            predicate: #Predicate { $0.id == id }
+        )
+        if let tag = try? modelContext.fetch(descriptor).first {
+            tag.name = name
+            tag.colorHex = colorHex
+            try? modelContext.save()
+        }
+    }
+
+    func deleteTag(id: UUID) {
+        let descriptor = FetchDescriptor<TagEntity>(
+            predicate: #Predicate { $0.id == id }
+        )
+        if let tag = try? modelContext.fetch(descriptor).first {
+            for task in tag.tasks {
+                task.tags.removeAll { $0.id == tag.id }
+            }
+            modelContext.delete(tag)
+            try? modelContext.save()
+        }
+    }
+
     // MARK: - Mapping
 
     private func mapTask(_ task: TaskEntity) -> TaskItem {

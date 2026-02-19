@@ -293,4 +293,79 @@ struct SwiftDataLocalStorageServiceTests {
         let openEntry = service.fetchOpenTimeEntry()
         #expect(openEntry == nil)
     }
+
+    // MARK: - createTag
+
+    @Test func createTagReturnsItem() throws {
+        let (service, _) = try makeService()
+        let tag = service.createTag(name: "Work", colorHex: "FF0000")
+
+        #expect(tag.name == "Work")
+        #expect(tag.colorHex == "FF0000")
+    }
+
+    @Test func createTagPersists() throws {
+        let (service, _) = try makeService()
+        service.createTag(name: "Persisted", colorHex: "00FF00")
+
+        let tags = service.fetchTags()
+        #expect(tags.count == 1)
+        #expect(tags.first?.name == "Persisted")
+    }
+
+    // MARK: - updateTag
+
+    @Test func updateTagChangesNameAndColor() throws {
+        let (service, _) = try makeService()
+        let tag = service.createTag(name: "Old", colorHex: "FF0000")
+
+        service.updateTag(id: tag.id, name: "New", colorHex: "00FF00")
+
+        let tags = service.fetchTags()
+        #expect(tags.count == 1)
+        #expect(tags.first?.name == "New")
+        #expect(tags.first?.colorHex == "00FF00")
+    }
+
+    @Test func updateTagNonExistentDoesNotCrash() throws {
+        let (service, _) = try makeService()
+        service.updateTag(id: UUID(), name: "Name", colorHex: "000000")
+    }
+
+    // MARK: - deleteTag
+
+    @Test func deleteTagRemovesIt() throws {
+        let (service, _) = try makeService()
+        let tag = service.createTag(name: "ToDelete", colorHex: "FF0000")
+
+        service.deleteTag(id: tag.id)
+
+        let tags = service.fetchTags()
+        #expect(tags.isEmpty)
+    }
+
+    @Test func deleteTagRemovesFromAssociatedTasks() throws {
+        let (service, context) = try makeService()
+        let tagEntity = TagEntity(name: "Removable", colorHex: "FF0000")
+        context.insert(tagEntity)
+        let task = TrackerTask(title: "Task With Tag")
+        task.tags = [tagEntity]
+        context.insert(task)
+        try context.save()
+
+        let tagId = tagEntity.id
+        service.deleteTag(id: tagId)
+
+        let tasks = service.fetchTasks()
+        #expect(tasks.count == 1)
+        #expect(tasks.first?.tags.isEmpty == true)
+
+        let tags = service.fetchTags()
+        #expect(tags.isEmpty)
+    }
+
+    @Test func deleteTagNonExistentDoesNotCrash() throws {
+        let (service, _) = try makeService()
+        service.deleteTag(id: UUID())
+    }
 }

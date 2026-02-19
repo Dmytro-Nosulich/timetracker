@@ -166,4 +166,92 @@ struct UserDefaultsUserPreferencesServiceTests {
             #expect(service.timeRounding == value)
         }
     }
+
+    // MARK: - Currency code
+
+    @Test func currencyCodeDefaultsToUSD() {
+        let (service, _) = makeService()
+        #expect(service.currencyCode == "USD")
+    }
+
+    @Test func setCurrencyCodePersistsValue() {
+        let (service, _) = makeService()
+        service.setCurrencyCode("EUR")
+        #expect(service.currencyCode == "EUR")
+    }
+
+    @Test func setCurrencyCodeOverwritesPrevious() {
+        let (service, _) = makeService()
+        service.setCurrencyCode("GBP")
+        service.setCurrencyCode("JPY")
+        #expect(service.currencyCode == "JPY")
+    }
+
+    // MARK: - Tracking reminder enabled
+
+    @Test func trackingReminderEnabledDefaultsToFalse() {
+        let (service, _) = makeService()
+        #expect(service.trackingReminderEnabled == false)
+    }
+
+    @Test func setTrackingReminderEnabledPersistsValue() {
+        let (service, _) = makeService()
+        service.setTrackingReminderEnabled(true)
+        #expect(service.trackingReminderEnabled == true)
+    }
+
+    @Test func trackingReminderEnabledRoundtrip() {
+        let (service, _) = makeService()
+        service.setTrackingReminderEnabled(true)
+        #expect(service.trackingReminderEnabled == true)
+        service.setTrackingReminderEnabled(false)
+        #expect(service.trackingReminderEnabled == false)
+    }
+
+    // MARK: - Tracking reminder time
+
+    @Test func trackingReminderTimeDefaultsTo9AM() {
+        let (service, _) = makeService()
+        #expect(service.trackingReminderTime == 9 * 3600)
+    }
+
+    @Test func setTrackingReminderTimePersistsValue() {
+        let (service, _) = makeService()
+        let tenAM: TimeInterval = 10 * 3600
+        service.setTrackingReminderTime(tenAM)
+        #expect(service.trackingReminderTime == tenAM)
+    }
+
+    @Test func setTrackingReminderTimeOverwritesPrevious() {
+        let (service, _) = makeService()
+        service.setTrackingReminderTime(8 * 3600)
+        service.setTrackingReminderTime(14 * 3600 + 30 * 60)
+        #expect(service.trackingReminderTime == 14 * 3600 + 30 * 60)
+    }
+
+    // MARK: - Tracking reminder days
+
+    @Test func trackingReminderDaysDefaultsToWeekdays() {
+        let (service, _) = makeService()
+        #expect(service.trackingReminderDays == [2, 3, 4, 5, 6])
+    }
+
+    @Test func setTrackingReminderDaysPersistsValue() {
+        let (service, _) = makeService()
+        service.setTrackingReminderDays([2, 4, 6])
+        #expect(service.trackingReminderDays == [2, 4, 6])
+    }
+
+    @Test func setTrackingReminderDaysOverwritesPrevious() {
+        let (service, _) = makeService()
+        service.setTrackingReminderDays([1, 7])
+        service.setTrackingReminderDays([3, 5])
+        #expect(service.trackingReminderDays == [3, 5])
+    }
+
+    @Test func trackingReminderDaysEmptyArray() {
+        let (service, _) = makeService()
+        service.setTrackingReminderDays([])
+        #expect(service.trackingReminderDays == [])
+    }
 }

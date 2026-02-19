@@ -11,6 +11,7 @@ struct TimeTrackerApp: App {
     let timerService: DefaultTimerService
     let userPreferencesService: UserPreferencesService
     let idleMonitorService: DefaultIdleMonitorService
+    let trackingReminderService: DefaultTrackingReminderService
 
     init() {
         let schema = Schema([
@@ -30,17 +31,22 @@ struct TimeTrackerApp: App {
         self.localStorageService = localStorage
         LocalStorageServiceHolder.shared = localStorage
 
-        self.userPreferencesService = UserDefaultsUserPreferencesService()
+        let preferences = UserDefaultsUserPreferencesService()
+        self.userPreferencesService = preferences
 
-        let timer = DefaultTimerService(localStorage: localStorage, userPreferences: userPreferencesService)
+        let timer = DefaultTimerService(localStorage: localStorage, userPreferences: preferences)
         self.timerService = timer
 
         TimerServiceHolder.shared = timer
         timer.recoverFromCrashIfNeeded()
 
-        let idleMonitor = DefaultIdleMonitorService(timerService: timer, userPreferences: userPreferencesService, localStorage: localStorage)
+        let idleMonitor = DefaultIdleMonitorService(timerService: timer, userPreferences: preferences, localStorage: localStorage)
         self.idleMonitorService = idleMonitor
         idleMonitor.start()
+
+        let reminder = DefaultTrackingReminderService(userPreferences: preferences, timerService: timer)
+        self.trackingReminderService = reminder
+        reminder.rescheduleNotifications()
     }
 
     var body: some Scene {
@@ -84,5 +90,13 @@ struct TimeTrackerApp: App {
         }
         .windowResizability(.contentMinSize)
         .defaultSize(width: 700, height: 600)
+
+        Settings {
+            SettingsModuleBuilder.build(
+                localStorageService: localStorageService,
+                userPreferencesService: userPreferencesService,
+                reminderService: trackingReminderService
+            )
+        }
     }
 }
