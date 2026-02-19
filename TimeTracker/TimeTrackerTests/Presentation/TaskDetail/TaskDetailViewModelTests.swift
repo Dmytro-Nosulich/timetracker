@@ -161,7 +161,6 @@ struct TaskDetailViewModelTests {
         try mainContext.save()
 
         let coordinator = TaskDetailCoordinator()
-        let mockStorage = MockLocalStorageService()
         var notificationReceived = false
 
         let vm = TaskDetailViewModel(
