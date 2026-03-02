@@ -27,10 +27,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         if !flag {
             openMainWindow()
+            return false
         } else {
             sender.activate(ignoringOtherApps: true)
+            return true
         }
-        return true
     }
 
     @MainActor
