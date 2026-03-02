@@ -50,10 +50,11 @@ final class DefaultTimerService: TimerService {
 			break
         }
 
+		let offset = task.totalTrackedTime.truncatingRemainder(dividingBy: 60)
 		createNewEntry(for: task.id, startDate: now)
 		currentTaskId = task.id
-		sessionStartDate = now
-		sessionElapsed = 0
+		sessionStartDate = now - offset
+		sessionElapsed = offset
 		lastEmittedMinute = -1
 
         state = .running
@@ -78,10 +79,11 @@ final class DefaultTimerService: TimerService {
               state == .pausedByUser || state == .pausedByInactivity else { return }
 
         let now = dateProvider.now()
+        let offset = localStorage.fetchTask(id: taskId)?.totalTrackedTime.truncatingRemainder(dividingBy: 60) ?? 0
         inactivityPauseDate = nil
         createNewEntry(for: taskId, startDate: now)
-        sessionStartDate = now
-        sessionElapsed = 0
+        sessionStartDate = now - offset
+        sessionElapsed = offset
         lastEmittedMinute = -1
         state = .running
         lastTickDate = now
