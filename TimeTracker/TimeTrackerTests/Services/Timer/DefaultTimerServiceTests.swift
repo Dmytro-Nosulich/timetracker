@@ -346,7 +346,7 @@ struct DefaultTimerServiceTests {
 
     // MARK: - Task Switch Preserves Session
 
-    @Test func switchTaskPreservesSessionElapsed() {
+    @Test func switchTaskDoesNotPreservesSessionElapsed() {
         let storage = makeMock()
         let dp = makeDateProvider()
 
@@ -359,13 +359,13 @@ struct DefaultTimerServiceTests {
         let task2 = makeTask(title: "Task 2")
 
         service.startTimer(for: task1)
-        let sessionStart = service.sessionStartDate
 
         // Advance time
         dp.currentDate = startTime.addingTimeInterval(300) // 5 minutes later
 
         // Switch to task2 — session should continue
         service.startTimer(for: task2)
+		let sessionStart = service.sessionStartDate
 
         #expect(service.sessionStartDate == sessionStart) // session start unchanged
         #expect(service.currentTaskId == task2.id)

@@ -167,7 +167,7 @@ struct MainWindowViewModelTests {
         #expect(vm.currentTimerTaskId == taskId)
     }
 
-    @Test func liveTotalTodayAddsSessionElapsedWhenRunning() {
+    @Test func liveTotalTodayDoesNotAddSessionElapsedWhenRunning() {
         let mock = makeMock()
         mock.stubbedTotalToday = 3600
         let timerMock = makeTimerMock()
@@ -177,7 +177,7 @@ struct MainWindowViewModelTests {
         let vm = MainWindowViewModel(localStorageService: mock, timerService: timerMock)
         vm.loadData()
 
-        #expect(vm.liveTotalToday == 3900)
+        #expect(vm.liveTotalToday == 3600)
     }
 
     @Test func liveTotalTodayDoesNotAddSessionElapsedWhenIdle() {
