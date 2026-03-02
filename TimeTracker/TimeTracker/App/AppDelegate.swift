@@ -8,6 +8,7 @@ private enum MenuAction: Int {
     case quit
 }
 
+@preconcurrency
 class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var statusItem: NSStatusItem?
     private var iconUpdateTimer: Timer?

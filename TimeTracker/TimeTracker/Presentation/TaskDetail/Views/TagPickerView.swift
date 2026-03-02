@@ -42,6 +42,8 @@ struct TagPickerView: View {
 							}
 						}
 					}
+					.listStyle(.plain)
+					.background(Color.clear)
 				}
 			}
 
