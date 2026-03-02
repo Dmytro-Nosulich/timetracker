@@ -1,0 +1,499 @@
+{
+  "" : {
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeTracker-primary.dia",
+    "emit-module-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeTracker-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeTracker-primary-emit-module.dia",
+    "pch" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeTracker-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeTracker-primary.swiftdeps"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/App/AppDelegate.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AppDelegate.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AppDelegate.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AppDelegate.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AppDelegate.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AppDelegate.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AppDelegate.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AppDelegate.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AppDelegate~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/App/LocalStorageServiceHolder.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/LocalStorageServiceHolder.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/LocalStorageServiceHolder.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/LocalStorageServiceHolder.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/LocalStorageServiceHolder.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/LocalStorageServiceHolder.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/LocalStorageServiceHolder.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/LocalStorageServiceHolder.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/LocalStorageServiceHolder~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/App/TaskDetailCoordinator.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailCoordinator.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailCoordinator.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailCoordinator.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailCoordinator.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailCoordinator.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailCoordinator.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailCoordinator.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailCoordinator~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/App/TimerServiceHolder.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerServiceHolder.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerServiceHolder.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerServiceHolder.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerServiceHolder.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerServiceHolder.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerServiceHolder.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerServiceHolder.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerServiceHolder~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Domain/Models/TagItem.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagItem.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagItem.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagItem.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagItem.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagItem.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagItem.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagItem.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagItem~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Domain/Models/TaskItem.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskItem.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskItem.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskItem.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskItem.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskItem.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskItem.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskItem.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskItem~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Domain/Models/TimeEntryItem.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryItem.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryItem.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryItem.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryItem.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryItem.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryItem.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryItem.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryItem~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Domain/Models/TimerState.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerState.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerState.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerState.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerState.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerState.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerState.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerState.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerState~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Presentation/AddTask/AddTaskModuleBuilder.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskModuleBuilder.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskModuleBuilder.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskModuleBuilder.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskModuleBuilder.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskModuleBuilder.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskModuleBuilder.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskModuleBuilder.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskModuleBuilder~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Presentation/AddTask/AddTaskView.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskView.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskView.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskView.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskView.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskView.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskView.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskView.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskView~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Presentation/AddTask/AddTaskViewModel.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskViewModel.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskViewModel.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskViewModel.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskViewModel.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskViewModel.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskViewModel.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskViewModel.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTaskViewModel~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Presentation/MainWindow/MainWindowModuleBuilder.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowModuleBuilder.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowModuleBuilder.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowModuleBuilder.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowModuleBuilder.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowModuleBuilder.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowModuleBuilder.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowModuleBuilder.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowModuleBuilder~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Presentation/MainWindow/MainWindowView.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowView.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowView.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowView.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowView.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowView.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowView.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowView.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowView~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Presentation/MainWindow/MainWindowViewModel.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowViewModel.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowViewModel.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowViewModel.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowViewModel.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowViewModel.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowViewModel.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowViewModel.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/MainWindowViewModel~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Presentation/TaskDetail/AddTimeEntryView.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTimeEntryView.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTimeEntryView.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTimeEntryView.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTimeEntryView.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTimeEntryView.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTimeEntryView.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTimeEntryView.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTimeEntryView~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Presentation/TaskDetail/AddTimeEntryViewModel.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTimeEntryViewModel.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTimeEntryViewModel.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTimeEntryViewModel.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTimeEntryViewModel.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTimeEntryViewModel.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTimeEntryViewModel.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTimeEntryViewModel.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/AddTimeEntryViewModel~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Presentation/TaskDetail/EditTimeEntryView.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/EditTimeEntryView.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/EditTimeEntryView.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/EditTimeEntryView.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/EditTimeEntryView.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/EditTimeEntryView.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/EditTimeEntryView.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/EditTimeEntryView.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/EditTimeEntryView~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Presentation/TaskDetail/EditTimeEntryViewModel.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/EditTimeEntryViewModel.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/EditTimeEntryViewModel.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/EditTimeEntryViewModel.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/EditTimeEntryViewModel.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/EditTimeEntryViewModel.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/EditTimeEntryViewModel.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/EditTimeEntryViewModel.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/EditTimeEntryViewModel~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Presentation/TaskDetail/TaskDetailModuleBuilder.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailModuleBuilder.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailModuleBuilder.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailModuleBuilder.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailModuleBuilder.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailModuleBuilder.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailModuleBuilder.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailModuleBuilder.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailModuleBuilder~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Presentation/TaskDetail/TaskDetailView.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailView.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailView.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailView.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailView.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailView.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailView.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailView.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailView~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Presentation/TaskDetail/TaskDetailViewModel.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailViewModel.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailViewModel.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailViewModel.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailViewModel.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailViewModel.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailViewModel.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailViewModel.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailViewModel~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Presentation/TaskDetail/TaskDetailWindowContent.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailWindowContent.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailWindowContent.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailWindowContent.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailWindowContent.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailWindowContent.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailWindowContent.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailWindowContent.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskDetailWindowContent~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Presentation/TimerWindow/TimerWindowModuleBuilder.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowModuleBuilder.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowModuleBuilder.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowModuleBuilder.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowModuleBuilder.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowModuleBuilder.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowModuleBuilder.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowModuleBuilder.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowModuleBuilder~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Presentation/TimerWindow/TimerWindowView.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowView.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowView.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowView.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowView.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowView.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowView.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowView.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowView~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Presentation/TimerWindow/TimerWindowViewModel.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowViewModel.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowViewModel.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowViewModel.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowViewModel.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowViewModel.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowViewModel.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowViewModel.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerWindowViewModel~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Services/IdleMonitor/DefaultIdleMonitorService.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DefaultIdleMonitorService.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DefaultIdleMonitorService.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DefaultIdleMonitorService.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DefaultIdleMonitorService.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DefaultIdleMonitorService.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DefaultIdleMonitorService.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DefaultIdleMonitorService.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DefaultIdleMonitorService~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Services/IdleMonitor/IdleMonitorService.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/IdleMonitorService.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/IdleMonitorService.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/IdleMonitorService.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/IdleMonitorService.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/IdleMonitorService.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/IdleMonitorService.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/IdleMonitorService.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/IdleMonitorService~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Services/LocalStorage/LocalStorageService.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/LocalStorageService.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/LocalStorageService.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/LocalStorageService.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/LocalStorageService.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/LocalStorageService.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/LocalStorageService.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/LocalStorageService.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/LocalStorageService~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Services/LocalStorage/Models/TagEntity.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagEntity.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagEntity.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagEntity.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagEntity.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagEntity.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagEntity.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagEntity.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagEntity~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Services/LocalStorage/Models/TaskEntity.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskEntity.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskEntity.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskEntity.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskEntity.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskEntity.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskEntity.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskEntity.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskEntity~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Services/LocalStorage/Models/TimeEntryEntity.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryEntity.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryEntity.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryEntity.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryEntity.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryEntity.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryEntity.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryEntity.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryEntity~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Services/LocalStorage/SwiftDataLocalStorageService.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/SwiftDataLocalStorageService.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/SwiftDataLocalStorageService.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/SwiftDataLocalStorageService.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/SwiftDataLocalStorageService.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/SwiftDataLocalStorageService.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/SwiftDataLocalStorageService.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/SwiftDataLocalStorageService.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/SwiftDataLocalStorageService~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Services/Timer/DateProvider.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DateProvider.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DateProvider.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DateProvider.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DateProvider.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DateProvider.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DateProvider.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DateProvider.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DateProvider~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Services/Timer/DefaultTimerService.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DefaultTimerService.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DefaultTimerService.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DefaultTimerService.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DefaultTimerService.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DefaultTimerService.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DefaultTimerService.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DefaultTimerService.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/DefaultTimerService~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Services/Timer/TimerService.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerService.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerService.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerService.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerService.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerService.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerService.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerService.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimerService~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Services/UserPreferences/UserDefaultsUserPreferencesService.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/UserDefaultsUserPreferencesService.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/UserDefaultsUserPreferencesService.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/UserDefaultsUserPreferencesService.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/UserDefaultsUserPreferencesService.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/UserDefaultsUserPreferencesService.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/UserDefaultsUserPreferencesService.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/UserDefaultsUserPreferencesService.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/UserDefaultsUserPreferencesService~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Services/UserPreferences/UserPreferencesService.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/UserPreferencesService.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/UserPreferencesService.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/UserPreferencesService.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/UserPreferencesService.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/UserPreferencesService.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/UserPreferencesService.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/UserPreferencesService.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/UserPreferencesService~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/TimeTrackerApp.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeTrackerApp.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeTrackerApp.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeTrackerApp.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeTrackerApp.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeTrackerApp.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeTrackerApp.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeTrackerApp.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeTrackerApp~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Utilities/ColorHex.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/ColorHex.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/ColorHex.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/ColorHex.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/ColorHex.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/ColorHex.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/ColorHex.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/ColorHex.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/ColorHex~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Utilities/FlowLayout.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/FlowLayout.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/FlowLayout.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/FlowLayout.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/FlowLayout.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/FlowLayout.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/FlowLayout.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/FlowLayout.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/FlowLayout~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Utilities/TimeEntryOverlap.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryOverlap.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryOverlap.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryOverlap.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryOverlap.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryOverlap.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryOverlap.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryOverlap.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeEntryOverlap~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Utilities/TimeFormatting.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeFormatting.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeFormatting.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeFormatting.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeFormatting.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeFormatting.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeFormatting.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeFormatting.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TimeFormatting~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Views/BottomStatusBar.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/BottomStatusBar.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/BottomStatusBar.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/BottomStatusBar.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/BottomStatusBar.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/BottomStatusBar.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/BottomStatusBar.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/BottomStatusBar.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/BottomStatusBar~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Views/CalendarHeatmapView.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/CalendarHeatmapView.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/CalendarHeatmapView.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/CalendarHeatmapView.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/CalendarHeatmapView.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/CalendarHeatmapView.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/CalendarHeatmapView.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/CalendarHeatmapView.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/CalendarHeatmapView~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Views/TagChip.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagChip.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagChip.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagChip.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagChip.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagChip.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagChip.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagChip.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagChip~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Views/TagFilterBar.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagFilterBar.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagFilterBar.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagFilterBar.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagFilterBar.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagFilterBar.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagFilterBar.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagFilterBar.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TagFilterBar~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Views/TaskListView.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskListView.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskListView.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskListView.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskListView.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskListView.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskListView.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskListView.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskListView~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/TimeTracker/Views/TaskRowView.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskRowView.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskRowView.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskRowView.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskRowView.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskRowView.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskRowView.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskRowView.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/TaskRowView~partial.swiftmodule"
+  },
+  "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "const-values" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftconstvalues",
+    "dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/GeneratedAssetSymbols.d",
+    "diagnostics" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/GeneratedAssetSymbols.dia",
+    "index-unit-output-path" : "/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "swift-dependencies" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftdeps",
+    "swiftmodule" : "/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/build/Build/Intermediates.noindex/TimeTracker.build/Debug/TimeTracker.build/Objects-normal/arm64/GeneratedAssetSymbols~partial.swiftmodule"
+  }
+}
