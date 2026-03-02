@@ -96,69 +96,87 @@ final class CoreGraphicsReportPDFService: ReportPDFService {
     // MARK: - Table
 
     private func drawTable(context: CGContext, config: ReportPDFConfig, y: CGFloat, contentWidth: CGFloat, mediaBox: inout CGRect) -> CGFloat {
-        let showRate = config.showRateColumns
-        let columns = buildColumnLayout(contentWidth: contentWidth, showRate: showRate)
-        let rowHeight: CGFloat = 28
+        let showAmount = config.showAmountColumn
+        let columns = buildColumnLayout(contentWidth: contentWidth, showAmount: showAmount)
         let headerHeight: CGFloat = 32
+        let summaryRowHeight: CGFloat = 32
 
         var yPos = y
 
-        yPos = drawTableHeaderRow(context: context, columns: columns, y: yPos, height: headerHeight, contentWidth: contentWidth, showRate: showRate)
+        yPos = drawTableHeaderRow(context: context, columns: columns, y: yPos, height: headerHeight, contentWidth: contentWidth, showAmount: showAmount)
 
         for task in config.tasks {
+            let rowHeight = rowHeight(for: task, columns: columns)
             if yPos - rowHeight < marginBottom {
                 context.endPage()
                 context.beginPage(mediaBox: &mediaBox)
                 yPos = pageHeight - marginTop
-                yPos = drawTableHeaderRow(context: context, columns: columns, y: yPos, height: headerHeight, contentWidth: contentWidth, showRate: showRate)
+                yPos = drawTableHeaderRow(context: context, columns: columns, y: yPos, height: headerHeight, contentWidth: contentWidth, showAmount: showAmount)
             }
-            yPos = drawTaskRow(context: context, task: task, columns: columns, y: yPos, height: rowHeight, contentWidth: contentWidth, showRate: showRate, config: config)
+            yPos = drawTaskRow(context: context, task: task, columns: columns, y: yPos, height: rowHeight, contentWidth: contentWidth, showAmount: showAmount)
         }
 
         drawTableRowBorder(context: context, y: yPos, contentWidth: contentWidth)
 
-        yPos = drawTotalRow(context: context, config: config, columns: columns, y: yPos, height: rowHeight + 4, contentWidth: contentWidth, showRate: showRate)
+        if let totalRate = config.totalRate {
+            yPos = drawRateRow(context: context, totalRate: totalRate, columns: columns, y: yPos, height: summaryRowHeight, contentWidth: contentWidth, showAmount: showAmount)
+        }
+
+        yPos = drawTotalRow(context: context, config: config, columns: columns, y: yPos, height: summaryRowHeight, contentWidth: contentWidth, showAmount: showAmount)
 
         return yPos
     }
 
     private struct ColumnLayout {
+        let dateX: CGFloat
+        let dateWidth: CGFloat
         let taskX: CGFloat
         let taskWidth: CGFloat
         let timeX: CGFloat
         let timeWidth: CGFloat
-        let rateX: CGFloat
-        let rateWidth: CGFloat
         let amountX: CGFloat
         let amountWidth: CGFloat
     }
 
-    private func buildColumnLayout(contentWidth: CGFloat, showRate: Bool) -> ColumnLayout {
+    private func buildColumnLayout(contentWidth: CGFloat, showAmount: Bool) -> ColumnLayout {
         let startX = marginX
-        if showRate {
-            let taskWidth = contentWidth * 0.45
-            let timeWidth = contentWidth * 0.18
-            let rateWidth = contentWidth * 0.17
-            let amountWidth = contentWidth * 0.20
+        if showAmount {
+            let dateWidth = contentWidth * 0.17
+            let taskWidth = contentWidth * 0.48
+            let timeWidth = contentWidth * 0.10
+            let amountWidth = contentWidth * 0.25
             return ColumnLayout(
-                taskX: startX, taskWidth: taskWidth,
-                timeX: startX + taskWidth, timeWidth: timeWidth,
-                rateX: startX + taskWidth + timeWidth, rateWidth: rateWidth,
-                amountX: startX + taskWidth + timeWidth + rateWidth, amountWidth: amountWidth
+                dateX: startX, dateWidth: dateWidth,
+                taskX: startX + dateWidth, taskWidth: taskWidth,
+                timeX: startX + dateWidth + taskWidth, timeWidth: timeWidth,
+                amountX: startX + dateWidth + taskWidth + timeWidth, amountWidth: amountWidth
             )
         } else {
-            let taskWidth = contentWidth * 0.70
-            let timeWidth = contentWidth * 0.30
+            let dateWidth = contentWidth * 0.17
+            let taskWidth = contentWidth * 0.68
+            let timeWidth = contentWidth * 0.15
             return ColumnLayout(
-                taskX: startX, taskWidth: taskWidth,
-                timeX: startX + taskWidth, timeWidth: timeWidth,
-                rateX: 0, rateWidth: 0,
+                dateX: startX, dateWidth: dateWidth,
+                taskX: startX + dateWidth, taskWidth: taskWidth,
+                timeX: startX + dateWidth + taskWidth, timeWidth: timeWidth,
                 amountX: 0, amountWidth: 0
             )
         }
     }
 
-    private func drawTableHeaderRow(context: CGContext, columns: ColumnLayout, y: CGFloat, height: CGFloat, contentWidth: CGFloat, showRate: Bool) -> CGFloat {
+    // MARK: - Row height
+
+    private func rowHeight(for task: ReportPDFTaskRow, columns: ColumnLayout) -> CGFloat {
+        let cellAttrs: [NSAttributedString.Key: Any] = [.font: NSFont.systemFont(ofSize: 10, weight: .regular)]
+        let titleHeight = measureTextHeight(task.title, attrs: cellAttrs, maxWidth: columns.taskWidth - 16)
+        let minHeight: CGFloat = 28
+        let padding: CGFloat = 16
+        return max(minHeight, titleHeight + padding)
+    }
+
+    // MARK: - Header Row
+
+    private func drawTableHeaderRow(context: CGContext, columns: ColumnLayout, y: CGFloat, height: CGFloat, contentWidth: CGFloat, showAmount: Bool) -> CGFloat {
         let bgRect = CGRect(x: marginX, y: y - height, width: contentWidth, height: height)
         context.setFillColor(NSColor(white: 0.92, alpha: 1.0).cgColor)
         context.fill(bgRect)
@@ -172,17 +190,19 @@ final class CoreGraphicsReportPDFService: ReportPDFService {
         ]
 
         let textY = y - height + 9
+        drawText("Date", attrs: headerAttrs, context: context, x: columns.dateX + 8, y: textY, maxWidth: columns.dateWidth - 16)
         drawText("Task", attrs: headerAttrs, context: context, x: columns.taskX + 8, y: textY, maxWidth: columns.taskWidth - 16)
         drawTextRightAligned("Time", attrs: headerAttrs, context: context, x: columns.timeX, y: textY, width: columns.timeWidth - 8)
-        if showRate {
-            drawTextRightAligned("Rate", attrs: headerAttrs, context: context, x: columns.rateX, y: textY, width: columns.rateWidth - 8)
+        if showAmount {
             drawTextRightAligned("Amount", attrs: headerAttrs, context: context, x: columns.amountX, y: textY, width: columns.amountWidth - 8)
         }
 
         return y - height
     }
 
-    private func drawTaskRow(context: CGContext, task: ReportPDFTaskRow, columns: ColumnLayout, y: CGFloat, height: CGFloat, contentWidth: CGFloat, showRate: Bool, config: ReportPDFConfig) -> CGFloat {
+    // MARK: - Task Row
+
+    private func drawTaskRow(context: CGContext, task: ReportPDFTaskRow, columns: ColumnLayout, y: CGFloat, height: CGFloat, contentWidth: CGFloat, showAmount: Bool) -> CGFloat {
         let cellAttrs: [NSAttributedString.Key: Any] = [
             .font: NSFont.systemFont(ofSize: 10, weight: .regular),
             .foregroundColor: NSColor.black
@@ -192,25 +212,57 @@ final class CoreGraphicsReportPDFService: ReportPDFService {
             .foregroundColor: NSColor.gray
         ]
 
-        let textY = y - height + 9
-        drawText(task.title, attrs: cellAttrs, context: context, x: columns.taskX + 8, y: textY, maxWidth: columns.taskWidth - 16)
-        drawTextRightAligned(task.formattedTime, attrs: cellAttrs, context: context, x: columns.timeX, y: textY, width: columns.timeWidth - 8)
+        let rowBottom = y - height
 
-        if showRate {
-            let rateStr = task.formattedRate ?? "—"
-            let rateAttrs = task.formattedRate != nil ? cellAttrs : dashAttrs
-            drawTextRightAligned(rateStr, attrs: rateAttrs, context: context, x: columns.rateX, y: textY, width: columns.rateWidth - 8)
+        if let date = task.formattedDate {
+            let h = measureTextHeight(date, attrs: cellAttrs, maxWidth: columns.dateWidth - 16)
+            let textY = rowBottom + (height - h) / 2
+            drawText(date, attrs: cellAttrs, context: context, x: columns.dateX + 8, y: textY, maxWidth: columns.dateWidth - 16)
+        }
 
+        let titleH = measureTextHeight(task.title, attrs: cellAttrs, maxWidth: columns.taskWidth - 16)
+        let titleY = rowBottom + (height - titleH) / 2
+        drawText(task.title, attrs: cellAttrs, context: context, x: columns.taskX + 8, y: titleY, maxWidth: columns.taskWidth - 16)
+
+        let timeH = measureTextHeight(task.formattedTime, attrs: cellAttrs, maxWidth: columns.timeWidth - 8)
+        let timeY = rowBottom + (height - timeH) / 2
+        drawTextRightAligned(task.formattedTime, attrs: cellAttrs, context: context, x: columns.timeX, y: timeY, width: columns.timeWidth - 8)
+
+        if showAmount {
             let amountStr = task.formattedAmount ?? "—"
             let amountAttrs = task.formattedAmount != nil ? cellAttrs : dashAttrs
-            drawTextRightAligned(amountStr, attrs: amountAttrs, context: context, x: columns.amountX, y: textY, width: columns.amountWidth - 8)
+            let amountH = measureTextHeight(amountStr, attrs: amountAttrs, maxWidth: columns.amountWidth - 8)
+            let amountY = rowBottom + (height - amountH) / 2
+            drawTextRightAligned(amountStr, attrs: amountAttrs, context: context, x: columns.amountX, y: amountY, width: columns.amountWidth - 8)
         }
+
+        drawTableRowBorder(context: context, y: rowBottom, contentWidth: contentWidth)
+        return rowBottom
+    }
+
+    // MARK: - Summary Rows
+
+    private func drawRateRow(context: CGContext, totalRate: String, columns: ColumnLayout, y: CGFloat, height: CGFloat, contentWidth: CGFloat, showAmount: Bool) -> CGFloat {
+        let bgRect = CGRect(x: marginX, y: y - height, width: contentWidth, height: height)
+        context.setFillColor(NSColor(white: 0.95, alpha: 1.0).cgColor)
+        context.fill(bgRect)
+
+        let boldAttrs: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 11, weight: .bold),
+            .foregroundColor: NSColor.black
+        ]
+
+        let textY = y - height + 10
+        drawText("RATE", attrs: boldAttrs, context: context, x: columns.taskX + 8, y: textY, maxWidth: columns.taskWidth - 16)
+        let rateTargetX = showAmount ? columns.amountX : columns.timeX
+        let rateTargetWidth = showAmount ? columns.amountWidth - 8 : columns.timeWidth - 8
+        drawTextRightAligned(totalRate, attrs: boldAttrs, context: context, x: rateTargetX, y: textY, width: rateTargetWidth)
 
         drawTableRowBorder(context: context, y: y - height, contentWidth: contentWidth)
         return y - height
     }
 
-    private func drawTotalRow(context: CGContext, config: ReportPDFConfig, columns: ColumnLayout, y: CGFloat, height: CGFloat, contentWidth: CGFloat, showRate: Bool) -> CGFloat {
+    private func drawTotalRow(context: CGContext, config: ReportPDFConfig, columns: ColumnLayout, y: CGFloat, height: CGFloat, contentWidth: CGFloat, showAmount: Bool) -> CGFloat {
         let bgRect = CGRect(x: marginX, y: y - height, width: contentWidth, height: height)
         context.setFillColor(NSColor(white: 0.95, alpha: 1.0).cgColor)
         context.fill(bgRect)
@@ -224,7 +276,7 @@ final class CoreGraphicsReportPDFService: ReportPDFService {
         drawText("TOTAL", attrs: boldAttrs, context: context, x: columns.taskX + 8, y: textY, maxWidth: columns.taskWidth - 16)
         drawTextRightAligned(config.totalTime, attrs: boldAttrs, context: context, x: columns.timeX, y: textY, width: columns.timeWidth - 8)
 
-        if showRate, let totalAmount = config.totalAmount {
+        if showAmount, let totalAmount = config.totalAmount {
             drawTextRightAligned(totalAmount, attrs: boldAttrs, context: context, x: columns.amountX, y: textY, width: columns.amountWidth - 8)
         }
 
@@ -241,6 +293,19 @@ final class CoreGraphicsReportPDFService: ReportPDFService {
     }
 
     // MARK: - Text Drawing
+
+    private func measureTextHeight(_ text: String, attrs: [NSAttributedString.Key: Any], maxWidth: CGFloat) -> CGFloat {
+        let attrStr = NSAttributedString(string: text, attributes: attrs)
+        let framesetter = CTFramesetterCreateWithAttributedString(attrStr)
+        let size = CTFramesetterSuggestFrameSizeWithConstraints(
+            framesetter,
+            CFRangeMake(0, attrStr.length),
+            nil,
+            CGSize(width: maxWidth, height: .greatestFiniteMagnitude),
+            nil
+        )
+        return size.height
+    }
 
     private func drawAttributedString(_ attrStr: NSAttributedString, context: CGContext, x: CGFloat, y: CGFloat, maxWidth: CGFloat) -> CGFloat {
         let framesetter = CTFramesetterCreateWithAttributedString(attrStr)

@@ -11,9 +11,10 @@ struct CoreGraphicsReportPDFServiceTests {
     private func makeConfig(
         businessName: String = "Test Business",
         tasks: [ReportPDFTaskRow] = [],
-        showRateColumns: Bool = false,
+        showAmountColumn: Bool = false,
         totalTime: String = "0h 00m",
-        totalAmount: String? = nil
+        totalAmount: String? = nil,
+        totalRate: String? = nil
     ) -> ReportPDFConfig {
         ReportPDFConfig(
             businessName: businessName,
@@ -22,22 +23,23 @@ struct CoreGraphicsReportPDFServiceTests {
             generatedDate: Date(),
             tasks: tasks,
             currencySymbol: "$",
-            showRateColumns: showRateColumns,
+            showAmountColumn: showAmountColumn,
             totalTime: totalTime,
-            totalAmount: totalAmount
+            totalAmount: totalAmount,
+            totalRate: totalRate
         )
     }
 
     private func makeTaskRow(
+        formattedDate: String? = nil,
         title: String = "Task",
         formattedTime: String = "1h 00m",
-        formattedRate: String? = nil,
         formattedAmount: String? = nil
     ) -> ReportPDFTaskRow {
         ReportPDFTaskRow(
+            formattedDate: formattedDate,
             title: title,
             formattedTime: formattedTime,
-            formattedRate: formattedRate,
             formattedAmount: formattedAmount
         )
     }
@@ -60,8 +62,8 @@ struct CoreGraphicsReportPDFServiceTests {
     @Test func generatePDFWithTasks() {
         let service = makeService()
         let tasks = [
-            makeTaskRow(title: "Website Redesign", formattedTime: "24h 30m"),
-            makeTaskRow(title: "API Integration", formattedTime: "12h 15m")
+            makeTaskRow(formattedDate: "01.03.2026", title: "Website Redesign", formattedTime: "24h 30m"),
+            makeTaskRow(formattedDate: "02.03.2026", title: "API Integration", formattedTime: "12h 15m")
         ]
         let config = makeConfig(tasks: tasks, totalTime: "36h 45m")
         let data = service.generatePDF(config: config)
@@ -69,27 +71,28 @@ struct CoreGraphicsReportPDFServiceTests {
         #expect(data.count > 100)
     }
 
-    @Test func generatePDFWithRateColumns() {
+    @Test func generatePDFWithAmountColumn() {
         let service = makeService()
         let tasks = [
             makeTaskRow(
+                formattedDate: "01.03.2026",
                 title: "Website Redesign",
                 formattedTime: "24h 30m",
-                formattedRate: "$50/h",
                 formattedAmount: "$1,225.00"
             ),
             makeTaskRow(
+                formattedDate: "02.03.2026",
                 title: "Meetings",
                 formattedTime: "5h 00m",
-                formattedRate: nil,
                 formattedAmount: nil
             )
         ]
         let config = makeConfig(
             tasks: tasks,
-            showRateColumns: true,
+            showAmountColumn: true,
             totalTime: "29h 30m",
-            totalAmount: "$1,225.00"
+            totalAmount: "$1,225.00",
+            totalRate: "$50/h"
         )
         let data = service.generatePDF(config: config)
         #expect(!data.isEmpty)
@@ -105,7 +108,7 @@ struct CoreGraphicsReportPDFServiceTests {
     @Test func generatePDFWithManyTasks() {
         let service = makeService()
         let tasks = (0..<50).map { i in
-            makeTaskRow(title: "Task \(i)", formattedTime: "\(i)h 00m")
+            makeTaskRow(formattedDate: "01.03.2026", title: "Task \(i)", formattedTime: "\(i)h 00m")
         }
         let config = makeConfig(tasks: tasks, totalTime: "1225h 00m")
         let data = service.generatePDF(config: config)

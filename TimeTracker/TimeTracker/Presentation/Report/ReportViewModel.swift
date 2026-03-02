@@ -119,19 +119,56 @@ final class ReportViewModel {
         guard panel.runModal() == .OK, let url = panel.url else { return }
 
         let selectedTasks = taskRows.filter(\.isSelected)
-        let pdfRows = selectedTasks.map { row in
-            ReportPDFTaskRow(
-                title: row.title,
-                formattedTime: row.roundedTime.formattedHoursMinutes,
-                formattedRate: formattedRate(for: row),
-                formattedAmount: formattedAmount(for: row)
-            )
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "dd.MM.yyyy"
+        let calendar = Calendar.current
+        let rounding = roundingInterval
+
+        var dayRows: [(date: Date, row: ReportPDFTaskRow)] = []
+
+        for row in selectedTasks {
+            guard let task = allTasks.first(where: { $0.id == row.id }) else { continue }
+
+            let relevantEntries = task.timeEntries.filter { entry in
+                let entryEnd = entry.endDate ?? Date()
+                return entry.startDate < endDate && entryEnd > startDate
+            }
+
+            var dayMap: [DateComponents: TimeInterval] = [:]
+            for entry in relevantEntries {
+                let effectiveStart = max(entry.startDate, startDate)
+                let effectiveEnd = min(entry.endDate ?? Date(), endDate)
+                guard effectiveEnd > effectiveStart else { continue }
+                let dayComponents = calendar.dateComponents([.year, .month, .day], from: entry.startDate)
+                dayMap[dayComponents, default: 0] += effectiveEnd.timeIntervalSince(effectiveStart)
+            }
+
+            for (dayComponents, rawDayTime) in dayMap {
+                let roundedDayTime = rawDayTime.rounded(to: rounding)
+                let dayDate = calendar.date(from: dayComponents) ?? startDate
+                let dayAmount: Double? = row.hourlyRate.map { roundedDayTime / 3600.0 * $0 }
+
+                dayRows.append((
+                    date: dayDate,
+                    row: ReportPDFTaskRow(
+                        formattedDate: dateFormatter.string(from: dayDate),
+                        title: row.title,
+                        formattedTime: roundedDayTime.formattedHoursMinutes,
+                        formattedAmount: dayAmount.map { formatCurrency($0) }
+                    )
+                ))
+            }
         }
 
-        let showRate = selectedTasks.contains { $0.hourlyRate != nil }
+        dayRows.sort { $0.date < $1.date }
+        let pdfRows = dayRows.map(\.row)
+
+        let showAmount = selectedTasks.contains { $0.hourlyRate != nil }
         let totalTime = selectedTasks.reduce(0.0) { $0 + $1.roundedTime }
         let amounts = selectedTasks.compactMap(\.amount)
         let totalAmountValue: Double? = amounts.isEmpty ? nil : amounts.reduce(0, +)
+        let defaultRate = userPreferencesService.defaultHourlyRate
+        let totalRate: String? = defaultRate.map { "\(currencySymbol)\(formatNumber($0))/h" }
 
         let config = ReportPDFConfig(
             businessName: businessName,
@@ -140,9 +177,10 @@ final class ReportViewModel {
             generatedDate: Date(),
             tasks: pdfRows,
             currencySymbol: currencySymbol,
-            showRateColumns: showRate,
+            showAmountColumn: showAmount,
             totalTime: totalTime.formattedHoursMinutes,
-            totalAmount: totalAmountValue.map { formatCurrency($0) }
+            totalAmount: totalAmountValue.map { formatCurrency($0) },
+            totalRate: totalRate
         )
 
         let data = pdfService.generatePDF(config: config)

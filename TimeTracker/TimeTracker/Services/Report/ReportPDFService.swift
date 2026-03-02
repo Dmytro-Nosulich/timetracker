@@ -7,15 +7,16 @@ struct ReportPDFConfig {
     let generatedDate: Date
     let tasks: [ReportPDFTaskRow]
     let currencySymbol: String
-    let showRateColumns: Bool
+    let showAmountColumn: Bool
     let totalTime: String
     let totalAmount: String?
+    let totalRate: String?
 }
 
 struct ReportPDFTaskRow {
+    let formattedDate: String?
     let title: String
     let formattedTime: String
-    let formattedRate: String?
     let formattedAmount: String?
 }
 

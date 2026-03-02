@@ -40,26 +40,21 @@ final class DefaultTimerService: TimerService {
             guard currentTaskId != task.id else { return }
             // Switch task: close current entry, keep session running
             closeCurrentEntry(endDate: now)
-            createNewEntry(for: task.id, startDate: now)
-            currentTaskId = task.id
 
         case .pausedByUser, .pausedByInactivity:
             // Resume from pause: reset session
             inactivityPauseDate = nil
-            createNewEntry(for: task.id, startDate: now)
-            currentTaskId = task.id
-            sessionStartDate = now
-            sessionElapsed = 0
-            lastEmittedMinute = -1
 
         case .idle:
             // Start fresh
-            createNewEntry(for: task.id, startDate: now)
-            currentTaskId = task.id
-            sessionStartDate = now
-            sessionElapsed = 0
-            lastEmittedMinute = -1
+			break
         }
+
+		createNewEntry(for: task.id, startDate: now)
+		currentTaskId = task.id
+		sessionStartDate = now
+		sessionElapsed = 0
+		lastEmittedMinute = -1
 
         state = .running
         lastTickDate = now
