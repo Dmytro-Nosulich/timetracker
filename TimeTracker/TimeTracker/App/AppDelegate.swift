@@ -99,17 +99,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         switch state {
         case .running:
-            button.image = NSImage(systemSymbolName: "clock.fill", accessibilityDescription: "Time Tracker")
-            button.contentTintColor = .systemGreen
+            button.image = NSImage(systemSymbolName: "clock.fill", accessibilityDescription: "Time Tracker")?
+                .withSymbolConfiguration(.init(paletteColors: [.systemGreen]))
         case .pausedByUser:
             button.image = NSImage(systemSymbolName: "pause.circle.fill", accessibilityDescription: "Time Tracker")
-            button.contentTintColor = .secondaryLabelColor
         case .pausedByInactivity:
-            button.image = NSImage(systemSymbolName: "clock.fill", accessibilityDescription: "Time Tracker")
-            button.contentTintColor = .systemOrange
+            button.image = NSImage(systemSymbolName: "clock.fill", accessibilityDescription: "Time Tracker")?
+                .withSymbolConfiguration(.init(paletteColors: [.systemOrange]))
         case .idle:
             button.image = NSImage(systemSymbolName: "clock.fill", accessibilityDescription: "Time Tracker")
-            button.contentTintColor = nil
         }
     }
 
