@@ -101,13 +101,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         case .running:
             button.image = NSImage(systemSymbolName: "clock.fill", accessibilityDescription: "Time Tracker")?
                 .withSymbolConfiguration(.init(paletteColors: [.systemGreen]))
+            button.startPulseAnimation()
         case .pausedByUser:
             button.image = NSImage(systemSymbolName: "pause.circle.fill", accessibilityDescription: "Time Tracker")
+            button.stopPulseAnimation()
         case .pausedByInactivity:
             button.image = NSImage(systemSymbolName: "clock.fill", accessibilityDescription: "Time Tracker")?
                 .withSymbolConfiguration(.init(paletteColors: [.systemOrange]))
+            button.stopPulseAnimation()
         case .idle:
             button.image = NSImage(systemSymbolName: "clock.fill", accessibilityDescription: "Time Tracker")
+            button.stopPulseAnimation()
         }
     }
 
