@@ -30,10 +30,7 @@ final class MainWindowViewModel {
     }
 
     var liveTotalToday: TimeInterval {
-        if timerService.state == .running {
-            return totalToday + timerService.sessionElapsed
-        }
-        return totalToday
+        totalToday
     }
 
     init(localStorageService: LocalStorageService, timerService: TimerService) {
