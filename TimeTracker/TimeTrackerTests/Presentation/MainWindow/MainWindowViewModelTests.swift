@@ -120,6 +120,49 @@ struct MainWindowViewModelTests {
         #expect(mock.deleteTaskCallCount == 1)
     }
 
+    @Test func deleteTaskStopsTimerIfPausedByUserForThatTask() {
+        let mock = makeMock()
+        let timerMock = makeTimerMock()
+        let taskId = UUID()
+        timerMock.stubbedState = .pausedByUser
+        timerMock.stubbedCurrentTaskId = taskId
+
+        let vm = MainWindowViewModel(localStorageService: mock, timerService: timerMock)
+        vm.deleteTask(id: taskId)
+
+        #expect(timerMock.saveAndStopCallCount == 1)
+        #expect(mock.deleteTaskCallCount == 1)
+    }
+
+    @Test func deleteTaskStopsTimerIfPausedByInactivityForThatTask() {
+        let mock = makeMock()
+        let timerMock = makeTimerMock()
+        let taskId = UUID()
+        timerMock.stubbedState = .pausedByInactivity
+        timerMock.stubbedCurrentTaskId = taskId
+
+        let vm = MainWindowViewModel(localStorageService: mock, timerService: timerMock)
+        vm.deleteTask(id: taskId)
+
+        #expect(timerMock.saveAndStopCallCount == 1)
+        #expect(mock.deleteTaskCallCount == 1)
+    }
+
+    @Test func deleteTaskDoesNotStopTimerIfPausedForDifferentTask() {
+        let mock = makeMock()
+        let timerMock = makeTimerMock()
+        let activeTaskId = UUID()
+        let deletedTaskId = UUID()
+        timerMock.stubbedState = .pausedByUser
+        timerMock.stubbedCurrentTaskId = activeTaskId
+
+        let vm = MainWindowViewModel(localStorageService: mock, timerService: timerMock)
+        vm.deleteTask(id: deletedTaskId)
+
+        #expect(timerMock.saveAndStopCallCount == 0)
+        #expect(mock.deleteTaskCallCount == 1)
+    }
+
     // MARK: - init
 
     @Test func initDefaultState() {

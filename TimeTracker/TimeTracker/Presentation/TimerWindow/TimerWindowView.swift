@@ -2,6 +2,7 @@ import SwiftUI
 
 struct TimerWindowView: View {
     @State var viewModel: TimerWindowViewModel
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         VStack(spacing: 16) {
@@ -82,6 +83,11 @@ struct TimerWindowView: View {
         .frame(width: 300, height: 280)
         .onAppear {
             viewModel.loadTasks()
+        }
+        .onChange(of: viewModel.state) { _, newState in
+            if newState == .idle {
+                dismiss()
+            }
         }
     }
 }
