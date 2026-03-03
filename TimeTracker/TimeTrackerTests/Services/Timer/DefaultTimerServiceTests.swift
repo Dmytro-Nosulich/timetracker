@@ -250,6 +250,43 @@ struct DefaultTimerServiceTests {
         #expect(storage.closeTimeEntryCallCount == 0)
     }
 
+    @Test func saveAndStopWhilePausedByUser() {
+        let (service, storage, _, _) = makeService()
+        let task = makeTask()
+
+        service.startTimer(for: task)
+        service.pauseTimer()
+        let closeCountAfterPause = storage.closeTimeEntryCallCount
+
+        service.saveAndStop()
+
+        #expect(service.state == .idle)
+        #expect(service.currentTaskId == nil)
+        #expect(service.sessionStartDate == nil)
+        #expect(service.sessionElapsed == 0)
+        // No additional close call — entry was already closed on pause
+        #expect(storage.closeTimeEntryCallCount == closeCountAfterPause)
+    }
+
+    @Test func saveAndStopWhilePausedByInactivity() {
+        let (service, storage, _, _) = makeService()
+        let task = makeTask()
+
+        service.startTimer(for: task)
+        service.pauseDueToInactivity(idleDuration: 300)
+        let closeCountAfterPause = storage.closeTimeEntryCallCount
+
+        service.saveAndStop()
+
+        #expect(service.state == .idle)
+        #expect(service.currentTaskId == nil)
+        #expect(service.sessionStartDate == nil)
+        #expect(service.sessionElapsed == 0)
+        #expect(service.inactivityPauseDate == nil)
+        // No additional close call — entry was already closed on inactivity pause
+        #expect(storage.closeTimeEntryCallCount == closeCountAfterPause)
+    }
+
     // MARK: - recoverFromCrashIfNeeded
 
     @Test func recoverNoOpenEntry() {

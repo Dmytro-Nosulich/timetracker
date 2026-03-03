@@ -144,10 +144,12 @@ final class DefaultTimerService: TimerService {
     }
 
     func saveAndStop() {
-        guard state == .running else { return }
+        guard state == .running || state == .pausedByUser || state == .pausedByInactivity else { return }
 
-        let now = dateProvider.now()
-        closeCurrentEntry(endDate: now)
+        if state == .running {
+            let now = dateProvider.now()
+            closeCurrentEntry(endDate: now)
+        }
         stopInternalTimer()
         inactivityPauseDate = nil
         state = .idle

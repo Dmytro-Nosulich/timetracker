@@ -63,7 +63,11 @@ final class MainWindowViewModel {
     }
 
     func deleteTask(id: UUID) {
-        if timerService.state == .running && timerService.currentTaskId == id {
+        let isActiveTask = timerService.currentTaskId == id
+        let isActiveState = timerService.state == .running
+            || timerService.state == .pausedByUser
+            || timerService.state == .pausedByInactivity
+        if isActiveTask && isActiveState {
             timerService.saveAndStop()
         }
         localStorageService.deleteTask(id: id)
