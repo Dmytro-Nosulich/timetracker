@@ -33,7 +33,7 @@ struct MainWindowView<AddTaskContent: View>: View {
 
             Divider()
 
-            BottomStatusBar(totalToday: viewModel.liveTotalToday)
+            BottomStatusBar(totalToday: viewModel.liveTotalToday, totalThisWeek: viewModel.totalThisWeek)
         }
         .navigationTitle("Time Tracker")
         .toolbar {

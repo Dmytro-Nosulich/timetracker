@@ -170,6 +170,14 @@ struct TimerWindowViewModelTests {
         #expect(vm.todayAllTasks == 7200)
     }
 
+    @Test func thisWeekAllTasksReturnsStubbedValue() {
+        let mock = makeMock()
+        mock.stubbedTotalThisWeek = 10800
+        let vm = TimerWindowViewModel(localStorageService: mock, timerService: makeTimerMock())
+        #expect(vm.thisWeekAllTasks == 10800)
+        #expect(mock.totalTrackedTimeThisWeekCallCount == 1)
+    }
+
     @Test func currentTaskReturnsMatchingTask() {
         let timerMock = makeTimerMock()
         let task = makeTask()

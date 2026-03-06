@@ -92,6 +92,15 @@ struct MainWindowViewModelTests {
         #expect(mock.totalTrackedTimeTodayCallCount == 1)
     }
 
+    @Test func loadDataPopulatesTotalThisWeek() {
+        let mock = makeMock()
+        mock.stubbedTotalThisWeek = 7200
+        let vm = MainWindowViewModel(localStorageService: mock, timerService: makeTimerMock())
+        vm.loadData()
+        #expect(vm.totalThisWeek == 7200)
+        #expect(mock.totalTrackedTimeThisWeekCallCount == 1)
+    }
+
     // MARK: - deleteTask
 
     @Test func deleteTaskCallsServiceAndReloads() {
