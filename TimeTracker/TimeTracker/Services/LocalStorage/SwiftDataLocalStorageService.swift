@@ -56,6 +56,17 @@ final class SwiftDataLocalStorageService: LocalStorageService {
         return tasks.reduce(0) { $0 + $1.trackedTimeToday }
     }
 
+    func totalTrackedTimeThisWeek() -> TimeInterval {
+        let calendar = Calendar.current
+        let now = Date()
+        let weekday = calendar.component(.weekday, from: now)
+        let daysFromMonday = (weekday + 5) % 7
+        let monday = calendar.date(byAdding: .day, value: -daysFromMonday, to: calendar.startOfDay(for: now))!
+        let descriptor = FetchDescriptor<TaskEntity>()
+        let tasks = (try? modelContext.fetch(descriptor)) ?? []
+        return tasks.reduce(0) { $0 + $1.trackedTime(from: monday, to: now) }
+    }
+
     // MARK: - Time Entry Operations
 
     @discardableResult

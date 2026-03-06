@@ -7,6 +7,7 @@ final class MockLocalStorageService: LocalStorageService {
     var stubbedTasks: [TaskItem] = []
     var stubbedTags: [TagItem] = []
     var stubbedTotalToday: TimeInterval = 0
+    var stubbedTotalThisWeek: TimeInterval = 0
     var stubbedCreatedTask: TaskItem?
     var stubbedCreatedTimeEntry: TimeEntryItem?
     var stubbedOpenTimeEntry: (entry: TimeEntryItem, taskId: UUID)?
@@ -24,6 +25,7 @@ final class MockLocalStorageService: LocalStorageService {
     var deleteTaskCallCount = 0
     var deleteTaskLastId: UUID?
     var totalTrackedTimeTodayCallCount = 0
+    var totalTrackedTimeThisWeekCallCount = 0
     var createTimeEntryCallCount = 0
     var createTimeEntryLastTaskId: UUID?
     var createTimeEntryLastStartDate: Date?
@@ -79,6 +81,11 @@ final class MockLocalStorageService: LocalStorageService {
     func totalTrackedTimeToday() -> TimeInterval {
         totalTrackedTimeTodayCallCount += 1
         return stubbedTotalToday
+    }
+
+    func totalTrackedTimeThisWeek() -> TimeInterval {
+        totalTrackedTimeThisWeekCallCount += 1
+        return stubbedTotalThisWeek
     }
 
     // MARK: - Time Entry Operations

@@ -7,6 +7,7 @@ protocol LocalStorageService {
     func createTask(title: String, description: String, tagIds: [UUID]) -> TaskItem
     func deleteTask(id: UUID)
     func totalTrackedTimeToday() -> TimeInterval
+    func totalTrackedTimeThisWeek() -> TimeInterval
 
     // MARK: - Time Entry Operations
 

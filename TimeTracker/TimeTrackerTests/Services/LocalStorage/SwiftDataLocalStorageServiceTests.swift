@@ -169,6 +169,44 @@ struct SwiftDataLocalStorageServiceTests {
         #expect(total >= 3599 && total <= 3601)
     }
 
+    // MARK: - totalTrackedTimeThisWeek
+
+    @Test func totalTrackedTimeThisWeekNoTasks() throws {
+        let (service, _) = try makeService()
+        #expect(service.totalTrackedTimeThisWeek() == 0)
+    }
+
+    @Test func totalTrackedTimeThisWeekWithEntryThisWeek() throws {
+        let (service, context) = try makeService()
+        let task = TrackerTask(title: "Task")
+        context.insert(task)
+
+        let now = Date()
+        let oneHourAgo = now.addingTimeInterval(-3600)
+        let entry = TimeEntry(task: task, startDate: oneHourAgo, endDate: now)
+        context.insert(entry)
+        task.timeEntries = [entry]
+        try context.save()
+
+        let total = service.totalTrackedTimeThisWeek()
+        #expect(total >= 3599 && total <= 3601)
+    }
+
+    @Test func totalTrackedTimeThisWeekExcludesLastWeekEntry() throws {
+        let (service, context) = try makeService()
+        let task = TrackerTask(title: "Task")
+        context.insert(task)
+
+        let eightDaysAgo = Date().addingTimeInterval(-8 * 24 * 3600)
+        let sevenDaysAgoAndOneHour = eightDaysAgo.addingTimeInterval(3600)
+        let entry = TimeEntry(task: task, startDate: eightDaysAgo, endDate: sevenDaysAgoAndOneHour)
+        context.insert(entry)
+        task.timeEntries = [entry]
+        try context.save()
+
+        #expect(service.totalTrackedTimeThisWeek() == 0)
+    }
+
     // MARK: - createTimeEntry
 
     @Test func createTimeEntryReturnsItem() throws {

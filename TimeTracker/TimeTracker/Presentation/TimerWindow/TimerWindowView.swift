@@ -63,6 +63,19 @@ struct TimerWindowView: View {
             .font(.callout)
             .padding(.horizontal)
 
+            Divider()
+                .padding(.horizontal)
+
+            HStack {
+                Text("This week:")
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(viewModel.thisWeekAllTasks.formattedHoursMinutes)
+                    .monospacedDigit()
+            }
+            .font(.callout)
+            .padding(.horizontal)
+
             // Inactivity banner (only when paused by inactivity)
             if viewModel.state == .pausedByInactivity {
                 HStack {
@@ -80,7 +93,7 @@ struct TimerWindowView: View {
             Spacer()
         }
         .padding()
-        .frame(width: 300, height: 280)
+        .frame(width: 300, height: 320)
         .onAppear {
             viewModel.loadTasks()
         }

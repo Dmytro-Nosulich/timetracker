@@ -38,6 +38,10 @@ final class TimerWindowViewModel {
         return persisted
     }
 
+    var thisWeekAllTasks: TimeInterval {
+        localStorageService.totalTrackedTimeThisWeek()
+    }
+
     init(localStorageService: LocalStorageService, timerService: TimerService) {
         self.localStorageService = localStorageService
         self.timerService = timerService

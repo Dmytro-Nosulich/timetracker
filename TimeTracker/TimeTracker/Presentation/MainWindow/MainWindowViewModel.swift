@@ -12,6 +12,7 @@ final class MainWindowViewModel {
     var tags: [TagItem] = []
     var selectedTagFilter: TagItem?
     var totalToday: TimeInterval = 0
+    var totalThisWeek: TimeInterval = 0
     var showingAddTask = false
 
     var filteredTasks: [TaskItem] {
@@ -60,6 +61,7 @@ final class MainWindowViewModel {
         tasks = localStorageService.fetchTasks()
         tags = localStorageService.fetchTags()
         totalToday = localStorageService.totalTrackedTimeToday()
+        totalThisWeek = localStorageService.totalTrackedTimeThisWeek()
     }
 
     func deleteTask(id: UUID) {
