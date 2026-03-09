@@ -50,7 +50,7 @@ struct TimeTrackerApp: App {
     }
 
     var body: some Scene {
-        WindowGroup(id: "main-window") {
+        Window("Main", id: "main-window") {
             MainWindowModuleBuilder.build(
                 localStorageService: localStorageService,
                 timerService: timerService,
