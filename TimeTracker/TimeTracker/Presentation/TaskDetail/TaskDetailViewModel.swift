@@ -26,6 +26,12 @@ final class TaskDetailViewModel {
     var entryToDelete: TimeEntryEntity?
     var showOverlapWarning: Bool = false
     var overlapWarningAction: (() -> Void)?
+    private(set) var timeEntries: [TimeEntryEntity] = []
+    private var pendingDeletions: [TimeEntryEntity] = []
+
+    var totalTrackedTime: TimeInterval {
+        timeEntries.reduce(0) { $0 + $1.duration }
+    }
 
     var title: String {
         get { task?.title ?? "" }
@@ -95,6 +101,7 @@ final class TaskDetailViewModel {
         )
         let fetchedTask = try? childContext.fetch(descriptor).first
         self.task = fetchedTask
+        self.timeEntries = fetchedTask?.timeEntries ?? []
 
         let calendar = Calendar.current
         if let t = fetchedTask, !t.timeEntries.isEmpty {
@@ -121,7 +128,16 @@ final class TaskDetailViewModel {
     func save() {
         guard isValid else { return }
         task?.title = task?.title.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        try? childContext.save()
+        for entry in pendingDeletions {
+            childContext.delete(entry)
+        }
+        pendingDeletions.removeAll()
+        do {
+            try childContext.save()
+        } catch {
+            assertionFailure("TaskDetail save failed: \(error)")
+            return
+        }
 		markClean()
         NotificationCenter.default.post(name: .taskDetailDidSave, object: nil)
         onClose()
@@ -140,7 +156,7 @@ final class TaskDetailViewModel {
         markClean()
         onClose()
     }
- 
+
     /// Called by `WindowCloseInterceptor` when `windowWillClose` fires.
     /// Ensures coordinator state is reset regardless of how the window was closed.
     func handleWindowWillClose() {
@@ -180,11 +196,10 @@ final class TaskDetailViewModel {
     }
 
     func entriesForDay(_ date: Date) -> [TimeEntryEntity] {
-        guard let t = task else { return [] }
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
         let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
-        return t.timeEntries.filter { entry in
+        return timeEntries.filter { entry in
             let entryEnd = entry.endDate ?? entry.startDate
             return entry.startDate < endOfDay && entryEnd > startOfDay
         }.sorted { $0.startDate < $1.startDate }
@@ -209,7 +224,7 @@ final class TaskDetailViewModel {
         guard let t = task else { return }
         let entry = TimeEntryEntity(task: t, startDate: startDate, endDate: endDate, isManual: false)
         childContext.insert(entry)
-        t.timeEntries.append(entry)
+        timeEntries.append(entry)
         markDirty()
     }
 
@@ -221,30 +236,48 @@ final class TaskDetailViewModel {
         let endDate = startOfDay.addingTimeInterval(durationSeconds)
         let entry = TimeEntryEntity(task: t, startDate: startOfDay, endDate: endDate, isManual: true, note: note?.isEmpty == true ? nil : note)
         childContext.insert(entry)
-        t.timeEntries.append(entry)
+        timeEntries.append(entry)
         markDirty()
     }
 
     func updateTimeEntryTracked(_ entry: TimeEntryEntity, startDate: Date, endDate: Date) {
-        entry.startDate = startDate
-        entry.endDate = endDate
+        guard let t = task else { return }
+        let idx = timeEntries.firstIndex(where: { $0.id == entry.id })
+        timeEntries.removeAll { $0.id == entry.id }
+        pendingDeletions.append(entry)
+        let updated = TimeEntryEntity(task: t, startDate: startDate, endDate: endDate, isManual: false)
+        updated.note = entry.note
+        childContext.insert(updated)
+        if let idx {
+            timeEntries.insert(updated, at: min(idx, timeEntries.count))
+        } else {
+            timeEntries.append(updated)
+        }
         markDirty()
     }
 
     func updateTimeEntryManual(_ entry: TimeEntryEntity, hours: Int, minutes: Int, note: String?) {
+        guard let t = task else { return }
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: entry.startDate)
         let durationSeconds = TimeInterval(hours * 3600 + minutes * 60)
         let endDate = startOfDay.addingTimeInterval(durationSeconds)
-        entry.startDate = startOfDay
-        entry.endDate = endDate
-        entry.note = note?.isEmpty == true ? nil : note
+        let idx = timeEntries.firstIndex(where: { $0.id == entry.id })
+        timeEntries.removeAll { $0.id == entry.id }
+        pendingDeletions.append(entry)
+        let updated = TimeEntryEntity(task: t, startDate: startOfDay, endDate: endDate, isManual: true, note: note?.isEmpty == true ? nil : note)
+        childContext.insert(updated)
+        if let idx {
+            timeEntries.insert(updated, at: min(idx, timeEntries.count))
+        } else {
+            timeEntries.append(updated)
+        }
         markDirty()
     }
 
     func deleteTimeEntry(_ entry: TimeEntryEntity) {
-        entry.task?.timeEntries.removeAll { $0.id == entry.id }
-        childContext.delete(entry)
+        timeEntries.removeAll { $0.id == entry.id }
+        pendingDeletions.append(entry)
         markDirty()
         entryToDelete = nil
     }
