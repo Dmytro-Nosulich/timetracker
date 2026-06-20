@@ -213,7 +213,7 @@ struct TaskDetailView: View {
             Text("Total tracked")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-            Text((viewModel.task?.totalTrackedTime ?? 0).formattedHoursMinutes)
+            Text(viewModel.totalTrackedTime.formattedHoursMinutes)
                 .font(.body)
         }
     }
