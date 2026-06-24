@@ -76,6 +76,68 @@ struct TimerWindowView: View {
             .font(.callout)
             .padding(.horizontal)
 
+            // Reminder section
+            Divider()
+                .padding(.horizontal)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Toggle(isOn: Binding(
+                    get: { viewModel.taskReminderEnabled },
+                    set: { viewModel.setReminderEnabled($0) }
+                )) {
+                    Text("Remind me after:")
+                        .font(.callout)
+                }
+                .toggleStyle(.checkbox)
+
+                if viewModel.taskReminderEnabled {
+                    HStack(spacing: 6) {
+                        Stepper(
+                            value: Binding(
+                                get: { viewModel.taskReminderDurationHours },
+                                set: { viewModel.setReminderDuration(hours: $0, minutes: viewModel.taskReminderDurationMinutes) }
+                            ),
+                            in: 0...23
+                        ) {
+                            HStack(spacing: 2) {
+                                Text("\(viewModel.taskReminderDurationHours)")
+                                    .frame(minWidth: 20, alignment: .trailing)
+                                    .monospacedDigit()
+                                Text("h")
+                            }
+                            .font(.callout)
+                        }
+
+                        Stepper(
+                            value: Binding(
+                                get: { viewModel.taskReminderDurationMinutes },
+                                set: { viewModel.setReminderDuration(hours: viewModel.taskReminderDurationHours, minutes: $0) }
+                            ),
+                            in: 0...59
+                        ) {
+                            HStack(spacing: 2) {
+                                Text("\(viewModel.taskReminderDurationMinutes)")
+                                    .frame(minWidth: 20, alignment: .trailing)
+                                    .monospacedDigit()
+                                Text("m")
+                            }
+                            .font(.callout)
+                        }
+                    }
+
+                    Picker("Based on:", selection: Binding(
+                        get: { viewModel.taskReminderMode },
+                        set: { viewModel.setReminderMode($0) }
+                    )) {
+                        ForEach(TaskReminderMode.allCases, id: \.self) { mode in
+                            Text(mode.displayName).tag(mode)
+                        }
+                    }
+                    .font(.callout)
+                }
+            }
+            .padding(.horizontal)
+
             // Inactivity banner (only when paused by inactivity)
             if viewModel.state == .pausedByInactivity {
                 HStack {
@@ -93,7 +155,7 @@ struct TimerWindowView: View {
             Spacer()
         }
         .padding()
-        .frame(width: 300, height: 320)
+        .frame(width: 300, height: 380)
         .onAppear {
             viewModel.loadTasks()
         }

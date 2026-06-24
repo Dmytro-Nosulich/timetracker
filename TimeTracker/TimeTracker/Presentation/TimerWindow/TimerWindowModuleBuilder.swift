@@ -2,10 +2,11 @@ import SwiftUI
 
 @MainActor
 struct TimerWindowModuleBuilder {
-    static func build(localStorageService: LocalStorageService, timerService: TimerService) -> some View {
+    static func build(localStorageService: LocalStorageService, timerService: TimerService, userPreferences: UserPreferencesService) -> some View {
         let viewModel = TimerWindowViewModel(
             localStorageService: localStorageService,
-            timerService: timerService
+            timerService: timerService,
+            userPreferences: userPreferences
         )
         return TimerWindowView(viewModel: viewModel)
     }

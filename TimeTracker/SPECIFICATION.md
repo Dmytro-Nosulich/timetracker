@@ -68,6 +68,14 @@ If new MVVM module is needed to create (if some View has business logic then it 
 **Computed property:**
 - `duration: TimeInterval` — if endDate != nil: endDate - startDate; if nil: now - startDate
 
+### TaskReminderMode - domain enum (Domain/Models/TaskReminderMode.swift)
+```
+- currentSession — measure only the current uninterrupted timer session
+- today          — measure all time logged on the task today
+- allTime        — measure all time logged on the task ever
+```
+Each case has a `displayName` String for UI display ("Current session", "Today", "All time").
+
 ### TagEntity - SwiftData model that is mapped into domain model `TagItem`
 ```
 - id: UUID (primary key)
@@ -247,7 +255,7 @@ enum TimerState {
 **Window Properties:**
 - Title: "Timer"
 - Resizable: NO (fixed compact size)
-- Size: approximately 300×280
+- Size: approximately 300×380
 
 **When to open:**
 - When user clicks "Start" on any task in the Main Window
@@ -266,6 +274,11 @@ enum TimerState {
 │                                      │
 │     Today this task: 3h 45m          │
 │     Today all tasks: 6h 10m          │
+│                                      │
+│  ─────────────────────────────────── │
+│                                      │
+│  [✓] Remind me after:  [1]h [30]m   │
+│       Based on: [Current session ▼] │  ← only when reminder is enabled
 │                                      │
 │  ⚠ Paused: inactivity (12m ago)     │  ← only when state == .pausedByInactivity
 └──────────────────────────────────────┘
@@ -296,6 +309,22 @@ enum TimerState {
 - Only visible when state == .pausedByInactivity
 - Shows yellow/orange warning banner: "⚠ Paused: inactivity (Xm ago)"
 - Disappears when user resumes
+
+**Task Reminder:**
+- A toggle that enables/disables the reminder for the current task
+- When enabled, two steppers appear: hours (0–23) and minutes (0–59) to set the duration threshold
+- A "Based on:" picker with three options:
+  - **Current session** — only counts time elapsed in the current uninterrupted timer session
+  - **Today** — counts all time logged on the current task today (including the active session)
+  - **All time** — counts the total time ever logged on the current task (including the active session)
+- When the selected time metric reaches or exceeds the threshold, a macOS notification is sent:
+  - Title: "Task Reminder"
+  - Body: "You've spent Xh YYm on "[task name]""
+- The notification fires **once per session context** — it will not fire again until:
+  - The task is switched
+  - The timer is paused and resumed (new session)
+  - The duration or mode setting changes
+- Settings are persisted in UserDefaults and apply globally (not per-task)
 
 ---
 
@@ -723,6 +752,11 @@ Accessible via: macOS menu bar → App menu → "Settings..." (Cmd+,)
 ### Settings Details
 
 **All settings auto-save** (no Save button). Use `@AppStorage` / `UserDefaults`.
+
+**Task Reminder preferences** (stored in UserDefaults via `UserPreferencesService`):
+- `taskReminderEnabled: Bool` (default: false)
+- `taskReminderDuration: TimeInterval` (seconds, default: 3600 = 1 hour)
+- `taskReminderMode: TaskReminderMode` (default: `.currentSession`)
 
 **Currency Picker:**
 - Common currencies: USD ($), EUR (€), GBP (£), CAD (C$), AUD (A$), JPY (¥), CHF (CHF)

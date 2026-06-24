@@ -65,7 +65,8 @@ struct TimeTrackerApp: App {
         Window("Timer", id: "timer-window") {
             TimerWindowModuleBuilder.build(
                 localStorageService: localStorageService,
-                timerService: timerService
+                timerService: timerService,
+                userPreferences: userPreferencesService
             )
         }
         .windowResizability(.contentSize)
