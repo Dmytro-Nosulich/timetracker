@@ -102,5 +102,8 @@ struct TimerWindowView: View {
                 dismiss()
             }
         }
+        .onChange(of: viewModel.currentTaskId) { _, _ in
+            viewModel.loadTasks()
+        }
     }
 }
