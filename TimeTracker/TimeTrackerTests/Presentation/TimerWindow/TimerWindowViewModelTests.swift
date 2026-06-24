@@ -13,6 +13,22 @@ struct TimerWindowViewModelTests {
         MockTimerService()
     }
 
+    private func makePreferencesMock() -> MockUserPreferencesService {
+        MockUserPreferencesService()
+    }
+
+    private func makeVM(
+        storage: MockLocalStorageService? = nil,
+        timer: MockTimerService? = nil,
+        prefs: MockUserPreferencesService? = nil
+    ) -> TimerWindowViewModel {
+        TimerWindowViewModel(
+            localStorageService: storage ?? makeMock(),
+            timerService: timer ?? makeTimerMock(),
+            userPreferences: prefs ?? makePreferencesMock()
+        )
+    }
+
     private func makeTask(id: UUID = UUID(), title: String = "Task") -> TaskItem {
         TaskItem(
             id: id,
@@ -35,7 +51,7 @@ struct TimerWindowViewModelTests {
         let tasks = [makeTask(title: "A"), makeTask(title: "B")]
         mock.stubbedTasks = tasks
 
-        let vm = TimerWindowViewModel(localStorageService: mock, timerService: makeTimerMock())
+        let vm = makeVM(storage: mock)
         vm.loadTasks()
 
         #expect(vm.tasks.count == 2)
@@ -48,7 +64,7 @@ struct TimerWindowViewModelTests {
         let timerMock = makeTimerMock()
         timerMock.stubbedState = .running
 
-        let vm = TimerWindowViewModel(localStorageService: makeMock(), timerService: timerMock)
+        let vm = makeVM(timer: timerMock)
         vm.togglePauseResume()
 
         #expect(timerMock.pauseTimerCallCount == 1)
@@ -59,7 +75,7 @@ struct TimerWindowViewModelTests {
         let timerMock = makeTimerMock()
         timerMock.stubbedState = .pausedByUser
 
-        let vm = TimerWindowViewModel(localStorageService: makeMock(), timerService: timerMock)
+        let vm = makeVM(timer: timerMock)
         vm.togglePauseResume()
 
         #expect(timerMock.resumeTimerCallCount == 1)
@@ -70,7 +86,7 @@ struct TimerWindowViewModelTests {
         let timerMock = makeTimerMock()
         timerMock.stubbedState = .idle
 
-        let vm = TimerWindowViewModel(localStorageService: makeMock(), timerService: timerMock)
+        let vm = makeVM(timer: timerMock)
         vm.togglePauseResume()
 
         #expect(timerMock.resumeTimerCallCount == 1)
@@ -87,7 +103,7 @@ struct TimerWindowViewModelTests {
         let mock = makeMock()
         mock.stubbedTasks = [task1, task2]
 
-        let vm = TimerWindowViewModel(localStorageService: mock, timerService: timerMock)
+        let vm = makeVM(storage: mock, timer: timerMock)
         vm.loadTasks()
         vm.switchTask(to: task2.id)
 
@@ -103,7 +119,7 @@ struct TimerWindowViewModelTests {
         let mock = makeMock()
         mock.stubbedTasks = [task]
 
-        let vm = TimerWindowViewModel(localStorageService: mock, timerService: timerMock)
+        let vm = makeVM(storage: mock, timer: timerMock)
         vm.loadTasks()
         vm.switchTask(to: task.id)
 
@@ -117,7 +133,7 @@ struct TimerWindowViewModelTests {
         timerMock.stubbedState = .pausedByUser
         timerMock.stubbedSessionElapsed = 300
 
-        let vm = TimerWindowViewModel(localStorageService: makeMock(), timerService: timerMock)
+        let vm = makeVM(timer: timerMock)
 
         #expect(vm.sessionElapsed == 0)
     }
@@ -127,7 +143,7 @@ struct TimerWindowViewModelTests {
         timerMock.stubbedState = .running
         timerMock.stubbedSessionElapsed = 300
 
-        let vm = TimerWindowViewModel(localStorageService: makeMock(), timerService: timerMock)
+        let vm = makeVM(timer: timerMock)
 
         #expect(vm.sessionElapsed == 300)
     }
@@ -141,7 +157,7 @@ struct TimerWindowViewModelTests {
         let taskId = UUID()
         timerMock.stubbedCurrentTaskId = taskId
 
-        let vm = TimerWindowViewModel(localStorageService: mock, timerService: timerMock)
+        let vm = makeVM(storage: mock, timer: timerMock)
 
         #expect(vm.todayThisTask == 3600)
     }
@@ -153,7 +169,7 @@ struct TimerWindowViewModelTests {
         timerMock.stubbedState = .running
         timerMock.stubbedSessionElapsed = 600
 
-        let vm = TimerWindowViewModel(localStorageService: mock, timerService: timerMock)
+        let vm = makeVM(storage: mock, timer: timerMock)
 
         #expect(vm.todayAllTasks == 7200)
     }
@@ -165,7 +181,7 @@ struct TimerWindowViewModelTests {
         timerMock.stubbedState = .pausedByUser
         timerMock.stubbedSessionElapsed = 600
 
-        let vm = TimerWindowViewModel(localStorageService: mock, timerService: timerMock)
+        let vm = makeVM(storage: mock, timer: timerMock)
 
         #expect(vm.todayAllTasks == 7200)
     }
@@ -173,7 +189,7 @@ struct TimerWindowViewModelTests {
     @Test func thisWeekAllTasksReturnsStubbedValue() {
         let mock = makeMock()
         mock.stubbedTotalThisWeek = 10800
-        let vm = TimerWindowViewModel(localStorageService: mock, timerService: makeTimerMock())
+        let vm = makeVM(storage: mock)
         #expect(vm.thisWeekAllTasks == 10800)
         #expect(mock.totalTrackedTimeThisWeekCallCount == 1)
     }
@@ -186,7 +202,7 @@ struct TimerWindowViewModelTests {
         let mock = makeMock()
         mock.stubbedTasks = [task]
 
-        let vm = TimerWindowViewModel(localStorageService: mock, timerService: timerMock)
+        let vm = makeVM(storage: mock, timer: timerMock)
         vm.loadTasks()
 
         #expect(vm.currentTask == task)
@@ -196,7 +212,7 @@ struct TimerWindowViewModelTests {
         let timerMock = makeTimerMock()
         timerMock.stubbedState = .pausedByInactivity
 
-        let vm = TimerWindowViewModel(localStorageService: makeMock(), timerService: timerMock)
+        let vm = makeVM(timer: timerMock)
 
         #expect(vm.state == .pausedByInactivity)
     }

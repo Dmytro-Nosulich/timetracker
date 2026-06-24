@@ -1,4 +1,5 @@
 import Foundation
+import UserNotifications
 
 @Observable
 @MainActor
@@ -6,6 +7,7 @@ final class DefaultTimerService: TimerService {
     private let localStorage: LocalStorageService
     private let dateProvider: DateProvider
     private let userPreferences: UserPreferencesService
+    let notificationScheduler: (UNNotificationRequest) -> Void
 
     // MARK: - Observable State
 
@@ -22,12 +24,24 @@ final class DefaultTimerService: TimerService {
     private var lastTickDate: Date?
     private var lastEmittedMinute: Int = -1
 
+    // MARK: - Task Reminder State
+
+    private var reminderAlreadyFired = false
+    private var lastKnownReminderDuration: TimeInterval = 0
+    private var lastKnownReminderMode: TaskReminderMode = .currentSession
+
     // MARK: - Init
 
-    init(localStorage: LocalStorageService, dateProvider: DateProvider = SystemDateProvider(), userPreferences: UserPreferencesService) {
+    init(
+        localStorage: LocalStorageService,
+        dateProvider: DateProvider = SystemDateProvider(),
+        userPreferences: UserPreferencesService,
+        notificationScheduler: @escaping (UNNotificationRequest) -> Void = { UNUserNotificationCenter.current().add($0) }
+    ) {
         self.localStorage = localStorage
         self.dateProvider = dateProvider
         self.userPreferences = userPreferences
+        self.notificationScheduler = notificationScheduler
     }
 
     // MARK: - Public Methods
@@ -56,6 +70,7 @@ final class DefaultTimerService: TimerService {
 		sessionStartDate = now - offset
 		sessionElapsed = offset
 		lastEmittedMinute = -1
+        reminderAlreadyFired = false
 
         state = .running
         lastTickDate = now
@@ -85,6 +100,7 @@ final class DefaultTimerService: TimerService {
         sessionStartDate = now - offset
         sessionElapsed = offset
         lastEmittedMinute = -1
+        reminderAlreadyFired = false
         state = .running
         lastTickDate = now
         startInternalTimer()
@@ -187,8 +203,57 @@ final class DefaultTimerService: TimerService {
             NotificationCenter.default.post(name: .timerDisplayDidUpdate, object: nil)
         }
 
+        checkAndFireTaskReminderIfNeeded()
         handleMidnightRollover(now: now)
         lastTickDate = now
+    }
+
+    // MARK: - Task Reminder
+
+    func checkAndFireTaskReminderIfNeeded() {
+        let currentDuration = userPreferences.taskReminderDuration
+        let currentMode = userPreferences.taskReminderMode
+
+        if currentDuration != lastKnownReminderDuration || currentMode != lastKnownReminderMode {
+            reminderAlreadyFired = false
+            lastKnownReminderDuration = currentDuration
+            lastKnownReminderMode = currentMode
+        }
+
+        guard userPreferences.taskReminderEnabled,
+              !reminderAlreadyFired,
+              let taskId = currentTaskId else { return }
+
+        let elapsed: TimeInterval
+        switch currentMode {
+        case .currentSession:
+            elapsed = sessionElapsed
+        case .today:
+            elapsed = localStorage.trackedTimeToday(for: taskId)
+        case .allTime:
+            elapsed = localStorage.fetchTask(id: taskId)?.totalTrackedTime ?? 0
+        }
+
+        guard elapsed >= currentDuration else { return }
+
+        reminderAlreadyFired = true
+
+        let taskTitle = localStorage.fetchTask(id: taskId)?.title ?? "your task"
+        sendTaskReminderNotification(taskTitle: taskTitle, elapsed: elapsed)
+    }
+
+    private func sendTaskReminderNotification(taskTitle: String, elapsed: TimeInterval) {
+        let content = UNMutableNotificationContent()
+        content.title = "Task Reminder"
+        content.body = "You've spent \(elapsed.formattedHoursMinutes) on \"\(taskTitle)\""
+        content.sound = .default
+
+        let request = UNNotificationRequest(
+            identifier: "task-reminder-\(UUID().uuidString)",
+            content: content,
+            trigger: nil
+        )
+        notificationScheduler(request)
     }
 
     // MARK: - Midnight Rollover

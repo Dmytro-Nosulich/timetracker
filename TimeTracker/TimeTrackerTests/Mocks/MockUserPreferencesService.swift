@@ -141,4 +141,46 @@ final class MockUserPreferencesService: UserPreferencesService {
         setTrackingReminderDaysLastValue = value
         stubbedTrackingReminderDays = value
     }
+
+    var stubbedTaskReminderEnabled: Bool = false
+    var setTaskReminderEnabledCallCount = 0
+    var setTaskReminderEnabledLastValue: Bool?
+
+    var taskReminderEnabled: Bool {
+        stubbedTaskReminderEnabled
+    }
+
+    func setTaskReminderEnabled(_ value: Bool) {
+        setTaskReminderEnabledCallCount += 1
+        setTaskReminderEnabledLastValue = value
+        stubbedTaskReminderEnabled = value
+    }
+
+    var stubbedTaskReminderDuration: TimeInterval = 3600
+    var setTaskReminderDurationCallCount = 0
+    var setTaskReminderDurationLastValue: TimeInterval?
+
+    var taskReminderDuration: TimeInterval {
+        stubbedTaskReminderDuration
+    }
+
+    func setTaskReminderDuration(_ value: TimeInterval) {
+        setTaskReminderDurationCallCount += 1
+        setTaskReminderDurationLastValue = value
+        stubbedTaskReminderDuration = value
+    }
+
+    var stubbedTaskReminderMode: TaskReminderMode = .currentSession
+    var setTaskReminderModeCallCount = 0
+    var setTaskReminderModeLastValue: TaskReminderMode?
+
+    var taskReminderMode: TaskReminderMode {
+        stubbedTaskReminderMode
+    }
+
+    func setTaskReminderMode(_ value: TaskReminderMode) {
+        setTaskReminderModeCallCount += 1
+        setTaskReminderModeLastValue = value
+        stubbedTaskReminderMode = value
+    }
 }

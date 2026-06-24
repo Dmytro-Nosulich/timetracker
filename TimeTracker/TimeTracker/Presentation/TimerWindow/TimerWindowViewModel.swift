@@ -5,6 +5,7 @@ import Foundation
 final class TimerWindowViewModel {
     private let localStorageService: LocalStorageService
     private let timerService: TimerService
+    private let userPreferences: UserPreferencesService
 
     var tasks: [TaskItem] = []
 
@@ -42,9 +43,26 @@ final class TimerWindowViewModel {
         localStorageService.totalTrackedTimeThisWeek()
     }
 
-    init(localStorageService: LocalStorageService, timerService: TimerService) {
+    var taskReminderEnabled: Bool {
+        userPreferences.taskReminderEnabled
+    }
+
+    var taskReminderDurationHours: Int {
+        Int(userPreferences.taskReminderDuration) / 3600
+    }
+
+    var taskReminderDurationMinutes: Int {
+        (Int(userPreferences.taskReminderDuration) % 3600) / 60
+    }
+
+    var taskReminderMode: TaskReminderMode {
+        userPreferences.taskReminderMode
+    }
+
+    init(localStorageService: LocalStorageService, timerService: TimerService, userPreferences: UserPreferencesService) {
         self.localStorageService = localStorageService
         self.timerService = timerService
+        self.userPreferences = userPreferences
     }
 
     func loadTasks() {
@@ -65,5 +83,18 @@ final class TimerWindowViewModel {
               let task = tasks.first(where: { $0.id == taskId }) else { return }
         timerService.startTimer(for: task)
         loadTasks()
+    }
+
+    func setReminderEnabled(_ enabled: Bool) {
+        userPreferences.setTaskReminderEnabled(enabled)
+    }
+
+    func setReminderDuration(hours: Int, minutes: Int) {
+        let duration = TimeInterval(max(0, hours) * 3600 + max(0, minutes) * 60)
+        userPreferences.setTaskReminderDuration(duration)
+    }
+
+    func setReminderMode(_ mode: TaskReminderMode) {
+        userPreferences.setTaskReminderMode(mode)
     }
 }

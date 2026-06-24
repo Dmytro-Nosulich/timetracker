@@ -12,6 +12,9 @@ final class UserDefaultsUserPreferencesService: UserPreferencesService {
     private let trackingReminderEnabledKey = "trackingReminderEnabled"
     private let trackingReminderTimeKey = "trackingReminderTime"
     private let trackingReminderDaysKey = "trackingReminderDays"
+    private let taskReminderEnabledKey = "taskReminderEnabled"
+    private let taskReminderDurationKey = "taskReminderDuration"
+    private let taskReminderModeKey = "taskReminderMode"
 
     static let defaultIdleTimeoutMinutes = 10
     static let defaultSubtractIdleTimeFromTrackedTime = false
@@ -120,5 +123,39 @@ final class UserDefaultsUserPreferencesService: UserPreferencesService {
         if let data = try? JSONEncoder().encode(value) {
             userDefaults.set(data, forKey: trackingReminderDaysKey)
         }
+    }
+
+    var taskReminderEnabled: Bool {
+        guard userDefaults.object(forKey: taskReminderEnabledKey) != nil else {
+            return false
+        }
+        return userDefaults.bool(forKey: taskReminderEnabledKey)
+    }
+
+    func setTaskReminderEnabled(_ value: Bool) {
+        userDefaults.set(value, forKey: taskReminderEnabledKey)
+    }
+
+    var taskReminderDuration: TimeInterval {
+        guard userDefaults.object(forKey: taskReminderDurationKey) != nil else {
+            return 3600
+        }
+        return userDefaults.double(forKey: taskReminderDurationKey)
+    }
+
+    func setTaskReminderDuration(_ value: TimeInterval) {
+        userDefaults.set(value, forKey: taskReminderDurationKey)
+    }
+
+    var taskReminderMode: TaskReminderMode {
+        guard let raw = userDefaults.string(forKey: taskReminderModeKey),
+              let mode = TaskReminderMode(rawValue: raw) else {
+            return .currentSession
+        }
+        return mode
+    }
+
+    func setTaskReminderMode(_ value: TaskReminderMode) {
+        userDefaults.set(value.rawValue, forKey: taskReminderModeKey)
     }
 }

@@ -30,4 +30,13 @@ protocol UserPreferencesService {
 
     var trackingReminderDays: [Int] { get }
     func setTrackingReminderDays(_ value: [Int])
+
+    var taskReminderEnabled: Bool { get }
+    func setTaskReminderEnabled(_ value: Bool)
+
+    var taskReminderDuration: TimeInterval { get }
+    func setTaskReminderDuration(_ value: TimeInterval)
+
+    var taskReminderMode: TaskReminderMode { get }
+    func setTaskReminderMode(_ value: TaskReminderMode)
 }
