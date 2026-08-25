@@ -11,6 +11,7 @@ struct CalendarHeatmapView: View {
     var timeLabelFormatter: (TimeInterval) -> String = { $0.formattedCompactHours }
     var canGoBackward: Bool = true
     var canGoForward: Bool = true
+    var selectionOverridesTodayHighlight: Bool = false
 
     @Environment(\.colorScheme) private var colorScheme
 
@@ -29,6 +30,7 @@ struct CalendarHeatmapView: View {
                 }
                 .buttonStyle(.borderless)
                 .disabled(!canGoBackward)
+                .keyboardShortcut(.leftArrow, modifiers: [])
 
                 Spacer()
 
@@ -44,6 +46,7 @@ struct CalendarHeatmapView: View {
                 }
                 .buttonStyle(.borderless)
                 .disabled(!canGoForward)
+                .keyboardShortcut(.rightArrow, modifiers: [])
             }
 
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 7), spacing: 4) {
@@ -65,6 +68,7 @@ struct CalendarHeatmapView: View {
                             colorStrategy: colorStrategy,
                             label: showsTimeLabel ? timeLabelFormatter(hours) : nil,
                             cellHeight: cellHeight,
+                            selectionOverridesTodayHighlight: selectionOverridesTodayHighlight,
                             action: onSelectDay.map { onSelectDay in { onSelectDay(date) } }
                         )
                     } else {
@@ -111,10 +115,11 @@ private struct DayCell: View {
     let colorStrategy: HeatmapColorStrategy
     let label: String?
     let cellHeight: CGFloat
+    let selectionOverridesTodayHighlight: Bool
     let action: (() -> Void)?
 
     var body: some View {
-        if let action {
+        if let action, !isFuture {
             Button(action: action) { cellContent }
                 .buttonStyle(.plain)
         } else {
@@ -126,6 +131,10 @@ private struct DayCell: View {
 
     private var isFuture: Bool {
         Calendar.current.startOfDay(for: date) > Calendar.current.startOfDay(for: Date())
+    }
+
+    private var showsTodayRing: Bool {
+        !(isSelected && selectionOverridesTodayHighlight)
     }
 
     private var cellContent: some View {
@@ -141,6 +150,7 @@ private struct DayCell: View {
         }
         .frame(maxWidth: .infinity)
         .frame(height: cellHeight)
+        .contentShape(Rectangle())
         .background(colorStrategy.color(forHours: hours, colorScheme: colorScheme))
         .overlay(
             RoundedRectangle(cornerRadius: 4)
@@ -148,8 +158,8 @@ private struct DayCell: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 4)
-                .inset(by: isSelected ? 3 : 0)
-                .stroke(isToday ? Color.red : Color.clear, lineWidth: 1.5)
+                .inset(by: (isSelected && showsTodayRing) ? 3 : 0)
+                .stroke((isToday && showsTodayRing) ? Color.red : Color.clear, lineWidth: 1.5)
         )
     }
 }

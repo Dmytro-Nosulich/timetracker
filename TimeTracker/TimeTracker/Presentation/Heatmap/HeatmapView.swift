@@ -35,14 +35,73 @@ struct HeatmapView: View {
                 hoursForDay: { viewModel.hoursForDay($0) },
                 onMonthChange: { viewModel.navigateMonth(by: $0) },
                 colorStrategy: AllTasksHeatmapColorStrategy(targetHours: viewModel.targetDailyHours),
+                selectedDate: viewModel.selectedDate,
+                onSelectDay: { viewModel.selectDay($0) },
                 showsTimeLabel: true,
                 canGoBackward: viewModel.canNavigateBackward,
-                canGoForward: viewModel.canNavigateForward
+                canGoForward: viewModel.canNavigateForward,
+                selectionOverridesTodayHighlight: true
             )
+
+            if let selectedDate = viewModel.selectedDate {
+                trackedTasksSection(for: selectedDate)
+            }
 
             Spacer()
         }
         .padding()
+    }
+
+    private func trackedTasksSection(for date: Date) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Tracked tasks")
+                .font(.headline)
+
+            if viewModel.selectedDayTaskRows.isEmpty {
+                Text("No time tracked on \(formattedDate(date)).")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            } else {
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ForEach(viewModel.selectedDayTaskRows) { row in
+                            trackedTaskRow(row)
+                            Divider()
+                        }
+                    }
+                }
+                .frame(maxHeight: 200)
+            }
+        }
+    }
+
+    private func trackedTaskRow(_ row: SelectedDayTaskRow) -> some View {
+        HStack {
+            HStack(spacing: 2) {
+                ForEach(row.tags.prefix(3)) { tag in
+                    Circle()
+                        .fill(Color(hex: tag.colorHex))
+                        .frame(width: 8, height: 8)
+                }
+            }
+            .frame(width: 30, alignment: .leading)
+
+            Text(row.title)
+                .lineLimit(1)
+
+            Spacer()
+
+            Text(row.duration.formattedHoursMinutes)
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func formattedDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM d, yyyy"
+        return formatter.string(from: date)
     }
 
     private var monthYearPickers: some View {
