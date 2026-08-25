@@ -55,6 +55,15 @@ struct MainWindowView<AddTaskContent: View>: View {
                     }
                     .keyboardShortcut("r", modifiers: .command)
                 }
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        openWindow(id: "heatmap-window")
+                    } label: {
+                        Label("Heatmap", systemImage: "calendar")
+                    }
+                    .keyboardShortcut("t", modifiers: .command)
+                    .disabled(!viewModel.hasAnyTimeEntries)
+                }
             }
             .searchable(text: $viewModel.searchText, placement: .toolbar, prompt: "Search tasks")
         }

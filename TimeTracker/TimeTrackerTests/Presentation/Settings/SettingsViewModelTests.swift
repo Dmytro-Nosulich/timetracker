@@ -187,6 +187,37 @@ struct SettingsViewModelTests {
         #expect(vm.idleTimeoutMinutes == 60)
     }
 
+    // MARK: - Target Daily Hours
+
+    @Test func loadSettingsPopulatesTargetDailyHours() {
+        let (vm, prefs, _, _) = makeViewModel()
+        prefs.stubbedTargetDailyHours = 6 * 3600
+        vm.loadSettings()
+        #expect(vm.targetDailyHours == 6)
+    }
+
+    @Test func changingTargetDailyHoursSaves() {
+        let (vm, prefs, _, _) = makeViewModel()
+        vm.loadSettings()
+        vm.targetDailyHours = 10
+        let expected: TimeInterval = 10 * 3600
+        #expect(prefs.setTargetDailyHoursLastValue == expected)
+    }
+
+    @Test func targetDailyHoursClampedToMinimum() {
+        let (vm, _, _, _) = makeViewModel()
+        vm.loadSettings()
+        vm.targetDailyHours = 0
+        #expect(vm.targetDailyHours == 1)
+    }
+
+    @Test func targetDailyHoursClampedToMaximum() {
+        let (vm, _, _, _) = makeViewModel()
+        vm.loadSettings()
+        vm.targetDailyHours = 30
+        #expect(vm.targetDailyHours == 24)
+    }
+
     // MARK: - Subtract Idle Time
 
     @Test func changingSubtractIdleTimeSaves() {

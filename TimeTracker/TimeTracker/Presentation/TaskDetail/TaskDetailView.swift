@@ -225,12 +225,11 @@ struct TaskDetailView: View {
 
             CalendarHeatmapView(
                 displayMonth: viewModel.displayMonth,
-                selectedDate: Binding(
-                    get: { viewModel.selectedDate },
-                    set: { viewModel.selectedDate = $0 }
-                ),
                 hoursForDay: { viewModel.hoursForDay($0) },
-                onMonthChange: { viewModel.navigateMonth(by: $0) }
+                onMonthChange: { viewModel.navigateMonth(by: $0) },
+                colorStrategy: TaskHeatmapColorStrategy(),
+                selectedDate: viewModel.selectedDate,
+                onSelectDay: { viewModel.selectedDate = $0 }
             )
         }
     }

@@ -2,14 +2,22 @@ import SwiftUI
 
 struct CalendarHeatmapView: View {
     let displayMonth: Date
-    @Binding var selectedDate: Date
     let hoursForDay: (Date) -> TimeInterval
     let onMonthChange: (Int) -> Void
+    let colorStrategy: HeatmapColorStrategy
+    var selectedDate: Date? = nil
+    var onSelectDay: ((Date) -> Void)? = nil
+    var showsTimeLabel: Bool = false
+    var timeLabelFormatter: (TimeInterval) -> String = { $0.formattedCompactHours }
+    var canGoBackward: Bool = true
+    var canGoForward: Bool = true
 
     @Environment(\.colorScheme) private var colorScheme
 
     private let calendar = Calendar.current
     private let weekdaySymbols = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
+
+    private var cellHeight: CGFloat { showsTimeLabel ? 44 : 32 }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -20,6 +28,7 @@ struct CalendarHeatmapView: View {
                     Image(systemName: "chevron.left")
                 }
                 .buttonStyle(.borderless)
+                .disabled(!canGoBackward)
 
                 Spacer()
 
@@ -34,6 +43,7 @@ struct CalendarHeatmapView: View {
                     Image(systemName: "chevron.right")
                 }
                 .buttonStyle(.borderless)
+                .disabled(!canGoForward)
             }
 
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 7), spacing: 4) {
@@ -45,18 +55,21 @@ struct CalendarHeatmapView: View {
 
                 ForEach(daysInMonth, id: \.self) { date in
                     if let date = date {
+                        let hours = hoursForDay(date)
                         DayCell(
                             date: date,
-                            hours: hoursForDay(date),
-                            isSelected: calendar.isDate(date, inSameDayAs: selectedDate),
+                            hours: hours,
+                            isSelected: selectedDate.map { calendar.isDate(date, inSameDayAs: $0) } ?? false,
                             isInDisplayMonth: calendar.isDate(date, equalTo: displayMonth, toGranularity: .month),
-                            colorScheme: colorScheme
-                        ) {
-                            selectedDate = date
-                        }
+                            colorScheme: colorScheme,
+                            colorStrategy: colorStrategy,
+                            label: showsTimeLabel ? timeLabelFormatter(hours) : nil,
+                            cellHeight: cellHeight,
+                            action: onSelectDay.map { onSelectDay in { onSelectDay(date) } }
+                        )
                     } else {
                         Color.clear
-                            .frame(height: 32)
+                            .frame(height: cellHeight)
                     }
                 }
             }
@@ -95,36 +108,48 @@ private struct DayCell: View {
     let isSelected: Bool
     let isInDisplayMonth: Bool
     let colorScheme: ColorScheme
-    let action: () -> Void
+    let colorStrategy: HeatmapColorStrategy
+    let label: String?
+    let cellHeight: CGFloat
+    let action: (() -> Void)?
 
-    private var heatColor: Color {
-        switch hours {
-        case 0:
-            return Color.clear
-        case ..<7200:
-            return colorScheme == .dark ? Color.green.opacity(0.3) : Color.green.opacity(0.25)
-        case ..<18000:
-            return colorScheme == .dark ? Color.green.opacity(0.55) : Color.green.opacity(0.5)
-        default:
-            return colorScheme == .dark ? Color.green.opacity(0.8) : Color.green.opacity(0.75)
+    var body: some View {
+        if let action {
+            Button(action: action) { cellContent }
+                .buttonStyle(.plain)
+        } else {
+            cellContent
         }
     }
 
-    var body: some View {
-        Button(action: action) {
-            VStack {
-                Text("\(Calendar.current.component(.day, from: date))")
-                    .font(.caption)
+    private var isToday: Bool { Calendar.current.isDateInToday(date) }
+
+    private var isFuture: Bool {
+        Calendar.current.startOfDay(for: date) > Calendar.current.startOfDay(for: Date())
+    }
+
+    private var cellContent: some View {
+        VStack(spacing: 1) {
+            Text("\(Calendar.current.component(.day, from: date))")
+                .font(.caption)
+                .foregroundStyle((isInDisplayMonth && !isFuture) ? .primary : .secondary)
+            if let label, !isFuture {
+                Text(label)
+                    .font(.system(size: 9))
                     .foregroundStyle(isInDisplayMonth ? .primary : .secondary)
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 32)
-            .background(heatColor)
-            .overlay(
-                RoundedRectangle(cornerRadius: 4)
-                    .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
-            )
         }
-        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
+        .frame(height: cellHeight)
+        .background(colorStrategy.color(forHours: hours, colorScheme: colorScheme))
+        .overlay(
+            RoundedRectangle(cornerRadius: 4)
+                .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 4)
+                .inset(by: isSelected ? 3 : 0)
+                .stroke(isToday ? Color.red : Color.clear, lineWidth: 1.5)
+        )
     }
 }

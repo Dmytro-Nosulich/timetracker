@@ -8,4 +8,13 @@ extension TimeInterval {
         let minutes = abs(totalMinutes % 60)
         return "\(hours)h \(String(format: "%02d", minutes))m"
     }
+
+    /// Compact decimal-hour label for small UI elements (e.g. heatmap day cells): "6.5h", "8h".
+    var formattedCompactHours: String {
+        let hours = self / 3600.0
+        if hours.rounded() == hours {
+            return "\(Int(hours))h"
+        }
+        return String(format: "%.1fh", hours)
+    }
 }

@@ -183,4 +183,18 @@ final class MockUserPreferencesService: UserPreferencesService {
         setTaskReminderModeLastValue = value
         stubbedTaskReminderMode = value
     }
+
+    var stubbedTargetDailyHours: TimeInterval = 8 * 3600
+    var setTargetDailyHoursCallCount = 0
+    var setTargetDailyHoursLastValue: TimeInterval?
+
+    var targetDailyHours: TimeInterval {
+        stubbedTargetDailyHours
+    }
+
+    func setTargetDailyHours(_ value: TimeInterval) {
+        setTargetDailyHoursCallCount += 1
+        setTargetDailyHoursLastValue = value
+        stubbedTargetDailyHours = value
+    }
 }

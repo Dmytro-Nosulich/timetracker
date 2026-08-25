@@ -15,11 +15,13 @@ final class UserDefaultsUserPreferencesService: UserPreferencesService {
     private let taskReminderEnabledKey = "taskReminderEnabled"
     private let taskReminderDurationKey = "taskReminderDuration"
     private let taskReminderModeKey = "taskReminderMode"
+    private let targetDailyHoursKey = "targetDailyHours"
 
     static let defaultIdleTimeoutMinutes = 10
     static let defaultSubtractIdleTimeFromTrackedTime = false
     static let defaultTrackingReminderTimeSeconds: TimeInterval = 9 * 3600 // 09:00
     static let defaultTrackingReminderDays = [2, 3, 4, 5, 6] // Mon-Fri (Calendar weekday)
+    static let defaultTargetDailyHoursSeconds: TimeInterval = 8 * 3600
 
     init(userDefaults: UserDefaults = .standard) {
         self.userDefaults = userDefaults
@@ -157,5 +159,16 @@ final class UserDefaultsUserPreferencesService: UserPreferencesService {
 
     func setTaskReminderMode(_ value: TaskReminderMode) {
         userDefaults.set(value.rawValue, forKey: taskReminderModeKey)
+    }
+
+    var targetDailyHours: TimeInterval {
+        guard userDefaults.object(forKey: targetDailyHoursKey) != nil else {
+            return Self.defaultTargetDailyHoursSeconds
+        }
+        return userDefaults.double(forKey: targetDailyHoursKey)
+    }
+
+    func setTargetDailyHours(_ value: TimeInterval) {
+        userDefaults.set(value, forKey: targetDailyHoursKey)
     }
 }
