@@ -2,6 +2,7 @@ import SwiftUI
 
 struct TaskListView: View {
     let tasks: [TaskItem]
+    let hasAnyTasks: Bool
     let currentTimerTaskId: UUID?
     let timerState: TimerState
     let onDelete: (TaskItem) -> Void
@@ -54,11 +55,15 @@ struct TaskListView: View {
         .listStyle(.inset(alternatesRowBackgrounds: true))
         .overlay {
             if tasks.isEmpty {
-                ContentUnavailableView(
-                    "No Tasks",
-                    systemImage: "checklist",
-                    description: Text("Click the + button to add your first task.")
-                )
+                if hasAnyTasks {
+                    ContentUnavailableView.search
+                } else {
+                    ContentUnavailableView(
+                        "No Tasks",
+                        systemImage: "checklist",
+                        description: Text("Click the + button to add your first task.")
+                    )
+                }
             }
         }
         .confirmationDialog(
