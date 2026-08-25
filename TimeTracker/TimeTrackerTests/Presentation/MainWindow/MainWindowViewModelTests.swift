@@ -17,11 +17,11 @@ struct MainWindowViewModelTests {
         TagItem(id: UUID(), name: name, colorHex: "FF0000", createdAt: Date())
     }
 
-    private func makeTask(id: UUID = UUID(), title: String = "Task", tags: [TagItem] = []) -> TaskItem {
+    private func makeTask(id: UUID = UUID(), title: String = "Task", description: String = "", tags: [TagItem] = []) -> TaskItem {
         TaskItem(
             id: id,
             title: title,
-            taskDescription: "",
+            taskDescription: description,
             createdAt: Date(),
             isArchived: false,
             hourlyRate: nil,
@@ -69,6 +69,83 @@ struct MainWindowViewModelTests {
         vm.selectedTagFilter = tag
 
         #expect(vm.filteredTasks.isEmpty)
+    }
+
+    // MARK: - Search filtering
+
+    @Test func filteredTasksWithSearchTextMatchingTitle() {
+        let mock = makeMock()
+        let task1 = makeTask(title: "Website Redesign")
+        let task2 = makeTask(title: "API Integration")
+        mock.stubbedTasks = [task1, task2]
+        let vm = MainWindowViewModel(localStorageService: mock, timerService: makeTimerMock())
+        vm.loadData()
+        vm.searchText = "website"
+
+        #expect(vm.filteredTasks.count == 1)
+        #expect(vm.filteredTasks.first?.title == "Website Redesign")
+    }
+
+    @Test func filteredTasksWithSearchTextMatchingDescription() {
+        let mock = makeMock()
+        let task1 = makeTask(title: "Task A", description: "Fix the login bug")
+        let task2 = makeTask(title: "Task B", description: "Write documentation")
+        mock.stubbedTasks = [task1, task2]
+        let vm = MainWindowViewModel(localStorageService: mock, timerService: makeTimerMock())
+        vm.loadData()
+        vm.searchText = "login"
+
+        #expect(vm.filteredTasks.count == 1)
+        #expect(vm.filteredTasks.first?.title == "Task A")
+    }
+
+    @Test func filteredTasksWithSearchTextIsCaseInsensitive() {
+        let mock = makeMock()
+        let task = makeTask(title: "Website Redesign")
+        mock.stubbedTasks = [task]
+        let vm = MainWindowViewModel(localStorageService: mock, timerService: makeTimerMock())
+        vm.loadData()
+        vm.searchText = "WEBSITE"
+
+        #expect(vm.filteredTasks.count == 1)
+    }
+
+    @Test func filteredTasksWithSearchTextNoMatch() {
+        let mock = makeMock()
+        let task = makeTask(title: "Website Redesign", description: "Client work")
+        mock.stubbedTasks = [task]
+        let vm = MainWindowViewModel(localStorageService: mock, timerService: makeTimerMock())
+        vm.loadData()
+        vm.searchText = "nonexistent"
+
+        #expect(vm.filteredTasks.isEmpty)
+    }
+
+    @Test func filteredTasksWithWhitespaceOnlySearchTextActsAsNoFilter() {
+        let mock = makeMock()
+        let tasks = [makeTask(title: "A"), makeTask(title: "B")]
+        mock.stubbedTasks = tasks
+        let vm = MainWindowViewModel(localStorageService: mock, timerService: makeTimerMock())
+        vm.loadData()
+        vm.searchText = "   "
+
+        #expect(vm.filteredTasks.count == 2)
+    }
+
+    @Test func filteredTasksWithSearchTextAndTagFilterCombined() {
+        let mock = makeMock()
+        let tag = makeTag(name: "Work")
+        let matching = makeTask(title: "Website Redesign", tags: [tag])
+        let wrongTag = makeTask(title: "Website Copy", tags: [])
+        let wrongSearch = makeTask(title: "API Integration", tags: [tag])
+        mock.stubbedTasks = [matching, wrongTag, wrongSearch]
+        let vm = MainWindowViewModel(localStorageService: mock, timerService: makeTimerMock())
+        vm.loadData()
+        vm.selectedTagFilter = tag
+        vm.searchText = "website"
+
+        #expect(vm.filteredTasks.count == 1)
+        #expect(vm.filteredTasks.first?.title == "Website Redesign")
     }
 
     // MARK: - loadData
@@ -181,6 +258,7 @@ struct MainWindowViewModelTests {
         #expect(vm.tasks.isEmpty)
         #expect(vm.tags.isEmpty)
         #expect(vm.selectedTagFilter == nil)
+        #expect(vm.searchText.isEmpty)
         #expect(vm.totalToday == 0)
         #expect(vm.showingAddTask == false)
     }
