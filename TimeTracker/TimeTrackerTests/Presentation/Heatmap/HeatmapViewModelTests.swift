@@ -15,10 +15,10 @@ struct HeatmapViewModelTests {
         return (vm, ls, prefs)
     }
 
-    private func makeTask(timeEntries: [TimeEntryItem]) -> TaskItem {
+    private func makeTask(title: String = "Task", timeEntries: [TimeEntryItem]) -> TaskItem {
         TaskItem(
             id: UUID(),
-            title: "Task",
+            title: title,
             taskDescription: "",
             createdAt: Date(),
             isArchived: false,
@@ -197,5 +197,81 @@ struct HeatmapViewModelTests {
         #expect(vm.displayMonth != startOfMonth(now))
         vm.jumpToToday()
         #expect(vm.displayMonth == startOfMonth(now))
+    }
+
+    // MARK: - Day selection
+
+    @Test func selectDayWithMultipleTasksProducesSummedSortedRows() {
+        let now = Date()
+        let day = calendar.startOfDay(for: now)
+        let busyTask = makeTask(title: "Busy", timeEntries: [entry(start: day.addingTimeInterval(3600), end: day.addingTimeInterval(3600 * 3))])
+        let quietTask = makeTask(title: "Quiet", timeEntries: [entry(start: day, end: day.addingTimeInterval(1800))])
+        let (vm, _, _) = makeVM(tasks: [busyTask, quietTask])
+        vm.onAppear()
+        vm.selectDay(day)
+        #expect(vm.selectedDate == day)
+        #expect(vm.selectedDayTaskRows.map(\.title) == ["Busy", "Quiet"])
+        let expectedBusy: TimeInterval = 3600 * 2
+        #expect(vm.selectedDayTaskRows[0].duration == expectedBusy)
+        #expect(vm.selectedDayTaskRows[1].duration == 1800)
+    }
+
+    @Test func selectDayWithNoEntriesProducesEmptyRows() {
+        let now = Date()
+        let day = calendar.startOfDay(for: now)
+        let task = makeTask(timeEntries: [entry(start: day, end: day.addingTimeInterval(3600))])
+        let (vm, _, _) = makeVM(tasks: [task])
+        vm.onAppear()
+        let unrelatedDay = calendar.date(byAdding: .day, value: -10, to: day)!
+        vm.selectDay(unrelatedDay)
+        #expect(vm.selectedDate == unrelatedDay)
+        #expect(vm.selectedDayTaskRows.isEmpty)
+    }
+
+    @Test func selectingSameDayTwiceDeselects() {
+        let now = Date()
+        let day = calendar.startOfDay(for: now)
+        let task = makeTask(timeEntries: [entry(start: day, end: day.addingTimeInterval(3600))])
+        let (vm, _, _) = makeVM(tasks: [task])
+        vm.onAppear()
+        vm.selectDay(day)
+        #expect(vm.selectedDate != nil)
+        vm.selectDay(day)
+        #expect(vm.selectedDate == nil)
+        #expect(vm.selectedDayTaskRows.isEmpty)
+    }
+
+    @Test func navigateMonthClearsSelection() {
+        let now = Date()
+        let day = calendar.startOfDay(for: now)
+        let earlier = monthsAgo(1, from: now)
+        let task = makeTask(timeEntries: [
+            entry(start: day, end: day.addingTimeInterval(3600)),
+            entry(start: earlier, end: earlier.addingTimeInterval(3600)),
+        ])
+        let (vm, _, _) = makeVM(tasks: [task])
+        vm.onAppear()
+        vm.selectDay(day)
+        #expect(vm.selectedDate != nil)
+        vm.navigateMonth(by: -1)
+        #expect(vm.selectedDate == nil)
+        #expect(vm.selectedDayTaskRows.isEmpty)
+    }
+
+    @Test func setDisplayMonthClearsSelection() {
+        let now = Date()
+        let day = calendar.startOfDay(for: now)
+        let earlier = monthsAgo(1, from: now)
+        let task = makeTask(timeEntries: [
+            entry(start: day, end: day.addingTimeInterval(3600)),
+            entry(start: earlier, end: earlier.addingTimeInterval(3600)),
+        ])
+        let (vm, _, _) = makeVM(tasks: [task])
+        vm.onAppear()
+        vm.selectDay(day)
+        #expect(vm.selectedDate != nil)
+        vm.setDisplayMonth(year: calendar.component(.year, from: earlier), month: calendar.component(.month, from: earlier))
+        #expect(vm.selectedDate == nil)
+        #expect(vm.selectedDayTaskRows.isEmpty)
     }
 }

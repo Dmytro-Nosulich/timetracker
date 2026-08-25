@@ -11,6 +11,8 @@ final class HeatmapViewModel {
     private(set) var dailyTotals: [Date: TimeInterval] = [:]
     private(set) var earliestEntryMonth: Date?
     private(set) var latestEntryMonth: Date?
+    private(set) var selectedDate: Date?
+    private(set) var selectedDayTaskRows: [SelectedDayTaskRow] = []
 
     var displayMonth: Date = Date()
 
@@ -59,6 +61,17 @@ final class HeatmapViewModel {
         dailyTotals[calendar.startOfDay(for: date)] ?? 0
     }
 
+    func selectDay(_ date: Date) {
+        let dayStart = calendar.startOfDay(for: date)
+        if selectedDate == dayStart {
+            selectedDate = nil
+            selectedDayTaskRows = []
+            return
+        }
+        selectedDate = dayStart
+        selectedDayTaskRows = taskRows(for: dayStart)
+    }
+
     var monthTotal: TimeInterval {
         dailyTotals.values.reduce(0, +)
     }
@@ -75,8 +88,7 @@ final class HeatmapViewModel {
     func navigateMonth(by delta: Int) {
         guard let candidate = calendar.date(byAdding: .month, value: delta, to: displayMonth),
               let earliest = earliestEntryMonth, let latest = latestEntryMonth else { return }
-        displayMonth = min(max(candidate, earliest), latest)
-        recomputeDailyTotals()
+        changeDisplayMonth(to: min(max(candidate, earliest), latest))
     }
 
     func setDisplayMonth(year: Int, month: Int) {
@@ -86,11 +98,32 @@ final class HeatmapViewModel {
         components.month = month
         components.day = 1
         guard let candidate = calendar.date(from: components) else { return }
-        displayMonth = min(max(candidate, earliest), latest)
-        recomputeDailyTotals()
+        changeDisplayMonth(to: min(max(candidate, earliest), latest))
     }
 
     // MARK: - Private
+
+    private func changeDisplayMonth(to newMonth: Date) {
+        displayMonth = newMonth
+        selectedDate = nil
+        selectedDayTaskRows = []
+        recomputeDailyTotals()
+    }
+
+    private func taskRows(for dayStart: Date) -> [SelectedDayTaskRow] {
+        guard let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) else { return [] }
+        return allTasks.compactMap { task -> SelectedDayTaskRow? in
+            let totals = DailyTimeAggregator.dailyTotals(
+                for: task.timeEntries,
+                rangeStart: dayStart,
+                rangeEnd: dayEnd,
+                calendar: calendar
+            )
+            let duration = totals.values.reduce(0, +)
+            guard duration > 0 else { return nil }
+            return SelectedDayTaskRow(id: task.id, title: task.title, tags: task.tags, duration: duration)
+        }.sorted { $0.duration > $1.duration }
+    }
 
     private func computeBounds() {
         let allEntries = allTasks.flatMap(\.timeEntries)
