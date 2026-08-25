@@ -43,6 +43,16 @@ struct SettingsView: View {
             }
 
             Toggle("Launch at Login", isOn: $viewModel.launchAtLogin)
+
+            LabeledContent("Target daily hours (Heatmap)") {
+                HStack(spacing: 8) {
+                    Text("\(viewModel.targetDailyHours)h")
+                        .bold()
+                        .monospacedDigit()
+                    Stepper("", value: $viewModel.targetDailyHours, in: 1...24)
+                        .labelsHidden()
+                }
+            }
         }
     }
 
@@ -50,11 +60,15 @@ struct SettingsView: View {
 
     private var idleDetectionSection: some View {
         Section("Idle Detection") {
-            Stepper(
-                "Idle timeout: \(viewModel.idleTimeoutMinutes) minutes",
-                value: $viewModel.idleTimeoutMinutes,
-                in: 1...60
-            )
+            LabeledContent("Idle timeout") {
+                HStack(spacing: 8) {
+                    Text("\(viewModel.idleTimeoutMinutes) minutes")
+                        .bold()
+                        .monospacedDigit()
+                    Stepper("", value: $viewModel.idleTimeoutMinutes, in: 1...60)
+                        .labelsHidden()
+                }
+            }
 
             VStack(alignment: .leading, spacing: 4) {
                 Toggle("Subtract idle time from tracked time", isOn: $viewModel.subtractIdleTime)

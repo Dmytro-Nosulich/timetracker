@@ -39,4 +39,7 @@ protocol UserPreferencesService {
 
     var taskReminderMode: TaskReminderMode { get }
     func setTaskReminderMode(_ value: TaskReminderMode)
+
+    var targetDailyHours: TimeInterval { get }
+    func setTargetDailyHours(_ value: TimeInterval)
 }

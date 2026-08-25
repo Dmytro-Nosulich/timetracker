@@ -254,4 +254,28 @@ struct UserDefaultsUserPreferencesServiceTests {
         service.setTrackingReminderDays([])
         #expect(service.trackingReminderDays == [])
     }
+
+    // MARK: - Target daily hours
+
+    @Test func targetDailyHoursDefaultsToEightHours() {
+        let (service, _) = makeService()
+        let expected: TimeInterval = 8 * 3600
+        #expect(service.targetDailyHours == expected)
+    }
+
+    @Test func setTargetDailyHoursPersistsValue() {
+        let (service, _) = makeService()
+        let value: TimeInterval = 6 * 3600
+        service.setTargetDailyHours(value)
+        #expect(service.targetDailyHours == value)
+    }
+
+    @Test func setTargetDailyHoursOverwritesPrevious() {
+        let (service, _) = makeService()
+        let first: TimeInterval = 4 * 3600
+        let second: TimeInterval = 10 * 3600
+        service.setTargetDailyHours(first)
+        service.setTargetDailyHours(second)
+        #expect(service.targetDailyHours == second)
+    }
 }

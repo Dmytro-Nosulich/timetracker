@@ -16,6 +16,10 @@ final class MainWindowViewModel {
     var totalThisWeek: TimeInterval = 0
     var showingAddTask = false
 
+    var hasAnyTimeEntries: Bool {
+        tasks.contains { !$0.timeEntries.isEmpty }
+    }
+
     var filteredTasks: [TaskItem] {
         var result = tasks
         if let tag = selectedTagFilter {

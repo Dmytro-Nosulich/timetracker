@@ -92,6 +92,15 @@ struct TimeTrackerApp: App {
         .windowResizability(.contentMinSize)
         .defaultSize(width: 700, height: 600)
 
+        Window("Heatmap", id: "heatmap-window") {
+            HeatmapModuleBuilder.build(
+                localStorageService: localStorageService,
+                userPreferencesService: userPreferencesService
+            )
+        }
+        .windowResizability(.contentMinSize)
+        .defaultSize(width: 700, height: 600)
+
         Settings {
             SettingsModuleBuilder.build(
                 localStorageService: localStorageService,

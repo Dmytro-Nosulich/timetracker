@@ -78,6 +78,20 @@ final class SettingsViewModel {
         }
     }
 
+    // MARK: - Heatmap
+
+    var targetDailyHours: Int = 8 {
+        didSet {
+            let clamped = min(24, max(1, targetDailyHours))
+            if clamped != targetDailyHours {
+                targetDailyHours = clamped
+                return
+            }
+            guard targetDailyHours != oldValue else { return }
+            userPreferences.setTargetDailyHours(TimeInterval(targetDailyHours) * 3600)
+        }
+    }
+
     var subtractIdleTime: Bool = false {
         didSet {
             guard subtractIdleTime != oldValue else { return }
@@ -163,6 +177,8 @@ final class SettingsViewModel {
 
         idleTimeoutMinutes = userPreferences.idleTimeoutMinutes
         subtractIdleTime = userPreferences.subtractIdleTimeFromTrackedTime
+
+        targetDailyHours = Int(userPreferences.targetDailyHours / 3600)
 
         trackingReminderEnabled = userPreferences.trackingReminderEnabled
         let savedSeconds = userPreferences.trackingReminderTime

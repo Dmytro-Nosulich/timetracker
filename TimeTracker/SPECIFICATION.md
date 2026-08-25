@@ -122,7 +122,7 @@ Each case has a `displayName` String for UI display ("Current session", "Today",
 ### Layout
 ```
 ┌─────────────────────────────────────────────────────┐
-│  Time Tracker           [+ Add] [📊]  🔍 [Search   ] │
+│  Time Tracker      [+ Add] [📊] [📅]  🔍 [Search   ] │
 │─────────────────────────────────────────────────────│
 │  Filter: [All Tags ▼]                               │
 │─────────────────────────────────────────────────────│
@@ -147,6 +147,7 @@ Each case has a `displayName` String for UI display ("Current session", "Today",
   - Tag picker (optional, multi-select from existing tags)
   - [Cancel] [Create] buttons
 - **"📊 Report" button:** Opens the Report window (Phase 7). Only one Report window at a time — if already open, bring to front.
+- **"📅 Heatmap" button:** Opens the Heatmap window (Phase 9), showing tracked time across all tasks. Only one Heatmap window at a time — if already open, bring to front. Disabled when the app has zero time entries recorded across all tasks.
 - **Search field:** Native macOS toolbar search (SwiftUI `.searchable()`), placed in the window toolbar. Filters the table by case-insensitive substring match against task title OR description. Combines with the Tag Filter using AND logic (e.g. selecting a tag first, then searching, narrows within that tag). Clearing the search field restores the tag-filtered (or full) list. When results are empty due to search/filter (but tasks exist), the table shows a "No results" empty state instead of the "No Tasks" empty state.
 
 **Tag Filter:**
@@ -791,6 +792,7 @@ Accessible via: macOS menu bar → App menu → "Settings..." (Cmd+,)
 - `Cmd + N` — Add new task (from Main Window, if Main Window is focused)
 - `Cmd + ,` — Open Settings
 - `Cmd + R` — Open Report window
+- `Cmd + T` — Open Heatmap window
 - `Cmd + Q` — Quit (with save confirmation if timer running)
 
 ### Edge Cases & Polish
@@ -808,6 +810,7 @@ Accessible via: macOS menu bar → App menu → "Settings..." (Cmd+,)
 - Only one Task Detail window at a time
 - Only one Report window at a time
 - Only one Timer window at a time
+- Only one Heatmap window at a time
 - If user tries to open a second, bring existing one to front
 
 **Dark Mode:**
@@ -821,6 +824,61 @@ Accessible via: macOS menu bar → App menu → "Settings..." (Cmd+,)
 **Time Display Format:**
 - Throughout the app, use consistent format: `Xh Ym` (e.g., "12h 30m", "0h 00m", "145h 15m")
 - For the Timer Window session counter: same format but larger font
+
+---
+
+## Phase 9 — Time Heatmap (All Tasks)
+
+### Purpose
+A second, app-wide calendar heatmap — in the style of GitHub's contribution graph — showing **total time tracked across all tasks** per day. This complements the Task Detail heatmap (Phase 4), which only shows a single task's hours; the two share the same underlying calendar grid component, configured with different coloring and interaction rules for each screen.
+
+### Window Properties
+- Title: "Heatmap"
+- Resizable: YES
+- Minimum size: 500×500
+- Only one Heatmap window at a time — opened from the Main Window toolbar (Phase 2)
+
+### Layout
+```
+┌──────────────────────────────────────────────────┐
+│  [Month ▼]  [Year ▼]                              │
+│                                                   │
+│       ◀        August 2026        ▶               │
+│  Mo Tu We Th Fr Sa Su                             │
+│                        1     2                    │
+│   3     4    5h5  6    8h0   7h2   9              │
+│  10   11h0  12    13    14    15   16              │
+│  ...                                              │
+└──────────────────────────────────────────────────┘
+```
+
+### Components
+
+**Month/Year Pickers:**
+- Two native dropdown pickers for direct month and year selection, in addition to the ◀ ▶ navigation arrows
+- Both are constrained to the Navigation Bounds below — out-of-range months/years are not offered as options
+
+**Calendar Grid:**
+- Each day cell shows:
+  - The day number
+  - The total hours tracked that day across all tasks, as a compact label (e.g., "6.5h", "8h")
+  - A background color representing the day's total, per the Shading Rules below
+- No click/hover interaction on cells (color + label only) — unlike the Task Detail heatmap (Phase 4), where clicking a day selects it and reveals that day's entries below the calendar
+
+**Shading Rules (anchored to an 8-hour workday):**
+- 0 hours tracked: white / no color
+- 1–8 hours: 8 discrete opacity tiers, one per completed hour bucket (0–1h lightest, 7–8h darkest)
+- 8+ hours: capped at the same darkest tier used for 7–8h — one minute over 8h renders identically to several hours over; there is no separate "overtime" color
+- This is a different, absolute (8h-anchored) scale from the Task Detail heatmap's relative 4-tier scheme (Phase 4), which is tuned for a single task's daily hours rather than a full working day across all tasks
+
+**Navigation Bounds:**
+- Earliest selectable month: the month of the very first time entry ever recorded, across all tasks
+- Latest selectable month: the month of the most recent time entry ever recorded, across all tasks (not necessarily the current calendar month)
+- The ◀ ▶ arrows and the Month/Year pickers are all constrained to this range; navigation cannot reach a month with no possible data
+- **Default month on open:** the current month, if it has any tracked time; otherwise the latest month that does
+
+**Empty State:**
+- If the app has zero time entries at all, the Main Window toolbar button that opens this window is disabled, so this state is normally unreachable. As a fallback, the window shows a simple "No time tracked yet" message instead of the calendar.
 
 ---
 
@@ -838,6 +896,7 @@ Build in this order. Each phase builds on the previous one:
 | 6 | Idle Detection | Phase 3, 5 | Must have |
 | 7 | Reports & PDF Export | Phase 1, 2 | Must have |
 | 8 | Settings, Tags & Polish | All phases | Must have |
+| 9 | Time Heatmap (All Tasks) | Phase 2, Phase 4 | Enhancement |
 
 ### Recommended approach for Claude Code:
 - Build phase by phase, testing each phase before moving to the next
