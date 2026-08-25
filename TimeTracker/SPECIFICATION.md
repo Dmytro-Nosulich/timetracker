@@ -122,7 +122,7 @@ Each case has a `displayName` String for UI display ("Current session", "Today",
 ### Layout
 ```
 ┌─────────────────────────────────────────────────────┐
-│  Time Tracker                          [+ Add] [📊] │
+│  Time Tracker           [+ Add] [📊]  🔍 [Search   ] │
 │─────────────────────────────────────────────────────│
 │  Filter: [All Tags ▼]                               │
 │─────────────────────────────────────────────────────│
@@ -147,6 +147,7 @@ Each case has a `displayName` String for UI display ("Current session", "Today",
   - Tag picker (optional, multi-select from existing tags)
   - [Cancel] [Create] buttons
 - **"📊 Report" button:** Opens the Report window (Phase 7). Only one Report window at a time — if already open, bring to front.
+- **Search field:** Native macOS toolbar search (SwiftUI `.searchable()`), placed in the window toolbar. Filters the table by case-insensitive substring match against task title OR description. Combines with the Tag Filter using AND logic (e.g. selecting a tag first, then searching, narrows within that tag). Clearing the search field restores the tag-filtered (or full) list. When results are empty due to search/filter (but tasks exist), the table shows a "No results" empty state instead of the "No Tasks" empty state.
 
 **Tag Filter:**
 - Dropdown above the table: "All Tags" (default), then lists all existing tags
@@ -853,7 +854,7 @@ Build in this order. Each phase builds on the previous one:
 - **Cloud Sync:** Sync data across devices. UUIDs and timestamps are already in place for this.
 - **Archive functionality:** UI to archive/unarchive tasks (data model already has `isArchived` flag).
 - **Multi-tag filtering:** Filter by multiple tags with AND/OR logic.
-- **Full-text search:** Search across task titles, descriptions, and tags.
+- **Tag-name search:** Extend the Main Window search field (Phase 2) to also match against tag names — it currently searches only task title/description; tags are filtered via the separate Tag Filter dropdown (selection-based, not text search).
 - **Tag-based grouping in reports:** Group tasks by tag in the PDF report.
 - **CSV export:** Export report data as CSV for spreadsheets.
 - **Pomodoro mode:** Optional Pomodoro timer alongside the regular timer.

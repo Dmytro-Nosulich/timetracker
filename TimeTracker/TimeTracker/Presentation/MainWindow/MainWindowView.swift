@@ -7,52 +7,56 @@ struct MainWindowView<AddTaskContent: View>: View {
     let addTaskViewBuilder: () -> AddTaskContent
 
     var body: some View {
-        VStack(spacing: 0) {
-            TagFilterBar(tags: viewModel.tags, selectedTag: $viewModel.selectedTagFilter)
+        NavigationStack {
+            VStack(spacing: 0) {
+                TagFilterBar(tags: viewModel.tags, selectedTag: $viewModel.selectedTagFilter)
 
-            Divider()
+                Divider()
 
-            TaskListView(
-                tasks: viewModel.filteredTasks,
-                currentTimerTaskId: viewModel.currentTimerTaskId,
-                timerState: viewModel.timerState,
-                onDelete: { task in viewModel.deleteTask(id: task.id) },
-                onStartTimer: { task in
-                    viewModel.startTimer(for: task)
-                    openWindow(id: "timer-window")
-                },
-                onPauseTimer: {
-                    viewModel.pauseTimer()
-                },
-                onOpenTaskDetail: { task in
-                    coordinator.requestOpen(taskId: task.id) {
-                        openWindow(id: "task-detail")
+                TaskListView(
+                    tasks: viewModel.filteredTasks,
+                    hasAnyTasks: !viewModel.tasks.isEmpty,
+                    currentTimerTaskId: viewModel.currentTimerTaskId,
+                    timerState: viewModel.timerState,
+                    onDelete: { task in viewModel.deleteTask(id: task.id) },
+                    onStartTimer: { task in
+                        viewModel.startTimer(for: task)
+                        openWindow(id: "timer-window")
+                    },
+                    onPauseTimer: {
+                        viewModel.pauseTimer()
+                    },
+                    onOpenTaskDetail: { task in
+                        coordinator.requestOpen(taskId: task.id) {
+                            openWindow(id: "task-detail")
+                        }
                     }
-                }
-            )
+                )
 
-            Divider()
+                Divider()
 
-            BottomStatusBar(totalToday: viewModel.liveTotalToday, totalThisWeek: viewModel.totalThisWeek)
-        }
-        .navigationTitle("Time Tracker")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    viewModel.showingAddTask = true
-                } label: {
-                    Label("Add Task", systemImage: "plus")
-                }
-                .keyboardShortcut("n", modifiers: .command)
+                BottomStatusBar(totalToday: viewModel.liveTotalToday, totalThisWeek: viewModel.totalThisWeek)
             }
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    openWindow(id: "report-window")
-                } label: {
-                    Label("Report", systemImage: "chart.bar")
+            .navigationTitle("Time Tracker")
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        viewModel.showingAddTask = true
+                    } label: {
+                        Label("Add Task", systemImage: "plus")
+                    }
+                    .keyboardShortcut("n", modifiers: .command)
                 }
-                .keyboardShortcut("r", modifiers: .command)
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        openWindow(id: "report-window")
+                    } label: {
+                        Label("Report", systemImage: "chart.bar")
+                    }
+                    .keyboardShortcut("r", modifiers: .command)
+                }
             }
+            .searchable(text: $viewModel.searchText, placement: .toolbar, prompt: "Search tasks")
         }
         .sheet(isPresented: $viewModel.showingAddTask) {
             viewModel.loadData()

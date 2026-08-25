@@ -11,15 +11,26 @@ final class MainWindowViewModel {
     var tasks: [TaskItem] = []
     var tags: [TagItem] = []
     var selectedTagFilter: TagItem?
+    var searchText: String = ""
     var totalToday: TimeInterval = 0
     var totalThisWeek: TimeInterval = 0
     var showingAddTask = false
 
     var filteredTasks: [TaskItem] {
-        guard let tag = selectedTagFilter else { return tasks }
-        return tasks.filter { task in
-            task.tags.contains(where: { $0.id == tag.id })
+        var result = tasks
+        if let tag = selectedTagFilter {
+            result = result.filter { task in
+                task.tags.contains(where: { $0.id == tag.id })
+            }
         }
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !query.isEmpty {
+            result = result.filter { task in
+                task.title.localizedCaseInsensitiveContains(query)
+                    || task.taskDescription.localizedCaseInsensitiveContains(query)
+            }
+        }
+        return result
     }
 
     var timerState: TimerState {
