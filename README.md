@@ -31,6 +31,7 @@ The app runs as a **hybrid menu bar + windowed application**: it stays alive in 
 - Create tasks with a title, description, and optional tags
 - Assign an optional per-task hourly rate (overrides the global default)
 - Filter tasks by tag in the main window
+- Live search: a native macOS toolbar search field filters the task list by title or description (case-insensitive), combining with the tag filter via AND logic
 - Delete tasks with cascade removal of all time entries
 
 ### Timer
@@ -62,6 +63,14 @@ The app runs as a **hybrid menu bar + windowed application**: it stays alive in 
 - Overlap detection warns when a new entry conflicts with an existing one
 - All edits use a draft context — nothing is saved until you press Save
 
+### Heatmap (All Tasks)
+- A dedicated window, opened from the Main Window toolbar or `⌘T`, showing total tracked time across **all tasks** per day — complements the per-task heatmap in Task Detail above
+- Monthly calendar grid with Month/Year pickers, ◀/▶ navigation (also arrow-key navigable), and a running monthly total
+- Navigation is bounded to the range between your earliest and latest recorded time entry
+- Color shading is anchored to a configurable "target daily hours" setting, with 8 discrete intensity tiers
+- Click a day to reveal a read-only "Tracked tasks" list below the calendar — a per-task time breakdown for that day, sorted by duration
+- Disabled until at least one time entry exists; only one Heatmap window at a time
+
 ### Reports & PDF Export
 - Choose a period: This Week, Last Week, This Month, Last Month, This Year, All Time, or a custom date range
 - Select which tasks to include via checkboxes
@@ -74,6 +83,7 @@ The app runs as a **hybrid menu bar + windowed application**: it stays alive in 
 - Business name (pre-fills the Report window and PDF header)
 - Default hourly rate and currency
 - Idle timeout and "subtract idle time" toggle
+- Target daily hours (1–24h, default 8h) — scales the Heatmap's color intensity
 - Launch at Login (using `SMAppService`)
 - Daily tracking reminder: sends a local notification at a configured time on selected weekdays if no timer has been started
 - Full tag management: create, rename, recolor, and delete tags
@@ -205,6 +215,7 @@ No external dependencies — no Swift Package Manager packages, no CocoaPods.
 |---|---|
 | `⌘N` | Add new task (Main Window focused) |
 | `⌘R` | Open Report window |
+| `⌘T` | Open Heatmap window |
 | `⌘,` | Open Settings |
 | `⌘Q` | Quit (with timer save confirmation if running) |
 
