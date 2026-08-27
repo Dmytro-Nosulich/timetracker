@@ -8,10 +8,11 @@
 
 set -uo pipefail
 
-# The /monthly-report skill is a project skill living in this project's .claude/skills, so
-# it is only found from here. (The MCP server itself is registered at user scope and would
-# be reachable from anywhere — but the skill is what this job runs.)
-PROJECT_DIR="$HOME/Projects/TimeTracker/timetracker/TimeTracker"
+# This job needs no particular working directory: the skill is installed as a personal
+# skill (~/.claude/skills/monthly-report, symlinked to this repo) and the MCP server is
+# registered at user scope, so both are reachable from anywhere. It used to cd into the
+# project because the skill was project-scoped; that is no longer true, and hard-coding a
+# repo path that serves no purpose would only break the job if the repo ever moved.
 LOG_FILE="$HOME/Library/Logs/timetracker-monthly-report.log"
 
 # launchd gives a job almost no PATH, so `claude` has to be found deliberately.
@@ -38,7 +39,7 @@ if ! pgrep -qf "TimeTracker.app/Contents/MacOS/TimeTracker"; then
     sleep 15
 fi
 
-cd "$PROJECT_DIR" || { log "ERROR: project directory '$PROJECT_DIR' is missing."; exit 1; }
+cd "$HOME" || exit 1
 
 # --allowed-tools is what keeps this prompt-free: without it the run would block on a
 # permission prompt nobody is there to answer.

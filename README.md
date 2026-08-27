@@ -207,7 +207,19 @@ The project ships a `/monthly-report` skill that generates the current month's P
 claude                      # then, in the session:
 /monthly-report             # this month
 /monthly-report last month  # the month that just ended
+/monthly-report July 2026   # a named month
 ```
+
+It also triggers without the slash — "generate my monthly report" reaches it just as well.
+
+**Install it once so it works from any directory.** Skill discovery only searches upward from where you started `claude`, so a skill inside this repo is invisible from anywhere above it — including the repo's own git root. Symlink it into your personal skills directory:
+
+```bash
+mkdir -p ~/.claude/skills
+ln -sfn "$PWD/TimeTracker/.claude/skills/monthly-report" ~/.claude/skills/monthly-report
+```
+
+A symlink rather than a copy, so the skill stays version-controlled here while being reachable everywhere. Without it, `/monthly-report` only works from `TimeTracker/` or below.
 
 ---
 

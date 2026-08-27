@@ -551,12 +551,16 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
     another machine and can never reach `127.0.0.1` on this Mac — the server is *inside* the
     app. `schedule/run-monthly-report.sh` + a `StartCalendarInterval` LaunchAgent (1st of the
     month, 09:00) are shipped next to the skill but **not installed**; `schedule/README.md`
-    carries the `launchctl bootstrap` command. Two things the script has to do that are easy
-    to miss: `cd` into the project directory (the skill is a **project** skill in this repo's
-    `.claude/skills`, so it is only found from here), and pass `--allowed-tools` (without it
-    the run blocks on a permission prompt nobody is there to answer).
-    - **The server itself is registered at `-s user` scope**, so it is reachable from any
-      directory on the machine (see decision #43). Only the skill is project-bound.
+    carries the `launchctl bootstrap` command. The one thing the script must not forget is
+    `--allowed-tools` — without it the run blocks on a permission prompt nobody is there to
+    answer. It needs **no particular working directory**: both the skill (#44) and the server
+    (#43) are installed machine-wide.
+42. **A build predating this feature has no server in it at all.** `/Applications/TimeTracker.app`
+    was still a June 29 build with `com.apple.security.app-sandbox` — it has neither the MCP
+    code nor the entitlement, so `claude mcp list` reports `ConnectionRefused` while the app is
+    visibly running. Left as-is at the user's direction (they refresh it themselves); the README
+    calls the symptom out by name, since it is otherwise a genuinely confusing failure. Step 7
+    verified against the DerivedData Debug build.
 43. **The client registration lives at user scope, not local.** Step 7 originally registered
     with a bare `claude mcp add`, which is **local** scope — private to one project directory.
     That is the wrong shape for this server: it is a personal, machine-wide utility answering
@@ -564,12 +568,21 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
     questions it answers ("how much did I bill last month?") get asked from wherever the user
     happens to be. Re-registered with `-s user` and verified answering from `~`. The README
     leads with the `-s user` form for the same reason.
-42. **A build predating this feature has no server in it at all.** `/Applications/TimeTracker.app`
-    was still a June 29 build with `com.apple.security.app-sandbox` — it has neither the MCP
-    code nor the entitlement, so `claude mcp list` reports `ConnectionRefused` while the app is
-    visibly running. Left as-is at the user's direction (they refresh it themselves); the README
-    calls the symptom out by name, since it is otherwise a genuinely confusing failure. Step 7
-    verified against the DerivedData Debug build.
+44. **The skill is installed globally by symlink, not by moving it.** Skill discovery walks
+    **up** from the working directory and never down, so a skill in this repo's
+    `.claude/skills` was invisible from anywhere above it — including `timetracker/`, the
+    repo's own git root, which is where `README.md` lives. Measured, not assumed: available
+    from `TimeTracker/` and below, not from `timetracker/` or `~`.
+    - Fixed with `~/.claude/skills/monthly-report` → this repo's copy. A symlink rather than
+      a move, so the skill stays version-controlled alongside the code it drives while being
+      reachable everywhere; moving it into `~/.claude/skills` would have taken it out of git
+      and out of any fresh clone.
+    - Symlinked skill directories **are** followed by discovery, and the skill being visible
+      twice from inside the project (as a project skill *and* a personal one) dedupes to one
+      with no name-collision warning. Both verified rather than assumed.
+    - Consequence: `run-monthly-report.sh` no longer `cd`s into the project. That `cd` existed
+      solely because the skill was project-bound, and a hard-coded repo path that serves no
+      purpose can only break the job if the repo moves.
 
 ## What exists in code (as of Step 6)
 
@@ -638,7 +651,7 @@ Outside the app it added `README.md`'s "AI Access (MCP Server)" section and the 
 | File | Role |
 |---|---|
 | `.claude/skills/monthly-report/SKILL.md` | The skill itself: period resolution, the `save_report_pdf` call, and the report-what-you-got / don't-work-around-failures rules (decision #39) |
-| `.claude/skills/monthly-report/schedule/run-monthly-report.sh` | What launchd executes: `cd`s to the project, launches the app if needed, runs `claude -p "/monthly-report last month" --allowed-tools …`, logs to `~/Library/Logs/timetracker-monthly-report.log` |
+| `.claude/skills/monthly-report/schedule/run-monthly-report.sh` | What launchd executes: launches the app if needed, runs `claude -p "/monthly-report last month" --allowed-tools …`, logs to `~/Library/Logs/timetracker-monthly-report.log`. Needs no particular cwd (decision #44) |
 | `.claude/skills/monthly-report/schedule/com.dmytro.timetracker.monthly-report.plist` | LaunchAgent, `StartCalendarInterval` 1st @ 09:00. **Not installed** — see its README |
 | `.claude/skills/monthly-report/schedule/README.md` | Install/test/uninstall commands, and why this can't be a cloud agent (decision #41) |
 

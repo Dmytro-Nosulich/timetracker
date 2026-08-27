@@ -56,11 +56,20 @@ rm ~/Library/LaunchAgents/com.dmytro.timetracker.monthly-report.plist
 - **The PDF folder must be writable without a prompt.** `~/Desktop` is guarded by macOS
   privacy; if TimeTracker has never written there, save one report by hand first and grant
   the permission, so the unattended run never meets a dialog.
-- **Paths are absolute and personal.** Both the plist and the script hardcode
-  `/Users/dmytronosulich/...`. Change them if the project moves.
-- **The script must run from the project directory.** `/monthly-report` is a project skill
-  in `.claude/skills/`, so it is only found from here. (The MCP server is registered at user
-  scope and is reachable from anywhere; the skill is the part that is project-bound.)
+- **The skill must be installed globally.** It lives in this repo, but is reached through a
+  symlink in the personal skills directory:
+
+  ```bash
+  mkdir -p ~/.claude/skills
+  ln -sfn "$PWD/.." ~/.claude/skills/monthly-report   # run from this schedule/ directory
+  ```
+
+  Without that, `/monthly-report` is only found from this project directory or below, and
+  the job would have to `cd` here first. With it, the skill works from anywhere and stays
+  version-controlled in one place. Confirm with `ls -l ~/.claude/skills/`.
+- **The plist path is absolute and personal.** It hardcodes
+  `/Users/dmytronosulich/...`; change it if the project moves — and re-point the symlink
+  above too.
 
 ## Changing the schedule
 
