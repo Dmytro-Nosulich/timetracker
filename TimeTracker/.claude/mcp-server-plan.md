@@ -1,8 +1,8 @@
 # TimeTracker Local MCP Server — Implementation Spec
 
-Status: implementation in progress. Steps 1-3 are done — the server runs inside the app on a
-user-configurable port, is toggleable from Settings, and serves tool #5 end-to-end, verified
-from a real Claude Code session. Steps 4-7 remain.
+Status: implementation in progress. Steps 1-4 are done — the server runs inside the app on a
+user-configurable port, is toggleable from Settings, and serves tools #5, #1 and #2
+end-to-end against live data. Steps 5-7 remain.
 
 ## Goal
 Expose an MCP server embedded inside the running TimeTracker app so an AI tool
@@ -29,7 +29,7 @@ transcript. Typical flow:
    arrive in `errors`; no log parsing needed.
 3. `RunAllTests(tabIdentifier:)` → `{counts: {passed, failed, ...}, results[], summary}`.
    **Failed tests are listed first**, and results are truncated to 100 of N with the full
-   list at `fullSummaryPath`. As of Step 3 the baseline is **421 passing, 0 failing** — a
+   list at `fullSummaryPath`. As of Step 4 the baseline is **487 passing, 0 failing** — a
    materially lower total means tests silently stopped being compiled, not that they passed.
 4. `RunSomeTests(tabIdentifier:, tests: [{targetName, testIdentifier}])` for a focused
    re-run; get identifiers from `GetTestList` (`targetName` is `TimeTrackerTests`, and
@@ -52,7 +52,8 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
   under `TimeTracker/` or `TimeTrackerTests/` — new subdirectories included — is enough.
   The project file now *does* have a `PBXBuildFile` section, but it holds only the four
   SPM product links added in Step 2; source files still never appear there.
-- **Test baseline is now 421 passing, 0 failing** (373 after Step 1, +25 in Step 2, +23 in Step 3).
+- **Test baseline is now 487 passing, 0 failing** (373 after Step 1, +25 in Step 2, +23 in
+  Step 3, +66 in Step 4).
 - Two files are deliberately excluded via `membershipExceptions`:
   `TimeTrackerTests/Services/LocalStorage/SwiftDataLocalStorageServiceTests.swift` (not
   compiled into the test target — don't model new tests on it or expect it to run) and
@@ -309,7 +310,63 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
     - Testing seam: `SettingsViewModel.pendingMCPServerUpdate` retains the fire-and-forget
       `Task` so tests can await a rebind deterministically. The UI never reads it.
 
-## What exists in code (as of Step 3)
+### Step 4 decisions (the two time-query tools)
+
+23. **One period vocabulary, wrapping `ReportPeriod`: `MCPPeriodArgument`**
+    (`Services/MCP/Tools/`). Every period-taking tool merges its `schemaProperties`
+    (`period` + `start_date` + `end_date`) into its own input schema and calls
+    `resolve(...)`, so #3 and #4 in Steps 5-6 inherit the whole argument for free.
+    - The MCP surface uses **snake_case** names (`this_month`) rather than `ReportPeriod`'s
+      display raw values ("This Month"), because those are what an AI reliably produces.
+      Matching is tolerant — case, spaces, underscores and hyphens are all normalised away,
+      so `this month`, `thisMonth` and `This Month` all resolve. `customRange` is exposed as
+      `"custom"`.
+    - `dateRange(calendar:now:)` stays the single definition of where a period starts;
+      nothing re-derives "this week".
+    - Custom ranges are **inclusive at both ends**: `start_date` → start of day,
+      `end_date` → 23:59:59. Dates parse as `yyyy-MM-dd` (POSIX locale, the calendar's time
+      zone) falling back to ISO 8601, so a full timestamp isn't turned away.
+    - Malformed arguments return `isError: true` with a message naming the accepted values.
+      These are caller errors; "no tasks matched" deliberately is **not** one (decision #25).
+    - Tools take `calendar:`/`dateProvider:` with production defaults, following
+      `DefaultTimerService`, which is what makes the `today`/`this_week` paths testable.
+24. **The `today` / `this week` fast path through `LocalStorageService` was dropped.** The
+    catalog originally said to route those total-only cases through
+    `totalTrackedTimeToday()` / `totalTrackedTimeThisWeek()`, but that service is
+    `@MainActor` and decision #16 bars handlers from touching it — so "reuse" would have
+    meant mirroring both methods onto `MCPDataReading`, i.e. a *second* implementation of
+    "this week" with a non-injectable `Calendar.current`/`Date()` inside. Instead every
+    period takes one uniform path: `ReportPeriod` → date range → `DailyTimeAggregator`.
+    It costs nothing extra (`fetchTasks()` loads each task's entries either way), it is
+    deterministic under test, and the numbers are provably the same:
+    `TaskEntity.trackedTime(from:to:)` clips entries to the range, and the aggregator's
+    per-day split sums to that same clipped total. `DailyTimeAggregator` gained a
+    `total(for:rangeStart:rangeEnd:calendar:now:)` defined in terms of `dailyTotals`, so a
+    range total and its per-day breakdown can never disagree.
+    - **`all_time` is the one exception**: `MCPPeriodArgument.Resolved.trackedTime(for:)`
+      returns `task.totalTrackedTime` rather than aggregating `distantPast…end of today`.
+      That's the same number `list_tasks_and_tags` reports (verified live: both give
+      2,978,569s across 86 tasks), and it also counts an entry dated in the future, which a
+      range ending today never would.
+    - Consequence worth knowing: a range ending 23:59:59 loses **one second** off work that
+      runs through midnight. That is pre-existing `ReportPeriod` behavior in every case, so
+      it was matched rather than "fixed"; pinned by
+      `MCPPeriodArgumentTests.trackedTimeClipsEntriesToTheRange`.
+25. **Zero matches is an answer, not an error** (tool #1). The payload for a zero-match
+    search carries **no total field anywhere** — not even a zero — plus a `message` telling
+    the caller not to guess and up to 10 existing task titles as a hint. One match omits the
+    redundant `combined*` fields; two or more carry every match with its own total, the
+    combined total, and a `message` saying not to pick one. Three counts, three visibly
+    different shapes.
+26. **Integer seconds are summed, never the raw intervals.** Both tools compute each task's
+    seconds once and derive the total from those same integers, so printed rows always add
+    up to the printed total and both of #2's breakdowns report an identical total. Dropping
+    zero-time rows can't change a sum they contribute 0 to.
+27. **`MCPToolResponse`** (`Services/MCP/Tools/`) now owns JSON encoding (pretty-printed,
+    key-sorted) and the success/failure envelopes for every tool, including the Step 2 one —
+    three copies of an encoder configuration was one drift risk too many.
+
+## What exists in code (as of Step 4)
 
 Everything lives in `TimeTracker/Services/MCP/`:
 
@@ -320,8 +377,12 @@ Everything lives in `TimeTracker/Services/MCP/`:
 | `MCPSessionCoordinator.swift` | Owns the `Server` + transport pair, rebuilds on `initialize` (decision #14) |
 | `MCPHTTPChannelHandler.swift` | NIO `HTTPServerRequestPart` ⇄ `MCP.HTTPRequest`/`HTTPResponse` |
 | `MCPDataReading.swift` / `SwiftDataMCPDataStore.swift` | Background-actor SwiftData reads (decision #16) |
-| `MCPToolCatalog.swift` | `ListTools` / `CallTool` registration — **where tools #1-#4 plug in** |
+| `MCPToolCatalog.swift` | `ListTools` / `CallTool` registration — **where tools #3-#4 plug in** |
+| `Tools/MCPPeriodArgument.swift` | The shared period argument: schema fragment, tolerant parsing, `Resolved.trackedTime(for:)` (decisions #23-24) |
+| `Tools/MCPToolResponse.swift` | JSON encoding + the success/failure envelopes, shared by every tool |
 | `Tools/ListTasksAndTagsTool.swift`, `Tools/ListTasksAndTagsPayload.swift` | Tool #5 |
+| `Tools/TimeForTaskTool.swift`, `Tools/TimeForTaskPayload.swift` | Tool #1 |
+| `Tools/TimeForPeriodTool.swift`, `Tools/TimeForPeriodPayload.swift` | Tool #2 |
 
 Plus `App/MCPServerServiceHolder.swift`, wiring in `TimeTrackerApp.swift` and
 `App/AppDelegate.swift`, and `Services/LocalStorage/SwiftDataItemMapper.swift`.
@@ -331,9 +392,16 @@ Step 3 added the `mcpServerEnabled` / `mcpServerPort` pairs to
 and the MCP section to `Presentation/Settings/{SettingsViewModel,SettingsView}.swift`
 (+ a `mcpServerService:` parameter on `SettingsModuleBuilder`).
 
-Tests in `TimeTrackerTests/Services/MCP/` (payload builder, tool handler, server
-lifecycle + preference-driven configuration), `TimeTrackerTests/Presentation/Settings/`
-(the MCP section), and mocks `MockMCPDataStore.swift` / `MockMCPServerService.swift`.
+Step 4 added `Tools/MCPPeriodArgument.swift`, `Tools/MCPToolResponse.swift` and the two
+tool/payload pairs above, plus `DailyTimeAggregator.total(...)`. It needed **no** change to
+`MCPDataReading`, `SwiftDataMCPDataStore`, `MockMCPDataStore` or any preference — neither
+tool touches rates, rounding or currency.
+
+Tests in `TimeTrackerTests/Services/MCP/` (payload builder, tool handlers, the period
+argument, server lifecycle + preference-driven configuration),
+`TimeTrackerTests/Presentation/Settings/` (the MCP section), and mocks
+`MockMCPDataStore.swift` / `MockMCPServerService.swift`. The Step 4 tools reuse
+`MockDateProvider` to pin `now`.
 
 **Registering the client** (the app must be running; port from Settings):
 ```
@@ -355,57 +423,113 @@ privileged port (`80`) falls back to 8427 instead of failing; and launching with
 already squatted leaves the app alive with no listener. The live toggle/Apply paths and the
 copy button are UI interactions and were left for manual confirmation.
 
+**Verified in Step 4** (487 tests passing, 0 failing): against the running app over HTTP,
+`tools/list` returns all three tools; `get_time_for_task` gives one match, three matches
+with a combined total, and a no-match result carrying no total at all; `get_time_for_period`
+answers `today` / `this_week` / `this_month` / a custom July range / `all_time`, in both
+breakdowns, with the per-task rows summing exactly to the reported total. Cross-check that
+pins decision #24: `get_time_for_period` on `all_time` and the sum of
+`list_tasks_and_tags`'s per-task totals both give **2,978,569s across 86 tasks**. Every
+error path returns a message naming the fix (missing/unknown period, `custom` without
+dates, `01/07/2026`, missing query), and `"This Month"` + `breakdown: "nonsense"` resolve
+tolerantly instead of failing. **Still to confirm by hand**: natural-language routing from a
+real Claude Code session — whether the descriptions actually send "how much on X?" to #1 and
+"what did I track this month?" to #2 — which needs a session started while the app is up.
+
 ## MCP tool catalog
 
 Five tools. All are **read-only** except #4, whose only write is the PDF file itself —
-no tool ever modifies tracked time data. Exact tool names and JSON argument/return
-schemas are still TBD; the behavior below is settled.
+no tool ever modifies tracked time data. Names and schemas are settled for #5, #1 and #2;
+#3 and #4 are still TBD.
 
-### 1. Time on a specific task
+### The shared period argument (#1, #2, and #3/#4 when they land)
+Implemented in `Services/MCP/Tools/MCPPeriodArgument.swift` — see decisions #23-24 for the
+reasoning. Three properties, merged into each tool's input schema:
+```json
+"period":     { "type": "string",
+                "enum": ["today","this_week","last_week","this_month",
+                         "last_month","this_year","all_time","custom"] },
+"start_date": { "type": "string", "description": "Inclusive start, YYYY-MM-DD. Required when period is \"custom\"." },
+"end_date":   { "type": "string", "description": "Inclusive end, YYYY-MM-DD. Required when period is \"custom\"." }
+```
+Names map onto `ReportPeriod` (`custom` ⇒ `.customRange`) and match tolerantly — case,
+spaces, underscores and hyphens are normalised away. Custom ranges are inclusive at both
+ends. Bad arguments return `isError: true` with a message naming the accepted values.
+Responses echo `period` plus `startDate`/`endDate` as `yyyy-MM-dd`, both omitted for
+`all_time`.
+
+### 1. Time on a specific task — **IMPLEMENTED (Step 4)**
 Search-first, because the caller only knows the task by rough name, not by `UUID`.
-- **Input**: a free-text query, plus an optional date range (see the shared period
-  argument in #2). With no range given, return all-time total.
-- **Search behavior**: match the query case-insensitively against **both title and
-  description**. Call `TaskSearch.filter(tasks, query:)` /
-  `TaskSearch.matches(task, query:)` (`TimeTracker/Utilities/TaskSearch.swift`) — the
-  shared predicate the Main Window search field now also uses, so the two cannot drift.
-  A whitespace-only or empty query matches everything; queries are trimmed first.
-- **Response must handle all three match counts** — this is the important part:
-  - **0 matches**: not an error; return an explicit "no tasks matched" result so the
-    AI can tell the user plainly instead of inventing a number. Ideally include a few
-    available task titles as a hint.
-  - **exactly 1 match**: return that task with its total time for the range.
-  - **2+ matches**: return **all** matches, each with its own total time for the
-    range — do NOT silently pick the best match. The user explicitly wants "a total
-    time for each task" here. Also include a combined total across matches so the AI
-    can answer either way. The AI can then either report the list or ask the user
-    which one they meant.
-- Task identity (`id`) should be included in each match so a follow-up call can
-  target one task unambiguously.
 
-### 2. Time in a date range (all tasks)
-Two response shapes, chosen by the caller, matching two different natural questions:
-- **Total only** — for "what time have I tracked for some period?" Returns a single
-  aggregate number for the range.
-- **Per task** — for "what time have I tracked for some period per task?" Returns a
-  list of tasks with time tracked in that range, each with its own total, **plus the
-  overall total for the period** so the user never has to add the rows up themselves.
-  Suggest sorting descending by time (matches how `ReportViewModel.recomputeRows()`
-  already sorts) and excluding zero-time tasks by default.
-- **Period argument (shared with #3 and #4)**: must accept both named periods and an
-  explicit custom range. Reuse the existing `ReportPeriod` enum
-  (`Presentation/Report/Models/ReportPeriod.swift`), which already covers
-  `today/thisWeek/lastWeek/thisMonth/lastMonth/thisYear/allTime/customRange` with a pure
-  `dateRange(calendar:now:)` calculator.
-  - This must also serve **"what time have I reported today?"** and **"...this
-    week?"**. Both `today` (added in Step 1; midnight → 23:59:59, and it's the first
-    entry in the Report screen's picker) and `thisWeek` exist. Note
-    `LocalStorageService` already has `totalTrackedTimeToday()` /
-    `totalTrackedTimeThisWeek()` for the total-only variants of exactly these two
-    questions — cheapest path is to route those two cases to the existing methods.
+**Name**: `get_time_for_task`. Annotated `readOnlyHint: true`, `openWorldHint: false`.
+
+**Input schema** — `query` (required) plus the shared period argument, which defaults to
+`all_time` when absent. `additionalProperties: false`.
+```json
+{ "query": { "type": "string", "description": "Free text identifying the task…" },
+  "period": …, "start_date": …, "end_date": … }
+```
+A missing or whitespace-only `query` is an **error** pointing at `get_time_for_period` —
+otherwise `TaskSearch`'s match-everything rule would quietly do #2's job under a name that
+promises one task's total.
+
+**Search behavior**: `TaskSearch.filter(tasks, query:)`
+(`TimeTracker/Utilities/TaskSearch.swift`) — the shared predicate the Main Window search
+field uses, case-insensitive against **both title and description**. Archived tasks are
+searched too (asking about a finished project is fair) and flagged with `isArchived`.
+Matches sort descending by time, ties broken by title then id.
+
+**Output** — one `.text` block of pretty-printed, key-sorted JSON. Three match counts,
+three visibly different shapes (decision #25):
+```
+{ query, period, startDate?, endDate?, matchCount,
+  matches: [{ id, title, description, isArchived,
+              trackedTimeSeconds, trackedTimeFormatted }],
+  combinedTrackedTimeSeconds?, combinedTrackedTimeFormatted?,   // only when matchCount > 1
+  message?,                                                     // when 0 or >1 matched
+  availableTaskCount?, availableTaskTitles? }                   // only when 0 matched
+```
+- **0 matches**: not an error. **No total field appears anywhere** — not even a zero — so
+  there is nothing for the AI to report as an answer. `message` says not to guess, and
+  `availableTaskTitles` offers up to 10 active titles
+  (`TimeForTaskPayloadBuilder.maximumHintTitles`) for the follow-up question.
+- **1 match**: that task and its total; no redundant `combined*`, no `message`.
+- **2+ matches**: every match with its own total and id, plus the combined total and a
+  `message` saying to report them all or ask which was meant — never to pick one.
+
+### 2. Time in a date range (all tasks) — **IMPLEMENTED (Step 4)**
+**Name**: `get_time_for_period`. Annotated `readOnlyHint: true`, `openWorldHint: false`.
+
+**Input schema** — `period` (required) plus the rest of the shared period argument, and:
+```json
+"breakdown":         { "type": "string", "enum": ["total", "per_task"] },
+"include_zero_time": { "type": "boolean" }
+```
+`breakdown` defaults to `total`; an unrecognised value falls back to it rather than erroring
+(same forgiving rule as `ListTasksFilter`), and the response echoes what was applied.
+`include_zero_time` defaults to false and only affects the `per_task` rows.
+
+**Output**:
+```
+{ period, startDate?, endDate?, breakdown,
+  totalTrackedTimeSeconds, totalTrackedTimeFormatted,   // always present, both breakdowns
+  taskCount?, tasks? }                                  // per_task only
+  // tasks: [{ id, title, isArchived, trackedTimeSeconds, trackedTimeFormatted }]
+```
+- The period total is present in **both** shapes, so the reader never has to add rows up,
+  and it is computed over all tasks independently of which rows are listed (decision #26) —
+  so the two breakdowns always report the same number and the rows always sum to it.
+- `per_task` sorts descending by time (matching `ReportViewModel.recomputeRows()`), ties
+  broken by title then id, and drops zero-time tasks unless `include_zero_time` is set.
+- Archived tasks count and are flagged.
+- Returns **raw** tracked time: no rounding, no hourly-rate amounts. That's #3's job, and
+  both tool descriptions say so to keep the AI from misrouting.
+- `today` and `this_week` are ordinary periods here — see decision #24 for why the
+  `LocalStorageService` fast path was dropped.
 
 ### 3. Report / invoice-style breakdown
-Same period argument as #2. Returns the report data grouped by task, with rounding and
+Same period argument as #2 — reuse `MCPPeriodArgument` rather than re-deriving it. Returns
+the report data grouped by task, with rounding and
 hourly-rate/amount calculation applied — i.e. the numbers behind the PDF, but as
 structured data rather than a file. Call
 `DefaultReportBuilderService.buildReport(_:)` with a `ReportRequest` built via its
@@ -491,8 +615,9 @@ Recorded so future sessions don't re-litigate these:
   ever added, a timer-status tool becomes genuinely necessary again.
 
 ## Known open items (not yet decided — to fill in during future sessions)
-- Exact MCP tool names, argument schemas, and return shapes for tools #1-#4. (#5 is
-  settled — see its catalog entry.)
+- Exact MCP tool names, argument schemas, and return shapes for tools **#3 and #4**. (#5,
+  #1 and #2 are settled — see their catalog entries. #3/#4 inherit the period argument from
+  `MCPPeriodArgument`.)
 - Actually flip `ENABLE_APP_SANDBOX` to `NO` in `project.pbxproj` (both Debug/Release
   configs) as part of implementing the PDF tool. **Warning discovered in Step 2:**
   disabling the sandbox relocates the SwiftData store from
@@ -508,8 +633,8 @@ Recorded so future sessions don't re-litigate these:
   provides), optional filename override (default via
   `ReportPeriod.defaultFilename(startDate:endDate:)`), and what the tool should
   return (e.g. the saved file path) to confirm success back to the caller.
-- Error/edge-case behavior for tools #1-#4: ambiguous task name matches, no tasks found,
-  invalid date ranges, task search returning multiple candidates.
+- Error/edge-case behavior for **#3 and #4**. (#1/#2's is settled: ambiguous and no-match
+  searches, invalid and inverted date ranges — decisions #23 and #25.)
 
 ## Build order
 The feature is broken into 7 sequential steps, with a ready-to-paste prompt for each,

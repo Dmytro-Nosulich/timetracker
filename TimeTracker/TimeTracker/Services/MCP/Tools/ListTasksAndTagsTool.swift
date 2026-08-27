@@ -44,10 +44,7 @@ struct ListTasksAndTagsTool: Sendable {
 
     func run(arguments: [String: Value]?) async -> CallTool.Result {
         let filter = ListTasksFilter(argument: arguments?["include"]?.stringValue)
-        return CallTool.Result(
-            content: [.text(text: await payloadJSON(filter: filter), annotations: nil, _meta: nil)],
-            isError: false
-        )
+        return MCPToolResponse.success(await payloadJSON(filter: filter))
     }
 
     // MARK: - Handler logic
@@ -60,11 +57,6 @@ struct ListTasksAndTagsTool: Sendable {
             filter: filter
         )
 
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
-        guard let data = try? encoder.encode(payload) else {
-            return #"{"error":"Failed to encode the task list."}"#
-        }
-        return String(decoding: data, as: UTF8.self)
+        return MCPToolResponse.json(payload, fallbackMessage: "Failed to encode the task list.")
     }
 }

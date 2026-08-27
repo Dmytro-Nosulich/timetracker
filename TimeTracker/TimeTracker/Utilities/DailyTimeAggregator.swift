@@ -33,4 +33,22 @@ enum DailyTimeAggregator {
         }
         return totals
     }
+
+    /// Total tracked time across a range, with every entry clipped to it. Defined in terms
+    /// of `dailyTotals` so a range total and its per-day breakdown can never disagree.
+    static func total(
+        for entries: [TimeEntryItem],
+        rangeStart: Date,
+        rangeEnd: Date,
+        calendar: Calendar = .current,
+        now: Date = Date()
+    ) -> TimeInterval {
+        dailyTotals(
+            for: entries,
+            rangeStart: rangeStart,
+            rangeEnd: rangeEnd,
+            calendar: calendar,
+            now: now
+        ).values.reduce(0, +)
+    }
 }
