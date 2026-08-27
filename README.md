@@ -72,7 +72,7 @@ The app runs as a **hybrid menu bar + windowed application**: it stays alive in 
 - Disabled until at least one time entry exists; only one Heatmap window at a time
 
 ### Reports & PDF Export
-- Choose a period: This Week, Last Week, This Month, Last Month, This Year, All Time, or a custom date range
+- Choose a period: Today, This Week, Last Week, This Month, Last Month, This Year, All Time, or a custom date range
 - Select which tasks to include via checkboxes
 - Time rounding options: None, 5 min, 15 min, or 30 min (display/export only — raw data is never modified)
 - Amount column calculated automatically from hours × hourly rate
@@ -87,6 +87,83 @@ The app runs as a **hybrid menu bar + windowed application**: it stays alive in 
 - Launch at Login (using `SMAppService`)
 - Daily tracking reminder: sends a local notification at a configured time on selected weekdays if no timer has been started
 - Full tag management: create, rename, recolor, and delete tags
+- MCP server: enable/disable, choose the port, see live status, and copy the URL to register with an AI client (see [AI Access](#ai-access-mcp-server))
+
+---
+
+## AI Access (MCP Server)
+
+TimeTracker has a [Model Context Protocol](https://modelcontextprotocol.io) server built into the app itself, so an AI client — Claude Code, Claude Desktop — can answer questions about your tracked time and generate report PDFs for you:
+
+> "How much did I bill last month?"
+> "What have I tracked this week, per task?"
+> "Generate last month's report and save it to my Desktop."
+
+Because the server runs **inside** the running app rather than as a separate process, it reads through the app's own live data. There is no export step, no second copy of your database, and nothing to keep in sync.
+
+### Local-only and read-only
+
+- **Local-only.** The server binds `127.0.0.1` and never `0.0.0.0`. It is not reachable from your network, your router, or anywhere else — only from this Mac.
+- **Read-only, with one exception.** Four of the five tools cannot write anything at all. The fifth, `save_report_pdf`, writes exactly one thing: the PDF file you asked it to produce, at the path you named. **No tool can create, edit, or delete tasks, tags, or time entries.** Your tracked time is billing data, so the server can only ever read it.
+- **No accounts, no cloud.** Nothing leaves your machine except what you choose to share with your AI client.
+
+### Setup
+
+**1. Enable it in the app** — **Settings** (`⌘,`) → **MCP Server**:
+
+| Control | What it does |
+|---|---|
+| **Enable MCP server** | On by default. Turning it off stops the server immediately — no relaunch needed. |
+| **Port** | Defaults to `8427`. Type a new one and press **Apply** (or Return); any port from 1024 to 65535. |
+| **Status** | Green *Running on port N*, grey *Stopped*, or red *Failed* with a **Retry** button — most often because something else already holds the port. |
+| **URL** | The exact address to register, with a copy button. |
+
+**2. Register it with Claude Code** — once, from a terminal:
+
+```bash
+claude mcp add --transport http timetracker http://127.0.0.1:8427/mcp
+```
+
+Change the port if you changed it in Settings. Then check it:
+
+```bash
+claude mcp list      # timetracker: http://127.0.0.1:8427/mcp (HTTP) - ✔ Connected
+```
+
+That registers the server for the **current project directory only**. To use it from anywhere on your Mac, add `-s user`:
+
+```bash
+claude mcp add -s user --transport http timetracker http://127.0.0.1:8427/mcp
+```
+
+### Available Tools
+
+| Tool | What it answers | Ask it |
+|---|---|---|
+| `get_time_for_task` | Raw time on one task you name — every match with its own total, never a guess | *"How much time have I spent on the Acme redesign?"* |
+| `get_time_for_period` | Raw time across all tasks in a period, as a single total or per task | *"What have I tracked this month, per task?"* |
+| `get_billable_report` | The invoice numbers: your rounding applied, rates resolved, amounts computed — exactly what the Report screen shows | *"How much did I bill last month?"* |
+| `save_report_pdf` | The same report rendered to a **PDF file** on disk, with no save dialog | *"Generate last month's report and save it to my Desktop."* |
+| `list_tasks_and_tags` | What tasks and tags exist — discovery, and for resolving an ambiguous name | *"What tasks do I have?"* |
+
+The billable tools read your live **Settings**: time rounding, default hourly rate, currency, and business name. Change a setting and the next answer reflects it — no relaunch.
+
+### Good to know
+
+- **The app must be running.** The server lives inside it. Quit the app and the connection simply fails; start it again and the next question works. Turn on **Launch at Login** in Settings if you want it always available.
+- **Run a current build.** A build from before this feature has no server in it at all — if `claude mcp list` says `ConnectionRefused` while the app is clearly running, check you are not launching an older copy.
+- **First write to a protected folder may prompt once.** The app runs un-sandboxed so it can save a PDF without a dialog. macOS still guards `~/Desktop`, `~/Documents` and `~/Downloads`, so the very first save into one of those may ask for permission. Grant it once and unattended saves work from then on.
+- **Reports are never overwritten.** Saving a report whose name is taken produces `Time Report - July 2026 (2).pdf` instead of replacing the original.
+
+### Monthly reports, unattended
+
+The project ships a `/monthly-report` skill that generates the current month's PDF to your Desktop in one command, and a ready-made LaunchAgent to run it on the 1st of every month. See [`.claude/skills/monthly-report/`](TimeTracker/.claude/skills/monthly-report/).
+
+```bash
+claude                      # then, in the session:
+/monthly-report             # this month
+/monthly-report last month  # the month that just ended
+```
 
 ---
 
@@ -99,6 +176,7 @@ The app runs as a **hybrid menu bar + windowed application**: it stays alive in 
 | Data Persistence | SwiftData |
 | Observable State | `@Observable` (Observation framework) |
 | PDF Generation | Core Graphics |
+| AI Access | MCP (`modelcontextprotocol/swift-sdk`) over local HTTP, served by SwiftNIO |
 | Idle Detection | `CGEventSource` |
 | Login Items | `SMAppService` |
 | Notifications | `UNUserNotificationCenter` |
@@ -122,6 +200,7 @@ TimeTracker/
 │   ├── IdleMonitor/       # Idle detection via CGEventSource
 │   ├── Notifications/     # UNUserNotificationCenter tracking reminders
 │   ├── Report/            # PDF generation via Core Graphics
+│   ├── MCP/               # Embedded MCP server + its five tools
 │   └── UserPreferences/   # AppStorage / UserDefaults wrapper
 ├── Presentation/          # MVVM modules (ViewModel + View + ModuleBuilder)
 │   ├── MainWindow/
@@ -205,7 +284,12 @@ open TimeTracker.xcodeproj
 
 Select the **TimeTracker** scheme, choose your Mac as the run destination, and press **Run** (⌘R).
 
-No external dependencies — no Swift Package Manager packages, no CocoaPods.
+Two Swift Package Manager dependencies, both resolved by Xcode on first open — no CocoaPods, nothing to install by hand:
+
+| Package | Why |
+|---|---|
+| [`modelcontextprotocol/swift-sdk`](https://github.com/modelcontextprotocol/swift-sdk) | The MCP protocol implementation behind [AI Access](#ai-access-mcp-server) |
+| [`apple/swift-nio`](https://github.com/apple/swift-nio) | The HTTP listener the MCP server binds to `127.0.0.1` |
 
 ---
 

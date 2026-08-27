@@ -381,4 +381,25 @@ struct SaveReportPDFToolTests {
         #expect(annotations?.openWorldHint == false)
         #expect(SaveReportPDFTool.name == "save_report_pdf")
     }
+
+    /// File versus numbers is the other pair that misroutes: a caller who only wants the
+    /// figures should not end up with a document on their Desktop.
+    @Test func definitionPointsAtTheDataToolWhenNoFileIsWanted() {
+        #expect(SaveReportPDFTool.definition.description?.contains(ReportBreakdownTool.name) == true)
+    }
+
+    /// `destination_path` is required, so an unattended caller with no location in the
+    /// question needs a stated default rather than a guessed path.
+    @Test func theDestinationArgumentNamesADefaultLocation() throws {
+        guard case .object(let schema) = SaveReportPDFTool.definition.inputSchema,
+              case .object(let properties)? = schema["properties"],
+              case .object(let destination)? = properties["destination_path"],
+              case .string(let description)? = destination["description"]
+        else {
+            Issue.record("Unexpected input schema shape")
+            return
+        }
+
+        #expect(description.contains("~/Desktop"))
+    }
 }

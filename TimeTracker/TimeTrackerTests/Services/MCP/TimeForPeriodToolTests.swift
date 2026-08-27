@@ -381,4 +381,10 @@ struct TimeForPeriodToolTests {
     @Test func definitionPointsAtTheOtherToolSoTheTwoDontGetConfused() {
         #expect(TimeForPeriodTool.definition.description?.contains(TimeForTaskTool.name) == true)
     }
+
+    /// Raw time and billable amounts are the pair most likely to be confused, so the
+    /// pointer has to run both ways — `get_billable_report` already names this tool.
+    @Test func definitionSendsBillingQuestionsToTheBillableTool() {
+        #expect(TimeForPeriodTool.definition.description?.contains(ReportBreakdownTool.name) == true)
+    }
 }

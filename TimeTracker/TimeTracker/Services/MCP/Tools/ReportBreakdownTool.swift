@@ -20,7 +20,9 @@ struct ReportBreakdownTool: Sendable {
             owed for each. Use this for anything about billing, invoicing, rates, amounts, \
             money earned, rounded or billable hours, or "the report" for a period — \
             including when no hourly rate is configured, since the rounding still applies. \
-            Report the amounts as given; they are the invoice figures. For raw tracked time \
+            Report the amounts as given; they are the invoice figures. This returns the \
+            numbers, not a document: if the user wants the report as a PDF — "export it", \
+            "save it", "send me the PDF" — use save_report_pdf instead. For raw tracked time \
             with no rounding and no money, use get_time_for_period instead.
             """,
         inputSchema: .object([

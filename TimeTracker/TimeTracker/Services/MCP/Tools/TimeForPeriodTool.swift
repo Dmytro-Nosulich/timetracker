@@ -17,8 +17,10 @@ struct TimeForPeriodTool: Sendable {
             last month?", or any custom date range. Set breakdown to "per_task" for \
             questions like "...per task?" or "...broken down by task": that adds every task \
             with its own total, alongside the period total, which is always included. \
-            Returns raw tracked time — no rounding and no hourly-rate amounts. If the user \
-            named a specific task, use get_time_for_task instead.
+            Returns raw tracked time — no rounding and no hourly-rate amounts, even when an \
+            hourly rate is configured; for rounded billable hours and the amounts owed, use \
+            get_billable_report. If the user named a specific task, use get_time_for_task \
+            instead.
             """,
         inputSchema: .object([
             "type": .string("object"),

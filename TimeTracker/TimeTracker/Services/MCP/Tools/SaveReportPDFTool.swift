@@ -49,7 +49,8 @@ struct SaveReportPDFTool: Sendable {
             "description": .string(
                 "Where to save. Either a folder that already exists, e.g. \"~/Desktop\", in "
                     + "which case the report is named automatically, or a full path ending in "
-                    + "\".pdf\". \"~\" is expanded. Folders are never created."
+                    + "\".pdf\". \"~\" is expanded. Folders are never created. If the user did "
+                    + "not say where to put it, use \"~/Desktop\" rather than inventing a path."
             ),
         ])
         properties["filename"] = .object([

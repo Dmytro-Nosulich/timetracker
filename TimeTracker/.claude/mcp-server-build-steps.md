@@ -29,7 +29,7 @@ context.
 - [x] Step 4 — Tools: task search & date-range time
 - [x] Step 5 — Tool: report / invoice breakdown
 - [x] Step 6 — Tool: PDF export to disk (+ disable App Sandbox)
-- [ ] Step 7 — Docs, client registration, monthly-report skill
+- [x] Step 7 — Docs, client registration, monthly-report skill
 
 ---
 
@@ -352,7 +352,7 @@ Wrap the feature up:
    misroute.
 
 3. Write a Claude Code skill that generates my monthly report unattended — this was
-   the motivating use case for the whole feature. It should generate last month's PDF
+   the motivating use case for the whole feature. It should generate current month's PDF
    report and save it to a sensible location. Put it wherever project skills belong,
    and tell me how to invoke it and how to schedule it monthly.
 

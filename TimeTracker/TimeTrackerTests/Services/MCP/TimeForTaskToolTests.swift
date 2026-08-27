@@ -372,4 +372,13 @@ struct TimeForTaskToolTests {
     @Test func definitionPointsAtTheOtherToolSoTheTwoDontGetConfused() {
         #expect(TimeForTaskTool.definition.description?.contains(TimeForPeriodTool.name) == true)
     }
+
+    /// This tool answers with raw hours, so a money question about a named task has to be
+    /// sent elsewhere — otherwise "what is the Acme work worth?" comes back as a duration.
+    @Test func definitionSendsMoneyQuestionsToTheBillableTools() {
+        let description = TimeForTaskTool.definition.description
+
+        #expect(description?.contains(ReportBreakdownTool.name) == true)
+        #expect(description?.contains(SaveReportPDFTool.name) == true)
+    }
 }

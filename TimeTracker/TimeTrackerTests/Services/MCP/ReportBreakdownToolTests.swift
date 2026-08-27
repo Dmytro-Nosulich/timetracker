@@ -421,4 +421,20 @@ struct ReportBreakdownToolTests {
         let blank = try await payload(tasks: monthlyTasks, period: "this_month")
         #expect(blank["businessName"] == nil)
     }
+
+    // MARK: - Tool definition
+
+    @Test func definitionIsMarkedReadOnly() {
+        #expect(ReportBreakdownTool.definition.annotations.readOnlyHint == true)
+        #expect(ReportBreakdownTool.definition.annotations.openWorldHint == false)
+    }
+
+    /// This tool sits between the two it is most confusable with — raw time on one side,
+    /// the PDF on the other — so it has to name both.
+    @Test func definitionPointsAtBothToolsItCouldBeMistakenFor() {
+        let description = ReportBreakdownTool.definition.description
+
+        #expect(description?.contains(TimeForPeriodTool.name) == true)
+        #expect(description?.contains(SaveReportPDFTool.name) == true)
+    }
 }

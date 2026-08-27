@@ -1,10 +1,17 @@
 # TimeTracker Local MCP Server — Implementation Spec
 
-Status: implementation in progress. Steps 1-6 are done — the server runs inside the app on a
+Status: **SHIPPED.** All 7 steps are done. The server runs inside the app on a
 user-configurable port, is toggleable from Settings, and serves **all five tools**
 end-to-end against live data, including writing PDF files to disk. The App Sandbox is off
-(architecture decision #6). Step 7 (docs, tool-description review, monthly-report skill)
-remains.
+(architecture decision #6). The feature is documented in `README.md`, the five tool
+descriptions have been reviewed as a set (decision #38), natural-language routing is
+confirmed from real Claude Code sessions, and the motivating use case — an unattended
+monthly PDF report — ships as the `/monthly-report` skill with a LaunchAgent (#39-41).
+Test baseline: **564 passing, 0 failing**.
+
+Future work on this feature should read "How to work in this repo" below, then the
+decisions list. The remaining unverified items are two GUI interactions, listed at the
+bottom under "Known open items".
 
 ## Goal
 Expose an MCP server embedded inside the running TimeTracker app so an AI tool
@@ -33,6 +40,7 @@ transcript. Typical flow:
    **Failed tests are listed first**, and results are truncated to 100 of N with the full
    list at `fullSummaryPath`. As of Step 6 the baseline is **557 passing, 0 failing** — a
    materially lower total means tests silently stopped being compiled, not that they passed.
+   (As of Step 7 the baseline is **564 passing, 0 failing**.)
 4. `RunSomeTests(tabIdentifier:, tests: [{targetName, testIdentifier}])` for a focused
    re-run; get identifiers from `GetTestList` (`targetName` is `TimeTrackerTests`, and
    `testIdentifier` looks like `DefaultReportBuilderServiceTests/someTest()`; a bare suite
@@ -55,8 +63,8 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
   under `TimeTracker/` or `TimeTrackerTests/` — new subdirectories included — is enough.
   The project file now *does* have a `PBXBuildFile` section, but it holds only the four
   SPM product links added in Step 2; source files still never appear there.
-- **Test baseline is now 557 passing, 0 failing** (373 after Step 1, +25 in Step 2, +23 in
-  Step 3, +66 in Step 4, +27 in Step 5, +43 in Step 6).
+- **Test baseline is now 564 passing, 0 failing** (373 after Step 1, +25 in Step 2, +23 in
+  Step 3, +66 in Step 4, +27 in Step 5, +43 in Step 6, +7 in Step 7).
 - Two files are deliberately excluded via `membershipExceptions`:
   `TimeTrackerTests/Services/LocalStorage/SwiftDataLocalStorageServiceTests.swift` (not
   compiled into the test target — don't model new tests on it or expect it to run) and
@@ -497,6 +505,64 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
     hands to the PDF service, at three rounding settings. `generatedDate` is injected
     identically into both sides, since it is the one field legitimately "now" on each.
 
+### Step 7 decisions (docs, description review, the skill)
+
+38. **The five descriptions now form a closed cross-reference graph.** Read side by side for
+    the first time, the set had one real gap and three one-way pointers. Every edit is
+    description text only — no schema, no behavior, no annotation changed.
+    - **The gap: `get_time_for_task` never said it returns *raw* time.** "How much do I bill
+      for the Acme work?" names a task, so #1 wins the routing, and #1 would answer a money
+      question with a duration. It now states the exclusion explicitly and routes money
+      questions to `get_billable_report`, or `save_report_pdf` with `task_query` for a
+      document covering just that task. (Note #3 still has **no** task filter — decision #35
+      stands; the pointer is to #3 for the period figures and #4 when one task's own document
+      is wanted.)
+    - **`get_time_for_period` ⇄ `get_billable_report`** was one-way: #3 named #2, #2 never
+      named #3. #2 now names #3, and says the raw-time exclusion holds *even when an hourly
+      rate is configured* — the case where a caller is most tempted to compute money itself.
+    - **`get_billable_report` → `save_report_pdf`** was likewise one-way. #3 now says it
+      returns numbers "not a document" and names #4, mirroring the sentence #4 already had.
+    - **`list_tasks_and_tags`** said "use a time-query tool instead" without naming one. It
+      now names both, and calls itself a discovery tool rather than an answer to "how much
+      time did I track" — its totals are all-time and easily mistaken for a period answer.
+    - **`save_report_pdf.destination_path` is required**, so a caller with no location in the
+      question had to invent a path. It now names `~/Desktop` as the default to use.
+    - Pinned by tests following the existing
+      `definitionPointsAtTheOtherToolSoTheTwoDontGetConfused` convention, one per tool file,
+      so dropping a pointer in a future rewrite fails a test rather than silently misrouting.
+      `ReportBreakdownToolTests` also gained the `definitionIsMarkedReadOnly` check every
+      other tool already had.
+39. **The monthly-report skill defaults to `this_month`, with the period as an argument.**
+    The user's ask was explicit about the current month, and `/monthly-report last month`
+    covers the invoice-shaped case; the LaunchAgent passes `last month` so a run on the 1st
+    reports a complete month. The skill hands the user's own wording to
+    `MCPPeriodArgument`'s tolerant parser rather than deriving date ranges itself (decision
+    #23), so there is still exactly one definition of "last month".
+    - Its three standing instructions are all guards against a *plausible* wrong answer:
+      report `path` rather than the requested filename (decision #33 can rename it), never
+      re-add or re-format the figures (decision #30 — a "corrected" total is a wrong
+      invoice), and treat an empty period as the answer rather than retrying with a
+      different one (decision #34 — a report labelled with the wrong month is worse than no
+      report).
+40. **PDFs go to `~/Desktop`.** It is the only location proven to write with no TCC dialog
+    (decision #6), which is the one thing an unattended run cannot survive. `~/Documents/…`
+    was the tidier option and was rejected on that basis alone.
+41. **Scheduling is launchd, and cannot be a cloud agent.** A scheduled cloud agent runs on
+    another machine and can never reach `127.0.0.1` on this Mac — the server is *inside* the
+    app. `schedule/run-monthly-report.sh` + a `StartCalendarInterval` LaunchAgent (1st of the
+    month, 09:00) are shipped next to the skill but **not installed**; `schedule/README.md`
+    carries the `launchctl bootstrap` command. Two things the script has to do that are easy
+    to miss: `cd` into the project directory (the server is registered at **local** MCP scope,
+    so it is invisible from anywhere else, and the skill lives in this project's
+    `.claude/skills`), and pass `--allowed-tools` (without it the run blocks on a permission
+    prompt nobody is there to answer).
+42. **A build predating this feature has no server in it at all.** `/Applications/TimeTracker.app`
+    was still a June 29 build with `com.apple.security.app-sandbox` — it has neither the MCP
+    code nor the entitlement, so `claude mcp list` reports `ConnectionRefused` while the app is
+    visibly running. Left as-is at the user's direction (they refresh it themselves); the README
+    calls the symptom out by name, since it is otherwise a genuinely confusing failure. Step 7
+    verified against the DerivedData Debug build.
+
 ## What exists in code (as of Step 6)
 
 Everything lives in `TimeTracker/Services/MCP/`:
@@ -557,10 +623,25 @@ standing between a rounding/rate change and a wrong invoice. Step 6 added
 temporary directory — the write path and its error messages are the product, so they are
 exercised against an actual filesystem) and `SaveReportPDFParityTests.swift` (decision #37).
 
+Step 7 changed **no production logic** — only the five `Tool.description` strings and one
+argument description (decision #38) — and added 7 tests across the existing tool test files.
+Outside the app it added `README.md`'s "AI Access (MCP Server)" section and the skill:
+
+| File | Role |
+|---|---|
+| `.claude/skills/monthly-report/SKILL.md` | The skill itself: period resolution, the `save_report_pdf` call, and the report-what-you-got / don't-work-around-failures rules (decision #39) |
+| `.claude/skills/monthly-report/schedule/run-monthly-report.sh` | What launchd executes: `cd`s to the project, launches the app if needed, runs `claude -p "/monthly-report last month" --allowed-tools …`, logs to `~/Library/Logs/timetracker-monthly-report.log` |
+| `.claude/skills/monthly-report/schedule/com.dmytro.timetracker.monthly-report.plist` | LaunchAgent, `StartCalendarInterval` 1st @ 09:00. **Not installed** — see its README |
+| `.claude/skills/monthly-report/schedule/README.md` | Install/test/uninstall commands, and why this can't be a cloud agent (decision #41) |
+
 **Registering the client** (the app must be running; port from Settings):
 ```
 claude mcp add --transport http timetracker http://127.0.0.1:8427/mcp
 ```
+Registers at **local** scope, i.e. this project directory only — which is why the scheduled
+skill has to `cd` here (decision #41). `-s user` makes it available everywhere. The
+user-facing version of all this lives in `README.md` → "AI Access (MCP Server)"; keep the two
+in step if the port default, the tool set or the Settings wording ever changes.
 
 **Verified in Step 2**: `lsof` shows `127.0.0.1:8427 (LISTEN)`, never `*:8427`; a request
 to the machine's LAN address is refused; `GET /mcp` → 405, unknown path → 404; repeated
@@ -622,9 +703,37 @@ file untouched. `task_query: "Paywall"` narrowed it to 2 tasks / 53h 35m / €1,
 matching Step 5's figure for the same range. Every error path returned a message naming its
 fix: non-existent folder, `/System/Library` (carrying the OS's own permission wording), a
 `task_query` matching nothing, `today` (no time tracked), a relative path, and `filename`
-passed alongside a full `.pdf` path. **Still to confirm by hand**: that the Report screen's
-own `NSSavePanel` export still works post-sandbox (a GUI interaction), and the visual
-side-by-side of a tool-generated PDF against a manually exported one.
+passed alongside a full `.pdf` path.
+
+**Verified in Step 7** (564 tests passing, 0 failing): `tools/list` over HTTP returns all five
+tools carrying the edited descriptions. Following the README's own commands from a clean slate
+(`claude mcp remove timetracker -s local` first) reproduced exactly what it documents:
+`claude mcp add --transport http timetracker http://127.0.0.1:8427/mcp` → `claude mcp list`
+reports `✔ Connected`, and `lsof` shows `127.0.0.1:8427 (LISTEN)`, never `*:8427`.
+
+**Natural-language routing is finally confirmed** — the item carried since Step 4 — by driving
+six headless `claude -p … --output-format stream-json` sessions against the running app and
+reading back which tool each one actually called:
+
+| Question | Routed to |
+|---|---|
+| "how much did I bill last month?" | `get_billable_report` ✓ |
+| "how much time did I work last month?" | `get_time_for_period` ✓ |
+| "how much time did I spend on the Reply to menu option task?" | `get_time_for_task` ✓ |
+| "give me last month's report as a PDF" | `save_report_pdf` ✓ |
+| "what tasks do I have?" | `list_tasks_and_tags` ✓ |
+| "how much do I bill for the Reply to menu option task last month?" | `get_billable_report` (+ `get_time_for_task` for that task's share) — **not** hours reported as money, which is decision #38's gap |
+
+The skill runs end-to-end unattended: `claude -p "/monthly-report"` produced August 2026 on the
+Desktop with **no dialog or prompt of any kind**, and — because an August report was already
+there — exercised the collision path, landing as `… (2).pdf` and reporting the rename rather
+than the requested name. Its figures (12 tasks, 36h 42m, €954,25 at €26/h) match
+`get_billable_report` on `this_month` exactly, and the PDF's own extracted text carries the same
+`RATE €26/h` / `TOTAL 36h 42m` / `€954,25` footer under a `Period: 1. August 2026 – 31. August
+2026` header. `/monthly-report last month` returned the unchanged Step 5/6 July figures (22
+tasks, 151h 37m, €3,942.39). Finally `schedule/run-monthly-report.sh` was run directly — the
+exact command line launchd will execute — and completed with exit 0, the PDF written and the
+run logged.
 
 ## MCP tool catalog
 
@@ -632,7 +741,7 @@ Five tools, all implemented. All are **read-only** except #4, whose only write i
 file itself — no tool ever modifies tracked time data. Names and schemas are settled for
 all five.
 
-### The shared period argument (#1, #2, and #3/#4 when they land)
+### The shared period argument (all of #1-#4)
 Implemented in `Services/MCP/Tools/MCPPeriodArgument.swift` — see decisions #23-24 for the
 reasoning. Three properties, merged into each tool's input schema:
 ```json
@@ -729,7 +838,8 @@ Named for *billing* rather than "breakdown", because `get_time_for_period` alrea
 word `breakdown` as an argument value — the two would have collided on exactly the question
 they need to be told apart on. Its description draws the line explicitly: this tool for
 billing / invoicing / rates / amounts / rounded hours / "the report", `get_time_for_period`
-for raw tracked time. (Step 7 reviews all descriptions as a set.)
+for raw tracked time. Step 7 reviewed all five descriptions as a set and closed the
+reverse pointer to `save_report_pdf` — see decision #38.
 
 **Input schema** — `period` (required) plus the rest of the shared period argument, and:
 ```json
@@ -789,7 +899,8 @@ anything, and the reason the app gave up its App Sandbox (decision #6).
 
 Its description draws the line against #3 explicitly: **this one produces a file**, #3
 returns the numbers. Triggers on "export", "save", "generate the PDF", or any named
-destination. (Step 7 reviews all five descriptions as a set.)
+destination. Reviewed as a set in Step 7 (decision #38); only `destination_path`'s own
+description changed, gaining `~/Desktop` as the stated default when the caller names no place.
 
 **Input schema** — `period` and `destination_path` both required, plus the rest of the
 shared period argument, and:
@@ -890,21 +1001,20 @@ Recorded so future sessions don't re-litigate these:
   time entries is a materially worse failure than a wrong read. If timer control is
   ever added, a timer-status tool becomes genuinely necessary again.
 
-## Known open items (not yet decided — to fill in during future sessions)
-All five tools are designed, built and verified; nothing about the tool surface is
-outstanding. What remains is Step 7:
-- **Review all five tool names and descriptions as a set.** Each was written when its own
-  tool landed, so they have never been read side by side. The pairs most likely to misroute
-  are #2 vs #3 (raw time vs rounded/billable amounts) and #3 vs #4 (data vs file).
-- **Natural-language routing has still never been confirmed from a real Claude Code
-  session** — it needs a session started while the app is running, and has been carried
-  forward as "still to confirm" since Step 4. Step 7's verification is the place to settle
-  it for all five at once.
-- **README documentation** and the **unattended monthly-report skill** that motivated the
-  whole feature.
-- Confirm by hand that the Report screen's `NSSavePanel` export still works now the sandbox
-  is off, and eyeball a tool-generated PDF against a manually exported one for the same
-  period.
+## Known open items
+The feature is shipped. Nothing about the tool surface, the docs or the skill is
+outstanding. Two items remain, both **GUI interactions that cannot be driven headlessly**
+and neither of which blocks anything:
+- Confirm by hand that the Report screen's own `NSSavePanel` export still works now the
+  sandbox is off. Carried since Step 6. The tool path writes fine and the two share
+  `CoreGraphicsReportPDFService`, so the risk is confined to the save panel itself.
+- Eyeball a tool-generated PDF side by side with one exported manually from the Report
+  screen for the same period. `SaveReportPDFParityTests` already pins the `ReportPDFConfig`
+  the two produce (decision #37), so this is confirmation, not investigation.
+
+If the app is ever re-sandboxed, or `/Applications/TimeTracker.app` is refreshed, re-read
+decisions #6, #15 and #42 first — those are the three that make writing a PDF with no dialog
+possible, and all three fail quietly rather than loudly.
 
 ## Build order
 The feature is broken into 7 sequential steps, with a ready-to-paste prompt for each,

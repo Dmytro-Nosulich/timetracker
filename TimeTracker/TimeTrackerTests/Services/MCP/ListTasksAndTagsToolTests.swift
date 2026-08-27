@@ -139,6 +139,15 @@ struct ListTasksAndTagsToolTests {
         #expect(ListTasksAndTagsTool.definition.annotations.readOnlyHint == true)
     }
 
+    /// Its per-task totals are all-time, so a discovery call must never be mistaken for the
+    /// answer to a "how much time" question — it has to name the tools that own those.
+    @Test func definitionPointsAtTheTimeQueryTools() {
+        let description = ListTasksAndTagsTool.definition.description
+
+        #expect(description?.contains(TimeForPeriodTool.name) == true)
+        #expect(description?.contains(TimeForTaskTool.name) == true)
+    }
+
     // MARK: - Helpers
 
     private func text(from result: CallTool.Result) -> String? {

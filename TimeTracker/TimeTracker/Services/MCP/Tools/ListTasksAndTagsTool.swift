@@ -14,8 +14,9 @@ struct ListTasksAndTagsTool: Sendable {
             List the tasks and tags that exist in the user's TimeTracker app, each task \
             with its id and total tracked time. Use this to discover what tasks exist, \
             to resolve a rough task name to an exact task id, or to offer the user a \
-            choice when a name is ambiguous. Returns totals across all time — for time \
-            in a specific period, use a time-query tool instead.
+            choice when a name is ambiguous. Each total is across all time: this is a \
+            discovery tool, not the answer to "how much time did I track". For a period use \
+            get_time_for_period, and for one named task use get_time_for_task.
             """,
         inputSchema: .object([
             "type": .string("object"),

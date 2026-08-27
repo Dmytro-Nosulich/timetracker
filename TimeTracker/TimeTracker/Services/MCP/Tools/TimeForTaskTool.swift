@@ -18,8 +18,12 @@ struct TimeForTaskTool: Sendable {
             Every matching task is returned with its own total and its id: this tool never \
             picks a single best match for you, and when nothing matches it returns no total \
             at all rather than a zero — say so instead of guessing a number. Covers any \
-            period, defaulting to all time. If the question is about a span of time with no \
-            particular task in mind, use get_time_for_period instead.
+            period, defaulting to all time. Returns raw tracked time only: no rounding and \
+            no hourly-rate amounts, even when a rate is configured. If the question is about \
+            a span of time with no particular task in mind, use get_time_for_period instead. \
+            If it is about money for that task — billing, invoicing, what it is worth — use \
+            get_billable_report, or save_report_pdf with task_query for a document covering \
+            just that task.
             """,
         inputSchema: .object([
             "type": .string("object"),
