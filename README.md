@@ -117,6 +117,7 @@ Because the server runs **inside** the running app rather than as a separate pro
 | **Port** | Defaults to `8427`. Type a new one and press **Apply** (or Return); any port from 1024 to 65535. |
 | **Status** | Green *Running on port N*, grey *Stopped*, or red *Failed* with a **Retry** button — most often because something else already holds the port. |
 | **URL** | The exact address to register, with a copy button. |
+| **Configuration for other AI clients** | A collapsible, read-only block holding the whole config as JSON, with its own copy button — for clients you set up by editing a file rather than running a command. Tracks the saved port. |
 
 **2. Register it with Claude Code** — once, from a terminal:
 
@@ -137,6 +138,19 @@ claude mcp add --transport http timetracker http://127.0.0.1:8427/mcp    # this 
 ```
 
 Check which scope a registration is in with `claude mcp get timetracker`, and remove it with `claude mcp remove timetracker -s user`.
+
+**Any other MCP client** — expand **Configuration for other AI clients** in Settings and copy the block, or paste this into your client's config file (Claude Desktop, Cursor and Windsurf all read the `mcpServers` key; VS Code wants the same object under `servers`):
+
+```json
+{
+  "mcpServers": {
+    "timetracker": {
+      "type": "http",
+      "url": "http://127.0.0.1:8427/mcp"
+    }
+  }
+}
+```
 
 ### Available Tools
 

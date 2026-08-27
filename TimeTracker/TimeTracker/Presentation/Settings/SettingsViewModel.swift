@@ -164,6 +164,13 @@ final class SettingsViewModel {
         MCPServerConfiguration.url(port: userPreferences.mcpServerPort)
     }
 
+    /// The config block for clients that are set up by pasting JSON rather than by running a
+    /// command. Built from the *saved* port for the same reason `mcpServerURL` is — an
+    /// uncommitted edit must never hand out a config pointing at a port nothing is bound to.
+    var mcpServerConfigJSON: String {
+        MCPServerConfiguration.clientConfigurationJSON(port: userPreferences.mcpServerPort)
+    }
+
     var mcpServerStatusText: String {
         guard mcpServerEnabled else { return "Not running" }
         switch mcpServer.status {

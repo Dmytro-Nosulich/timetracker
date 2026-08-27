@@ -408,6 +408,22 @@ struct SettingsViewModelTests {
         #expect(vm.mcpServerURL == "http://127.0.0.1:9000/mcp")
     }
 
+    @Test func configJSONUsesTheSavedPortNotTheTypedOne() {
+        let (vm, prefs, _, _, _) = makeViewModel()
+        prefs.stubbedMCPServerPort = 8427
+        vm.loadSettings()
+        #expect(vm.mcpServerConfigJSON.contains("http://127.0.0.1:8427/mcp"))
+
+        // Same rule as the URL row: an uncommitted edit must not hand out a config
+        // pointing at a port nothing is bound to.
+        vm.mcpServerPortText = "9000"
+        #expect(vm.mcpServerConfigJSON.contains("http://127.0.0.1:8427/mcp"))
+
+        vm.applyPort()
+        #expect(vm.mcpServerConfigJSON.contains("http://127.0.0.1:9000/mcp"))
+        #expect(!vm.mcpServerConfigJSON.contains("8427"))
+    }
+
     @Test func statusTextReportsRunningPort() {
         let (vm, _, _, _, server) = makeViewModel()
         vm.loadSettings()

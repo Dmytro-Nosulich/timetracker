@@ -19,6 +19,31 @@ enum MCPServerConfiguration {
     static func url(port: Int = defaultPort) -> String {
         "http://\(host):\(port)\(endpointPath)"
     }
+
+    /// The block a user pastes into an MCP client's config file to reach this server.
+    ///
+    /// Uses the `mcpServers` wrapper, which Claude Desktop, Claude Code's `.mcp.json`,
+    /// Cursor and Windsurf all read. (VS Code wants the same object under `servers`.)
+    ///
+    /// Deliberately a string template rather than `JSONEncoder`: the only variable in the
+    /// whole document is an `Int` port reached through `url(port:)`, so there is no
+    /// caller-supplied text to escape and nothing an encoder would protect against. An
+    /// encoder would also render the URL as `http:\/\/…` unless someone remembers
+    /// `.withoutEscapingSlashes` — valid JSON, but it reads as broken in a settings pane.
+    /// `MCPServerConfigurationTests` parses this output, so a malformed edit fails a test
+    /// rather than shipping something unpasteable.
+    static func clientConfigurationJSON(port: Int = defaultPort) -> String {
+        """
+        {
+          "mcpServers": {
+            "\(serverName)": {
+              "type": "http",
+              "url": "\(url(port: port))"
+            }
+          }
+        }
+        """
+    }
 }
 
 enum MCPServerStatus: Equatable {
