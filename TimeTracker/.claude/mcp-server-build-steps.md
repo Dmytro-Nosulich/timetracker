@@ -23,7 +23,7 @@ context.
   is cheap to roll back without losing the earlier ones.
 
 ## Progress
-- [ ] Step 1 — Foundation refactor (no MCP code yet)
+- [x] Step 1 — Foundation refactor (no MCP code yet)
 - [ ] Step 2 — MCP server skeleton + first tool end-to-end
 - [ ] Step 3 — Settings UI (port + enable toggle)
 - [ ] Step 4 — Tools: task search & date-range time

@@ -27,14 +27,7 @@ final class MainWindowViewModel {
                 task.tags.contains(where: { $0.id == tag.id })
             }
         }
-        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !query.isEmpty {
-            result = result.filter { task in
-                task.title.localizedCaseInsensitiveContains(query)
-                    || task.taskDescription.localizedCaseInsensitiveContains(query)
-            }
-        }
-        return result
+        return TaskSearch.filter(result, query: searchText)
     }
 
     var timerState: TimerState {

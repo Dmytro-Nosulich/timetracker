@@ -20,6 +20,35 @@ struct ReportPeriodTests {
         return calendar.date(from: components)!
     }
 
+    // MARK: - Today
+
+    @Test func todayStartsAtMidnightEndsAtEndOfDay() {
+        let now = date(year: 2026, month: 2, day: 18)
+        let range = ReportPeriod.today.dateRange(calendar: calendar, now: now)
+        let startComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: range.start)
+        let endComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: range.end)
+
+        #expect(startComponents.year == 2026)
+        #expect(startComponents.month == 2)
+        #expect(startComponents.day == 18)
+        #expect(startComponents.hour == 0)
+        #expect(startComponents.minute == 0)
+        #expect(startComponents.second == 0)
+
+        #expect(endComponents.day == 18)
+        #expect(endComponents.hour == 23)
+        #expect(endComponents.minute == 59)
+        #expect(endComponents.second == 59)
+    }
+
+    @Test func todayCoversASingleDay() {
+        let now = date(year: 2026, month: 2, day: 18)
+        let range = ReportPeriod.today.dateRange(calendar: calendar, now: now)
+
+        #expect(calendar.isDate(range.start, inSameDayAs: range.end))
+        #expect(range.end.timeIntervalSince(range.start) < 24 * 3600)
+    }
+
     // MARK: - This Week
 
     @Test func thisWeekStartsOnMondayEndsOnSunday() {
@@ -117,9 +146,20 @@ struct ReportPeriodTests {
         #expect(filename == "Time Report - All Time")
     }
 
+    @Test func todayFilename() {
+        let now = date(year: 2026, month: 2, day: 18)
+        let range = ReportPeriod.today.dateRange(calendar: calendar, now: now)
+        let filename = ReportPeriod.today.defaultFilename(startDate: range.start, endDate: range.end)
+        #expect(filename == "Time Report - Feb 18 2026")
+    }
+
     // MARK: - CaseIterable
 
-    @Test func allCasesContainsSevenOptions() {
-        #expect(ReportPeriod.allCases.count == 7)
+    @Test func allCasesContainsEightOptions() {
+        #expect(ReportPeriod.allCases.count == 8)
+    }
+
+    @Test func todayIsTheFirstOptionInThePicker() {
+        #expect(ReportPeriod.allCases.first == .today)
     }
 }

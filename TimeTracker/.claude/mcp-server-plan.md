@@ -1,6 +1,7 @@
 # TimeTracker Local MCP Server — Implementation Spec
 
-Status: design in progress, no implementation started yet.
+Status: implementation started. Step 1 (foundation refactor) is done and merged — no MCP
+code exists yet. Steps 2-7 remain.
 
 ## Goal
 Expose an MCP server embedded inside the running TimeTracker app so an AI tool
@@ -8,6 +9,67 @@ Expose an MCP server embedded inside the running TimeTracker app so an AI tool
 date range, report/invoice-style breakdowns, PDF report export — without any
 backend. Modeled on Figma's local MCP server (app hosts the server; client connects to
 a fixed localhost URL while the app is open).
+
+## How to work in this repo (read this before touching code)
+
+### Build and test with the Xcode MCP server, not `xcodebuild`
+An **`xcode` MCP server is connected** and is the preferred way to build and test — it
+drives the Xcode instance the user already has open, so results match what they see in
+the IDE, and failures come back structured instead of needing to be grepped out of
+thousands of lines. Verified working as of Step 1.
+
+Every tool needs a `tabIdentifier`, so **always start with `XcodeListWindows`** — the
+identifier changes between sessions, so never hardcode one from this file or an earlier
+transcript. Typical flow:
+
+1. `XcodeListWindows` → returns e.g. `tabIdentifier: windowtabN` for the workspace at
+   `.../TimeTracker/TimeTracker.xcodeproj`.
+2. `BuildProject(tabIdentifier:)` → `{buildResult, errors[], fullLogPath}`. Build errors
+   arrive in `errors`; no log parsing needed.
+3. `RunAllTests(tabIdentifier:)` → `{counts: {passed, failed, ...}, results[], summary}`.
+   **Failed tests are listed first**, and results are truncated to 100 of N with the full
+   list at `fullSummaryPath`. As of Step 1 the baseline is **373 passing, 0 failing** — a
+   materially lower total means tests silently stopped being compiled, not that they passed.
+4. `RunSomeTests(tabIdentifier:, tests: [{targetName, testIdentifier}])` for a focused
+   re-run; get identifiers from `GetTestList` (`targetName` is `TimeTrackerTests`, and
+   `testIdentifier` looks like `DefaultReportBuilderServiceTests/someTest()`).
+5. `GetBuildLog(tabIdentifier:, severity:/pattern:/glob:)` to dig into a build failure, and
+   `XcodeListNavigatorIssues(tabIdentifier:)` for what's showing in the Issue Navigator.
+
+There are also `XcodeRead`/`XcodeWrite`/`XcodeGrep`/`XcodeGlob`/`XcodeMV`/`XcodeRM` tools;
+the ordinary Read/Edit/Write/Grep tools are fine for editing, but prefer the Xcode ones for
+**moving or deleting** files so the IDE stays in sync.
+
+**Fallback** (only if `XcodeListWindows` returns nothing, i.e. Xcode isn't open):
+`xcodebuild test -project TimeTracker.xcodeproj -scheme TimeTracker -destination 'platform=macOS'`
+run from `.../timetracker/TimeTracker/`. Schemes are `TimeTracker` and `TimeTrackerTests`.
+Its output is enormous — grep for `Failing tests|\*\* |error:`.
+
+### Other things worth knowing before you start
+- **New `.swift` files need no `project.pbxproj` edit.** Both targets use
+  `PBXFileSystemSynchronizedRootGroup` (objectVersion 77, zero `PBXBuildFile` entries), so
+  dropping a file anywhere under `TimeTracker/` or `TimeTrackerTests/` — new subdirectories
+  included — is enough. Adding SPM dependencies in Step 2 *will* touch the project file.
+- Two files are deliberately excluded via `membershipExceptions`:
+  `TimeTrackerTests/Services/LocalStorage/SwiftDataLocalStorageServiceTests.swift` (not
+  compiled into the test target — don't model new tests on it or expect it to run) and
+  `Info.plist`.
+- **Architecture pattern to follow**: protocol `<Domain>Service` + `final class
+  Default<X>Service` / `<Backing><X>Service` under `TimeTracker/Services/<Domain>/`.
+  There is **no DI container** — services are constructed once in `TimeTrackerApp.init()`
+  and passed to a per-screen `@MainActor struct <Screen>ModuleBuilder.build(...)` that
+  constructs the `@Observable @MainActor final class` view model. `LocalStorageServiceHolder`
+  / `TimerServiceHolder` are the only globals, existing solely for AppKit code paths.
+- **Test conventions**: Swift Testing only, never XCTest. `import Testing` / `import
+  Foundation` / `@testable import TimeTracker`; plain `struct <Type>Tests` (the codebase
+  never uses `@Suite`); `@Test func camelCaseName()`; `#expect` only; `@MainActor` on the
+  struct when the type under test has it; private `make…` fixture factories; mocks in
+  `TimeTrackerTests/Mocks/` follow `stubbed<X>` / `<method>CallCount` / `<method>Last<Param>`.
+- **The dev machine's locale formats decimals with a comma** (`$1,225,50`). Don't pin
+  currency literals in tests — compare against `CurrencyFormatting.amount(_:symbol:)` or
+  assert on structure. `String(format:)`-based output (rates, `formattedHoursMinutes`) is
+  locale-independent and safe to pin.
+- **Commit after each step** — each is a working, tested increment.
 
 ## Codebase facts gathered so far
 - Swift/SwiftUI + AppKit menu-bar shell, single app target (`TimeTracker`), no SPM
@@ -28,28 +90,23 @@ a fixed localhost URL while the app is open).
   `LocalStorageService` protocol + `SwiftDataLocalStorageService` impl in
   `TimeTracker/Services/LocalStorage/`, with `totalTrackedTimeToday()`,
   `totalTrackedTimeThisWeek()`, `trackedTimeToday(for taskId:)`, `fetchTasks()`,
-  `fetchTask(id:)`. Date-range aggregation for reports currently lives ad hoc in
-  `TimeTracker/Presentation/Report/ReportViewModel.swift`
-  (`trackedTime(for:from:to:)`, ~lines 229-241) and
-  `TimeTracker/Utilities/DailyTimeAggregator.swift` — not yet a generalized reusable
-  method, but straightforward to extract.
+  `fetchTask(id:)`. Date-range aggregation for reports now lives in
+  `DefaultReportBuilderService` (see architecture decision #7), which is built on
+  `TimeTracker/Utilities/DailyTimeAggregator.swift`.
 - PDF report generation already exists and is largely reusable:
   - `ReportPDFService` protocol / `CoreGraphicsReportPDFService` impl
     (`TimeTracker/Services/Report/ReportPDFService.swift`,
     `.../CoreGraphicsReportPDFService.swift`) — `generatePDF(config: ReportPDFConfig) -> Data`
     is a pure function, no UI dependency, directly callable from an MCP tool handler.
   - `ReportPeriod` enum (`TimeTracker/Presentation/Report/Models/ReportPeriod.swift`)
-    already has `.thisWeek/.lastWeek/.thisMonth/.lastMonth/.thisYear/.allTime/.customRange`
-    each with a pure `dateRange(calendar:now:)` calculator, plus a
+    has `.today/.thisWeek/.lastWeek/.thisMonth/.lastMonth/.thisYear/.allTime/.customRange`
+    (8 cases), each with a pure `dateRange(calendar:now:)` calculator, plus a
     `defaultFilename(startDate:endDate:)` helper — maps directly onto a "which period"
     tool argument.
   - The day-grouping/rounding/rate-calculation logic that turns tasks + a date range
-    into `ReportPDFConfig` rows currently lives inline inside
-    `ReportViewModel.exportPDF()` (`ReportViewModel.swift:113-188`), tangled together
-    with an `NSSavePanel` call for picking the save destination. This needs to be
-    extracted into a small UI-independent service (shared by both the existing
-    "Export PDF" button and the new MCP tool) before the PDF tool can be built —
-    see open items below.
+    into `ReportPDFConfig` rows now lives in `DefaultReportBuilderService`
+    (architecture decision #7). `ReportViewModel.exportPDF()` is reduced to: show the
+    save panel, call the service, write the bytes.
 
 ## Architecture decisions made so far
 1. **Transport**: Embedded HTTP/SSE (Streamable HTTP) MCP server running inside the
@@ -83,6 +140,52 @@ a fixed localhost URL while the app is open).
    This lets the PDF-export tool (and any other tool that writes files) accept an
    arbitrary destination path supplied by the calling skill/AI, matching the "save it
    somewhere" use case directly. Not yet implemented — see open items.
+7. **Report logic extracted into `ReportBuilderService`** (Step 1, done). Protocol
+   `ReportBuilderService: Sendable` + `final class DefaultReportBuilderService`, both in
+   `TimeTracker/Services/Report/`. No `@MainActor`, no AppKit — callable from an MCP
+   request handler as-is. Shape:
+   - `buildReport(_ request: ReportRequest) -> ReportData`
+   - `makePDFConfig(for: ReportData, presentation: ReportPresentation) -> ReportPDFConfig`
+   - `ReportRequest` = tasks + startDate/endDate + `TimeRoundingInterval` +
+     `defaultHourlyRate` + `includeZeroTime` + injectable `calendar`/`now`. A convenience
+     `init(..., preferences: UserPreferencesService, ...)` reads rounding and default rate
+     straight off the preferences service — that's the init MCP handlers should use.
+   - `ReportData` = `taskSummaries: [ReportTaskSummary]` (descending by raw time, each
+     carrying `rawTime`, `roundedTime`, resolved `hourlyRate`, `amount`, and a
+     `days: [ReportDaySummary]` per-day breakdown), plus `totalRoundedTime`,
+     `totalAmount`, `showAmountColumn`, `defaultHourlyRate`, and the `calendar` used.
+   - `ReportPresentation` = businessName + currencySymbol + generatedDate (display-only
+     values, kept out of the computation so tool #3 can skip them entirely).
+   - **Tool #3 wants `ReportData`; tool #4 wants `makePDFConfig` → the existing
+     `CoreGraphicsReportPDFService.generatePDF(config:)`.** No further extraction needed.
+   - Both `ReportViewModel.recomputeRows()` (the on-screen table) and `exportPDF()` route
+     through this service, so the screen, the PDF and the future MCP tools cannot disagree.
+   - Two supporting utilities were lifted out at the same time:
+     `TimeTracker/Utilities/TaskSearch.swift` (`matches(_:query:)` / `filter(_:query:)`,
+     the shared search predicate for tool #1) and
+     `TimeTracker/Utilities/CurrencyFormatting.swift` (`amount(_:symbol:)` /
+     `rate(_:symbol:)`, so screen and PDF render money identically).
+8. **Midnight rule: entries that cross midnight are split across the days they span.**
+   `DailyTimeAggregator`'s rule won; `ReportViewModel.exportPDF()`'s old "attribute the
+   whole entry to its start day" rule is gone, and the service delegates to
+   `DailyTimeAggregator` so there is now exactly one implementation. Besides unifying the
+   Heatmap and the report, this fixed a real bug: a Jan 31 23:00 → Feb 1 02:00 entry in a
+   *February* report was clipped to 2h but stamped `31.01.2026`, i.e. a PDF row dated
+   before the report's own start date. Task totals and the PDF grand total are unchanged
+   by this; only per-day row dates/values shift, and only for overnight work.
+9. **The PDF grand total is deliberately not the sum of its day rows.** Day rows are
+   rounded per day, while the grand total rounds each task's whole-period time once — so
+   with rounding enabled, three 10-minute days at 15-minute rounding print as 15m/15m/15m
+   but total 30m. This is long-standing Report-screen behavior and was preserved verbatim
+   rather than "fixed", because changing it changes billed amounts on every rounded
+   report. Pinned by `DefaultReportBuilderServiceTests.dayRowsNeedNotSumToTheGrandTotal`.
+   **Step 5's parity test must not assume day rows sum to the total.** If this is ever
+   revisited, the Report screen's on-screen total has to change with it.
+10. **`CoreGraphicsReportPDFService` output is not byte-reproducible.** CoreGraphics
+    stamps a creation timestamp into every PDF, so rendering the *same* `ReportPDFConfig`
+    twice yields different bytes. Any future "did the PDF change?" check must compare the
+    `ReportPDFConfig` (which fully determines the output) or the PDFKit-extracted text —
+    never raw bytes.
 
 ## MCP tool catalog
 
@@ -95,11 +198,10 @@ Search-first, because the caller only knows the task by rough name, not by `UUID
 - **Input**: a free-text query, plus an optional date range (see the shared period
   argument in #2). With no range given, return all-time total.
 - **Search behavior**: match the query case-insensitively against **both title and
-  description**. Reuse the exact predicate already used by the Main Window search
-  feature (`MainWindowViewModel.filteredTasks`, `MainWindowViewModel.swift:30-36`):
-  `task.title.localizedCaseInsensitiveContains(query) || task.taskDescription.localizedCaseInsensitiveContains(query)`.
-  Extracting that predicate into a shared helper (so UI and MCP can't drift apart)
-  is preferred over copying it.
+  description**. Call `TaskSearch.filter(tasks, query:)` /
+  `TaskSearch.matches(task, query:)` (`TimeTracker/Utilities/TaskSearch.swift`) — the
+  shared predicate the Main Window search field now also uses, so the two cannot drift.
+  A whitespace-only or empty query matches everything; queries are trimmed first.
 - **Response must handle all three match counts** — this is the important part:
   - **0 matches**: not an error; return an explicit "no tasks matched" result so the
     AI can tell the user plainly instead of inventing a number. Ideally include a few
@@ -125,11 +227,11 @@ Two response shapes, chosen by the caller, matching two different natural questi
 - **Period argument (shared with #3 and #4)**: must accept both named periods and an
   explicit custom range. Reuse the existing `ReportPeriod` enum
   (`Presentation/Report/Models/ReportPeriod.swift`), which already covers
-  `thisWeek/lastWeek/thisMonth/lastMonth/thisYear/allTime/customRange` with a pure
+  `today/thisWeek/lastWeek/thisMonth/lastMonth/thisYear/allTime/customRange` with a pure
   `dateRange(calendar:now:)` calculator.
   - This must also serve **"what time have I reported today?"** and **"...this
-    week?"**. `thisWeek` already exists; **`today` does not exist as a `ReportPeriod`
-    case** and needs adding (or mapping to a custom single-day range). Note
+    week?"**. Both `today` (added in Step 1; midnight → 23:59:59, and it's the first
+    entry in the Report screen's picker) and `thisWeek` exist. Note
     `LocalStorageService` already has `totalTrackedTimeToday()` /
     `totalTrackedTimeThisWeek()` for the total-only variants of exactly these two
     questions — cheapest path is to route those two cases to the existing methods.
@@ -137,19 +239,24 @@ Two response shapes, chosen by the caller, matching two different natural questi
 ### 3. Report / invoice-style breakdown
 Same period argument as #2. Returns the report data grouped by task, with rounding and
 hourly-rate/amount calculation applied — i.e. the numbers behind the PDF, but as
-structured data rather than a file. Reuses the same extracted service as #4 (see
-"Extract the day-grouping..." open item) plus `UserPreferencesService` for
-`timeRounding`, `defaultHourlyRate`, `currencySymbol`, and `businessName`.
+structured data rather than a file. Call
+`DefaultReportBuilderService.buildReport(_:)` with a `ReportRequest` built via its
+`preferences:` convenience init, and serialize the resulting `ReportData` — the
+per-task summaries, their `days` breakdown, and the totals are all already there.
+`currencySymbol` / `businessName` come from `UserPreferencesService` if the response
+should carry them (they're display-only and not needed for the maths).
 
 ### 4. Generate PDF report and save to disk
 The motivating use case: the user wants to later build a skill that generates a report
 every month unattended, so **this tool must never require an interactive dialog**.
 - **Input**: period (same argument as #2/#3), destination path, optional filename
   override, optional task filter.
-- **Behavior**: compute the same config as #3, hand it to the existing
-  `CoreGraphicsReportPDFService.generatePDF(config:)` (already a pure
+- **Behavior**: compute the same `ReportData` as #3, pass it through
+  `DefaultReportBuilderService.makePDFConfig(for:presentation:)`, hand the result to the
+  existing `CoreGraphicsReportPDFService.generatePDF(config:)` (already a pure
   `ReportPDFConfig -> Data` function), and write the bytes to the given path — no
-  `NSSavePanel`, unlike the current UI flow.
+  `NSSavePanel`, unlike the UI flow. This is exactly what `ReportViewModel.exportPDF()`
+  now does after the save panel returns, so copy those four lines.
 - Default filename comes from the existing
   `ReportPeriod.defaultFilename(startDate:endDate:)` helper.
 - **Returns** the absolute path of the written file so the calling skill can confirm
@@ -191,11 +298,6 @@ Recorded so future sessions don't re-litigate these:
 ## Known open items (not yet decided — to fill in during future sessions)
 - Exact MCP tool names, argument schemas, and return shapes for each of the 5 tools
   above.
-- Extract the day-grouping/rounding/rate-calculation logic out of
-  `ReportViewModel.exportPDF()` (`ReportViewModel.swift:113-188`) into a
-  UI-independent service that returns a `ReportPDFConfig` (or the raw `Data`) given
-  tasks + date range + prefs, so both the UI "Export PDF" button and the new MCP tool
-  call the same code instead of duplicating it. Exact service name/shape TBD.
 - Actually flip `ENABLE_APP_SANDBOX` to `NO` in `project.pbxproj` (both Debug/Release
   configs, currently ~lines 360-361 and 406-407) as part of implementing the PDF tool.
 - Design the PDF tool's exact arguments once the above is done: period (reusing
@@ -205,18 +307,6 @@ Recorded so future sessions don't re-litigate these:
   provides), optional filename override (default via
   `ReportPeriod.defaultFilename(startDate:endDate:)`), and what the tool should
   return (e.g. the saved file path) to confirm success back to the caller.
-- Add a `today` case to `ReportPeriod` (or decide to map "today" onto a custom
-  single-day range) — needed for "what time have I reported today?" in tool #2.
-- Extract the task-search predicate out of `MainWindowViewModel.filteredTasks`
-  (`MainWindowViewModel.swift:30-36`) into a shared helper so the MCP search tool (#1)
-  and the Main Window search can't drift apart.
-- **Pre-existing inconsistency to resolve during extraction**: two different
-  day-attribution rules exist in the codebase for entries that cross midnight.
-  `DailyTimeAggregator.dailyTotals(...)` (used by the Heatmap) correctly splits such
-  an entry across both days, while `ReportViewModel.exportPDF()` attributes the whole
-  duration to `entry.startDate`'s day (`ReportViewModel.swift:142`). The extracted
-  report service should pick one rule deliberately — otherwise the PDF and the
-  Heatmap/MCP numbers can disagree for overnight work.
 - Whether the server auto-starts on app launch (if enabled in settings) or only starts
   when the user explicitly turns it on each session.
 - Error/edge-case behavior: ambiguous task name matches, no tasks found, invalid date
@@ -236,6 +326,9 @@ checklist at the top of that file. This spec stays the source of truth; that fil
 just the running order.
 
 ## How to use this file going forward
+Start with **"How to work in this repo"** at the top — it covers building and testing via
+the Xcode MCP server, how new files get picked up, and the code/test conventions to match.
+
 Each future implementation session should read this file first for context, then
 append/update sections here (especially "decisions made" and "open items") as more
 of the design is settled or built, rather than re-deriving this discussion from
