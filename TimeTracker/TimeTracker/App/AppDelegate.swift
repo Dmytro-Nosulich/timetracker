@@ -17,6 +17,25 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupStatusBar()
         startIconUpdateTimer()
+        startMCPServer()
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        // Best effort — the process may exit first, and the OS closes the listening
+        // socket either way. Clients see the connection fail, which is expected.
+        Task { @MainActor in
+            await MCPServerServiceHolder.shared?.stop()
+        }
+    }
+
+    private func startMCPServer() {
+        Task { @MainActor in
+            guard let server = MCPServerServiceHolder.shared else {
+                NSLog("MCP server not available: holder was never set")
+                return
+            }
+            await server.start()
+        }
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -164,6 +183,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             menu.addItem(NSMenuItem(title: "Today: \(todayTotal.formattedHoursMinutes)", action: nil, keyEquivalent: ""))
         }
 
+        addMCPServerFailureItem(menu)
+
         menu.addItem(NSMenuItem.separator())
         addMenuItem(menu, title: "Open Main Window", action: .openMainWindow)
         if state != .idle {
@@ -171,6 +192,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         menu.addItem(NSMenuItem.separator())
         addMenuItem(menu, title: "Quit Time Tracker", action: .quit)
+    }
+
+    /// The only place a failed MCP server is visible until the Settings screen gains a
+    /// status row. Silent when the server started, so the menu stays as it was.
+    @MainActor
+    private func addMCPServerFailureItem(_ menu: NSMenu) {
+        guard case .failed(let reason) = MCPServerServiceHolder.shared?.status else { return }
+        menu.addItem(NSMenuItem.separator())
+        let item = NSMenuItem(title: "⚠ MCP server: \(reason)", action: nil, keyEquivalent: "")
+        item.isEnabled = false
+        menu.addItem(item)
     }
 
     private func addMenuItem(_ menu: NSMenu, title: String, action: MenuAction) {

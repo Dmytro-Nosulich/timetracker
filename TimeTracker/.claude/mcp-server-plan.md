@@ -1,7 +1,8 @@
 # TimeTracker Local MCP Server — Implementation Spec
 
-Status: implementation started. Step 1 (foundation refactor) is done and merged — no MCP
-code exists yet. Steps 2-7 remain.
+Status: implementation in progress. Steps 1-2 are done — the server runs inside the app on
+a hardcoded port and serves tool #5 end-to-end, verified from a real Claude Code session.
+Steps 3-7 remain.
 
 ## Goal
 Expose an MCP server embedded inside the running TimeTracker app so an AI tool
@@ -28,7 +29,7 @@ transcript. Typical flow:
    arrive in `errors`; no log parsing needed.
 3. `RunAllTests(tabIdentifier:)` → `{counts: {passed, failed, ...}, results[], summary}`.
    **Failed tests are listed first**, and results are truncated to 100 of N with the full
-   list at `fullSummaryPath`. As of Step 1 the baseline is **373 passing, 0 failing** — a
+   list at `fullSummaryPath`. As of Step 2 the baseline is **398 passing, 0 failing** — a
    materially lower total means tests silently stopped being compiled, not that they passed.
 4. `RunSomeTests(tabIdentifier:, tests: [{targetName, testIdentifier}])` for a focused
    re-run; get identifiers from `GetTestList` (`targetName` is `TimeTrackerTests`, and
@@ -47,9 +48,11 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
 
 ### Other things worth knowing before you start
 - **New `.swift` files need no `project.pbxproj` edit.** Both targets use
-  `PBXFileSystemSynchronizedRootGroup` (objectVersion 77, zero `PBXBuildFile` entries), so
-  dropping a file anywhere under `TimeTracker/` or `TimeTrackerTests/` — new subdirectories
-  included — is enough. Adding SPM dependencies in Step 2 *will* touch the project file.
+  `PBXFileSystemSynchronizedRootGroup` (objectVersion 77), so dropping a file anywhere
+  under `TimeTracker/` or `TimeTrackerTests/` — new subdirectories included — is enough.
+  The project file now *does* have a `PBXBuildFile` section, but it holds only the four
+  SPM product links added in Step 2; source files still never appear there.
+- **Test baseline is now 398 passing, 0 failing** (373 after Step 1, +25 in Step 2).
 - Two files are deliberately excluded via `membershipExceptions`:
   `TimeTrackerTests/Services/LocalStorage/SwiftDataLocalStorageServiceTests.swift` (not
   compiled into the test target — don't model new tests on it or expect it to run) and
@@ -72,8 +75,12 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
 - **Commit after each step** — each is a working, tested increment.
 
 ## Codebase facts gathered so far
-- Swift/SwiftUI + AppKit menu-bar shell, single app target (`TimeTracker`), no SPM
-  dependencies yet (`TimeTracker.xcodeproj/project.pbxproj`).
+- Swift/SwiftUI + AppKit menu-bar shell, single app target (`TimeTracker`). Two SPM
+  packages as of Step 2 — `modelcontextprotocol/swift-sdk` and `apple/swift-nio` — with
+  `MCP`, `NIOCore`, `NIOPosix` and `NIOHTTP1` linked into **both** the app and the test
+  target (the test target needs them so `@testable import TimeTracker` resolves).
+- No existing networking/IPC/server code anywhere in the codebase apart from
+  `TimeTracker/Services/MCP/` (added in Step 2).
 - Persistence is SwiftData (not Core Data), container built in
   `TimeTracker/TimeTrackerApp.swift:17-28`. `@Model` entities in
   `TimeTracker/Services/LocalStorage/Models/`: `TaskEntity.swift`,
@@ -83,9 +90,6 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
 - App already runs as a persistent background/menu-bar process
   (`AppDelegate.applicationShouldTerminateAfterLastWindowClosed` returns `false`,
   `TimeTracker/App/AppDelegate.swift`) — favorable for hosting a long-lived server.
-- No existing networking/IPC/server code anywhere in the codebase (confirmed via
-  exhaustive grep — no URLSession server usage, Network.framework listener, XPC,
-  sockets, Vapor, Bonjour).
 - Existing query/aggregation layer to build tools on top of:
   `LocalStorageService` protocol + `SwiftDataLocalStorageService` impl in
   `TimeTracker/Services/LocalStorage/`, with `totalTrackedTimeToday()`,
@@ -120,10 +124,11 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
 3. **Client connection model**: User registers the local server once with their MCP
    client, e.g. `claude mcp add --transport http timetracker http://127.0.0.1:PORT/mcp`.
    If the app isn't running, the connection simply fails (same as Figma).
-4. **Port**: Configurable via an app Settings screen (not hardcoded), since the user
-   chose configurability over a fixed port. Implies: need a small Settings UI addition
-   to view/set the port, and likely a toggle to enable/disable the server entirely
-   (not everyone will want it always listening). Exact UI/UX not yet designed.
+4. **Port**: default **8427**, currently hardcoded as `MCPServerConfiguration.defaultPort`.
+   Step 3 makes it configurable via an app Settings screen, along with a toggle to
+   enable/disable the server entirely. `DefaultMCPServerService.init` already takes a
+   `port:` parameter, so Step 3 only has to feed it from preferences. Exact UI/UX not yet
+   designed.
 5. **Tool scope for v1**: five capabilities, detailed in the "MCP tool catalog"
    section below. The server is **read-only** — the only thing it writes is the PDF
    file produced by tool #4; it never modifies tracked time data. See "Considered and
@@ -186,6 +191,107 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
     twice yields different bytes. Any future "did the PDF change?" check must compare the
     `ReportPDFConfig` (which fully determines the output) or the PDFKit-extracted text —
     never raw bytes.
+
+### Step 2 decisions (the server itself)
+
+11. **SDK: `modelcontextprotocol/swift-sdk` 0.12.1** (`upToNextMajorVersion` from 0.12.1),
+    product `MCP`. Official, tracks the 2025-11-25 spec, `.macOS(13.0)` against our
+    deployment target of 15.6. It ships `StatelessHTTPServerTransport` and
+    `StatefulHTTPServerTransport`.
+12. **The SDK's HTTP transports are not HTTP servers.** They expose
+    `handleRequest(HTTPRequest) async -> HTTPResponse` over their own framework-agnostic
+    value types and never touch a socket — the `MCP` library target has no NIO dependency
+    at all (only the SDK's conformance *executable* does). So we bring the listener:
+    **SwiftNIO 2.x** (`NIOCore`, `NIOPosix`, `NIOHTTP1`), modeled on the SDK's own adapter
+    at `Sources/MCPConformance/Server/HTTPApp.swift`. Two deliberate departures from that
+    sample, both in `MCPHTTPChannelHandler`: responses always carry a **`Content-Length`**
+    (without it NIO close-delimits the body and keep-alive clients stall), and the request's
+    keep-alive preference is honored.
+13. **Stateless transport, not stateful.** `StatelessHTTPServerTransport` is POST-in /
+    JSON-out; GET and DELETE get `405 + Allow: POST`, which spec-compliant clients accept.
+    No sessions, no SSE stream to write. Sufficient because the tools are read-only and
+    hold no per-client state. Its default validation pipeline is kept as-is and pulls its
+    weight: `OriginValidator.localhost()` is DNS-rebinding protection layered on top of the
+    loopback bind, and the `Accept`/`Content-Type`/protocol-version validators all pass
+    with Claude Code's real headers. Switching to stateful would only be needed for
+    server→client notifications.
+14. **One `Server` per `initialize`, via `MCPSessionCoordinator`.** This one bit us in
+    testing. `Server` accepts exactly **one** `initialize` for its whole lifetime — a
+    second one fails with `-32600 Server is already initialized` — so a single long-lived
+    server is permanently poisoned by the first client that connects. Claude Code
+    re-initializes on every restart, and a stray `curl` probe does the same, so
+    `MCPSessionCoordinator` rebuilds the (transport, server) pair whenever an `initialize`
+    body arrives. This is cheap and safe here: the tools hold no per-client state, and the
+    server runs **non-strict** (`Configuration.default`), which means tool calls succeed
+    whether or not an `initialize` preceded them — so a client whose session got replaced
+    by another client keeps working. **Don't "simplify" this back to a single server.**
+15. **App Sandbox stays on; `ENABLE_INCOMING_NETWORK_CONNECTIONS = YES`.** A sandboxed app
+    cannot `listen()` without `com.apple.security.network.server`, loopback included. The
+    project has no entitlements file, so this is set as a build setting in both Debug and
+    Release of the `TimeTracker` target and Xcode folds it into the generated entitlements
+    (verified with `codesign -d --entitlements`). The setting permits listening in general
+    — the loopback-only guarantee comes from binding `127.0.0.1` explicitly, never
+    `0.0.0.0`. Step 6 still disables the sandbox outright, for file writes.
+16. **SwiftData thread-safety: a dedicated actor with a fresh `ModelContext` per read.**
+    `SwiftDataMCPDataStore` is a plain `actor` holding the same `ModelContainer` the UI
+    uses, and every read creates its own `ModelContext`. Two properties make it safe: the
+    actor serializes access so no context is ever touched concurrently, and a per-request
+    context always reads through to the store. Chosen over `@ModelActor` deliberately —
+    that macro synthesizes one context held for the actor's lifetime, and a long-lived
+    context keeps a row cache that can serve stale values after the UI's context writes.
+    At this data volume the extra context costs nothing. `@Model` entities never leave the
+    actor; only the `Sendable` domain value types do. Handlers reach it through the narrow
+    async `MCPDataReading` protocol — deliberately *not* `LocalStorageService`, which is
+    `@MainActor` and wraps the UI's context.
+    - Supporting refactor: the entity→domain mapping moved out of
+      `SwiftDataLocalStorageService`'s private methods into
+      `Services/LocalStorage/SwiftDataItemMapper.swift`, so the main-actor service and the
+      background actor cannot drift. Pure move, no behavior change.
+17. **Lifecycle lives in `AppDelegate`.** `TimeTrackerApp.init()` constructs
+    `DefaultMCPServerService(container:)` and parks it in `MCPServerServiceHolder` (same
+    pattern as `TimerServiceHolder`); `applicationDidFinishLaunching` starts it,
+    `applicationWillTerminate` stops it best-effort. The service is
+    `@Observable @MainActor` — main-actor for its *state* only, since the socket work runs
+    on NIO's event loops and the SDK's actors. That's what lets `AppDelegate.buildMenu`
+    read `status` synchronously, and it's what Step 3's Settings screen will bind to.
+    - **Graceful, visible failure**: `start()` never throws. A bind failure sets
+      `status = .failed(reason:)`, logs to `OSLog`, and adds a disabled
+      `⚠ MCP server: port 8427 is already in use` item to the menu bar. Pinned by
+      `DefaultMCPServerServiceTests.aBusyPortFailsVisiblyInsteadOfCrashing`, which binds a
+      real socket twice. Note `OSLog` output was *not* observable via `log show` on this
+      machine during testing, so **verify server state through `status`/tests, not the
+      unified log.**
+
+## What exists in code (as of Step 2)
+
+Everything lives in `TimeTracker/Services/MCP/`:
+
+| File | Role |
+|---|---|
+| `MCPServerService.swift` | `MCPServerConfiguration` (host/port/path/name), `MCPServerStatus`, the `@MainActor` protocol |
+| `DefaultMCPServerService.swift` | `@Observable @MainActor`; NIO `ServerBootstrap` bind/close, status, graceful bind failure |
+| `MCPSessionCoordinator.swift` | Owns the `Server` + transport pair, rebuilds on `initialize` (decision #14) |
+| `MCPHTTPChannelHandler.swift` | NIO `HTTPServerRequestPart` ⇄ `MCP.HTTPRequest`/`HTTPResponse` |
+| `MCPDataReading.swift` / `SwiftDataMCPDataStore.swift` | Background-actor SwiftData reads (decision #16) |
+| `MCPToolCatalog.swift` | `ListTools` / `CallTool` registration — **where tools #1-#4 plug in** |
+| `Tools/ListTasksAndTagsTool.swift`, `Tools/ListTasksAndTagsPayload.swift` | Tool #5 |
+
+Plus `App/MCPServerServiceHolder.swift`, wiring in `TimeTrackerApp.swift` and
+`App/AppDelegate.swift`, and `Services/LocalStorage/SwiftDataItemMapper.swift`.
+
+Tests in `TimeTrackerTests/Services/MCP/` (payload builder, tool handler, server
+lifecycle) and `TimeTrackerTests/Mocks/MockMCPDataStore.swift`.
+
+**Registering the client** (the app must be running):
+```
+claude mcp add --transport http timetracker http://127.0.0.1:8427/mcp
+```
+
+**Verified in Step 2**: `lsof` shows `127.0.0.1:8427 (LISTEN)`, never `*:8427`; a request
+to the machine's LAN address is refused; `GET /mcp` → 405, unknown path → 404; repeated
+`initialize` succeeds; `claude mcp list` reports Connected; a real Claude Code session
+lists and calls the tool and gets back the live 86 tasks / 4 tags; quitting the app makes
+the connection fail cleanly.
 
 ## MCP tool catalog
 
@@ -264,15 +370,42 @@ every month unattended, so **this tool must never require an interactive dialog*
 - Depends on App Sandbox being disabled (architecture decision #6) to write to an
   arbitrary path.
 
-### 5. List tasks / list tags
-A discovery tool, so the AI can orient itself before querying rather than guessing.
-- Lists existing tasks (title, id, archived flag, and a time total) and existing tags.
-- Reuses `LocalStorageService.fetchTasks()` and `fetchTags()` directly — no new logic.
-- Its main practical job is **disambiguation support for #1**: when a search returns
-  several matches or none, the AI can look at what actually exists and ask a sensible
-  follow-up question instead of inventing task names.
-- Should probably expose archived vs. active as a filter, since `TaskItem.isArchived`
-  exists and stale tasks would otherwise clutter results.
+### 5. List tasks / list tags — **IMPLEMENTED (Step 2)**
+A discovery tool, so the AI can orient itself before querying rather than guessing. Its
+main practical job is **disambiguation support for #1**: when a search returns several
+matches or none, the AI can look at what actually exists and ask a sensible follow-up
+question instead of inventing task names.
+
+**Name**: `list_tasks_and_tags`. Annotated `readOnlyHint: true`, `openWorldHint: false`.
+
+**Input schema** — one optional argument:
+```json
+{ "type": "object", "additionalProperties": false,
+  "properties": { "include": { "type": "string", "enum": ["active", "archived", "all"] } } }
+```
+`include` defaults to `active`. A missing *or unrecognised* value falls back to `active`
+rather than erroring, and the response echoes the filter actually applied.
+
+**Output**: one `.text` content block holding pretty-printed, key-sorted JSON:
+```
+{ filter, taskCount, tagCount,
+  tasks: [{ id, title, description, isArchived, tags: [name],
+            totalTrackedTimeSeconds, totalTrackedTimeFormatted }],
+  tags:  [{ id, name, colorHex }] }
+```
+- `id` is the task's `UUID` string, so a follow-up call can target it unambiguously.
+- `description` is included because tool #1 searches against it as well as the title.
+- `tagCount`/`tags` are unaffected by the `include` filter.
+- Task order is storage order (`createdAt` descending, newest first) — no re-sorting.
+- `totalTrackedTimeSeconds` is **all-time**, and counts a still-running entry up to now,
+  so it can move between two calls. Same number the app's UI shows.
+
+**Code**: `Services/MCP/Tools/ListTasksAndTagsTool.swift` (MCP envelope) +
+`ListTasksAndTagsPayload.swift` (`ListTasksFilter`, the `Encodable` payload, and the pure
+`ListTasksAndTagsPayloadBuilder`). The split keeps the tested logic free of MCP types.
+Registered in `Services/MCP/MCPToolCatalog.swift`, which is where tools #1-#4 plug in.
+Reads through `MCPDataReading` (decision #16), not `LocalStorageService` — but the queries
+themselves are still just `fetchTasks()` / `fetchTags()`, no new logic.
 
 ## Considered and deliberately left out of v1
 Recorded so future sessions don't re-litigate these:
@@ -296,10 +429,16 @@ Recorded so future sessions don't re-litigate these:
   ever added, a timer-status tool becomes genuinely necessary again.
 
 ## Known open items (not yet decided — to fill in during future sessions)
-- Exact MCP tool names, argument schemas, and return shapes for each of the 5 tools
-  above.
+- Exact MCP tool names, argument schemas, and return shapes for tools #1-#4. (#5 is
+  settled — see its catalog entry.)
 - Actually flip `ENABLE_APP_SANDBOX` to `NO` in `project.pbxproj` (both Debug/Release
-  configs, currently ~lines 360-361 and 406-407) as part of implementing the PDF tool.
+  configs) as part of implementing the PDF tool. **Warning discovered in Step 2:**
+  disabling the sandbox relocates the SwiftData store from
+  `~/Library/Containers/dmytro.TimeTracker/Data/Library/Application Support/` to
+  `~/Library/Application Support/` — the app will look **empty** unless the existing store
+  is moved across. Plan that migration before flipping the flag, and back the store up
+  first. Also drop `ENABLE_INCOMING_NETWORK_CONNECTIONS` at the same time, since it's
+  meaningless without the sandbox.
 - Design the PDF tool's exact arguments once the above is done: period (reusing
   `ReportPeriod` cases) or explicit custom start/end, optional task filter (default:
   all tasks with time > 0 in range, matching current non-UI default), destination
@@ -307,16 +446,11 @@ Recorded so future sessions don't re-litigate these:
   provides), optional filename override (default via
   `ReportPeriod.defaultFilename(startDate:endDate:)`), and what the tool should
   return (e.g. the saved file path) to confirm success back to the caller.
-- Whether the server auto-starts on app launch (if enabled in settings) or only starts
-  when the user explicitly turns it on each session.
-- Error/edge-case behavior: ambiguous task name matches, no tasks found, invalid date
-  ranges, task search returning multiple candidates.
-- Which Swift MCP SDK to add via SPM (e.g. the official `modelcontextprotocol/swift-sdk`)
-  and which HTTP server mechanism backs the Streamable HTTP transport inside the app.
-- Thread-safety approach for querying SwiftData from the server's request-handling
-  code without touching the UI's main `ModelContext` directly (e.g. a dedicated
-  `@ModelActor`/background context) — SwiftData contexts are not thread-safe by
-  default.
+- Whether the server auto-starts on app launch *when enabled in settings*, or only when
+  the user turns it on each session. (As of Step 2 it always auto-starts, since there is
+  no setting yet.)
+- Error/edge-case behavior for tools #1-#4: ambiguous task name matches, no tasks found,
+  invalid date ranges, task search returning multiple candidates.
 - Settings UI/UX for the port field and enable/disable toggle.
 
 ## Build order

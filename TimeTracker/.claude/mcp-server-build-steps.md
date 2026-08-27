@@ -24,7 +24,7 @@ context.
 
 ## Progress
 - [x] Step 1 — Foundation refactor (no MCP code yet)
-- [ ] Step 2 — MCP server skeleton + first tool end-to-end
+- [x] Step 2 — MCP server skeleton + first tool end-to-end
 - [ ] Step 3 — Settings UI (port + enable toggle)
 - [ ] Step 4 — Tools: task search & date-range time
 - [ ] Step 5 — Tool: report / invoice breakdown
@@ -154,7 +154,10 @@ implemented. Then tick Step 2's checkbox in the Progress section of
 
 ```
 Read .claude/mcp-server-plan.md for full context. Steps 1-2 are done: the MCP server
-runs on a hardcoded port and serves one tool.
+runs on hardcoded port 8427 and serves one tool. DefaultMCPServerService already takes a
+`port:` init parameter and exposes an observable MCPServerStatus
+(.stopped/.running(port:)/.failed(reason:)) plus async start()/stop(), so this step is
+mostly about feeding it from preferences and rendering that status.
 
 Make the server user-configurable:
 
