@@ -1,6 +1,8 @@
 import Foundation
 
-final class UserDefaultsUserPreferencesService: UserPreferencesService {
+/// `@unchecked Sendable` because the only stored property is a `UserDefaults`, which is
+/// documented thread-safe — every accessor below is a plain read or write through it.
+final class UserDefaultsUserPreferencesService: UserPreferencesService, @unchecked Sendable {
     private let userDefaults: UserDefaults
     private let currencySymbolKey = "currencySymbol"
     private let currencyCodeKey = "currencyCode"

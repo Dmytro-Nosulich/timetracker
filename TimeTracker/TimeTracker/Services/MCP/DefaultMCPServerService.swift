@@ -39,7 +39,7 @@ final class DefaultMCPServerService: MCPServerService {
 
     /// Testing seam — lets a caller supply a data store without a `ModelContainer`.
     init(dataStore: any MCPDataReading, userPreferences: UserPreferencesService) {
-        self.coordinator = MCPSessionCoordinator(dataStore: dataStore)
+        self.coordinator = MCPSessionCoordinator(dataStore: dataStore, preferences: userPreferences)
         self.userPreferences = userPreferences
     }
 

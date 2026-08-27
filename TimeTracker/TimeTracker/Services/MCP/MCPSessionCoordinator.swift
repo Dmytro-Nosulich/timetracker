@@ -23,11 +23,13 @@ actor MCPSessionCoordinator {
     }
 
     private let dataStore: any MCPDataReading
+    private let preferences: any UserPreferencesService
     private let logger = Logger(subsystem: "dmytro.TimeTracker", category: "MCPServer")
     private var session: Session?
 
-    init(dataStore: any MCPDataReading) {
+    init(dataStore: any MCPDataReading, preferences: any UserPreferencesService) {
         self.dataStore = dataStore
+        self.preferences = preferences
     }
 
     // MARK: - Request handling
@@ -72,7 +74,7 @@ actor MCPSessionCoordinator {
                 """,
             capabilities: .init(tools: .init(listChanged: false))
         )
-        await MCPToolCatalog.register(on: server, dataStore: dataStore)
+        await MCPToolCatalog.register(on: server, dataStore: dataStore, preferences: preferences)
 
         do {
             try await server.start(transport: transport)

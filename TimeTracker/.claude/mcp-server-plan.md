@@ -1,8 +1,8 @@
 # TimeTracker Local MCP Server — Implementation Spec
 
-Status: implementation in progress. Steps 1-4 are done — the server runs inside the app on a
-user-configurable port, is toggleable from Settings, and serves tools #5, #1 and #2
-end-to-end against live data. Steps 5-7 remain.
+Status: implementation in progress. Steps 1-5 are done — the server runs inside the app on a
+user-configurable port, is toggleable from Settings, and serves tools #5, #1, #2 and #3
+end-to-end against live data. Steps 6-7 remain.
 
 ## Goal
 Expose an MCP server embedded inside the running TimeTracker app so an AI tool
@@ -29,11 +29,12 @@ transcript. Typical flow:
    arrive in `errors`; no log parsing needed.
 3. `RunAllTests(tabIdentifier:)` → `{counts: {passed, failed, ...}, results[], summary}`.
    **Failed tests are listed first**, and results are truncated to 100 of N with the full
-   list at `fullSummaryPath`. As of Step 4 the baseline is **487 passing, 0 failing** — a
+   list at `fullSummaryPath`. As of Step 5 the baseline is **514 passing, 0 failing** — a
    materially lower total means tests silently stopped being compiled, not that they passed.
 4. `RunSomeTests(tabIdentifier:, tests: [{targetName, testIdentifier}])` for a focused
    re-run; get identifiers from `GetTestList` (`targetName` is `TimeTrackerTests`, and
-   `testIdentifier` looks like `DefaultReportBuilderServiceTests/someTest()`).
+   `testIdentifier` looks like `DefaultReportBuilderServiceTests/someTest()`; a bare suite
+   name like `ReportBreakdownToolTests` also works and runs the whole suite).
 5. `GetBuildLog(tabIdentifier:, severity:/pattern:/glob:)` to dig into a build failure, and
    `XcodeListNavigatorIssues(tabIdentifier:)` for what's showing in the Issue Navigator.
 
@@ -52,8 +53,8 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
   under `TimeTracker/` or `TimeTrackerTests/` — new subdirectories included — is enough.
   The project file now *does* have a `PBXBuildFile` section, but it holds only the four
   SPM product links added in Step 2; source files still never appear there.
-- **Test baseline is now 487 passing, 0 failing** (373 after Step 1, +25 in Step 2, +23 in
-  Step 3, +66 in Step 4).
+- **Test baseline is now 514 passing, 0 failing** (373 after Step 1, +25 in Step 2, +23 in
+  Step 3, +66 in Step 4, +27 in Step 5).
 - Two files are deliberately excluded via `membershipExceptions`:
   `TimeTrackerTests/Services/LocalStorage/SwiftDataLocalStorageServiceTests.swift` (not
   compiled into the test target — don't model new tests on it or expect it to run) and
@@ -366,7 +367,52 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
     key-sorted) and the success/failure envelopes for every tool, including the Step 2 one —
     three copies of an encoder configuration was one drift risk too many.
 
-## What exists in code (as of Step 4)
+### Step 5 decisions (the report tool)
+
+28. **`UserPreferencesService` is now `Sendable`**, rather than getting its own narrow
+    MCP-facing protocol the way storage did. Decision #16's reason for `MCPDataReading` was
+    that `LocalStorageService` is `@MainActor` and wraps the UI's `ModelContext` — genuinely
+    unsafe off-main. Neither applies here: the protocol has no isolation and
+    `UserDefaultsUserPreferencesService`'s only stored property is a `UserDefaults`, which is
+    documented thread-safe, so it is `@unchecked Sendable` (as is `MockUserPreferencesService`,
+    following `MockMCPDataStore`). Adding `Sendable` to a protocol constrains conformers, not
+    callers, so `SettingsViewModel`, `ReportViewModel` and every other consumer were untouched
+    — and the tests reuse the existing mock, which is what lets the parity test feed **one**
+    preferences instance to both the Report screen and the tool.
+    - Preferences are read **fresh on every tool call**, never snapshotted at registration, so
+      changing rounding or the default rate in Settings takes effect on the next call.
+    - Plumbing: `MCPToolCatalog.register(on:dataStore:preferences:)` and
+      `MCPSessionCoordinator(dataStore:preferences:)`. `DefaultMCPServerService` already held a
+      `userPreferences`, so it needed no new init parameter and `TimeTrackerApp`/`AppDelegate`
+      needed no change at all.
+29. **Tool #3 uses `ReportPeriod`'s real range for `all_time`, unlike tools #1/#2.**
+    Decision #24 has `MCPPeriodArgument.Resolved.trackedTime(for:)` special-case `.allTime` to
+    `task.totalTrackedTime`; this tool bypasses that and hands `distantPast … 23:59:59 today`
+    to `buildReport`, because that is exactly what the Report screen's "All Time" does and
+    matching the screen is the entire point of the tool. Consequence: an entry dated in the
+    **future** counts in `get_time_for_period` on `all_time` but not here. Verified live that
+    no such entry currently exists — all 86 tasks report identical per-task seconds across
+    both tools. (`DailyTimeAggregator` clips per entry, so a `distantPast` start costs nothing.)
+30. **Integer seconds are truncated the way the screen truncates, not summed** — the opposite
+    of decision #26, deliberately. `totalRoundedTimeSeconds` is `Int(report.totalRoundedTime)`:
+    one truncation over the whole sum, which is what `ReportViewModel.totalSelectedTime`
+    produces. Each task row truncates its own sub-second fraction separately, so **the rows can
+    come out a few seconds short of the total** — 10s over 22 tasks for a real July, 44s over
+    86 tasks for all-time. The two cannot both be exact, and screen parity wins, so:
+    - the payload carries an **always-present `note`** telling the caller to report totals as
+      given rather than re-adding rows (a caller "fixing" the total would be changing an
+      invoice figure);
+    - both tools still format to the **same** displayed string — live July gives `151h 37m`
+      from `get_billable_report` and `get_time_for_period` alike, which is all the user sees.
+    - This was found by the live run, not by the tests: whole-second fixtures hide it, so
+      `ReportBreakdownParityTests` now uses fractional-second entries and
+      `theFixtureCarriesSubSecondDust` fails if they ever stop mattering.
+31. **`include_daily_breakdown` is opt-in, default off.** The default response mirrors the
+    Report screen exactly and stays small; the PDF's day grid is a wide month × 86 tasks and
+    would be thousands of JSON rows on every call. When it is asked for, the `note` gains the
+    decision-#9 caveat, since per-day rounding opens a gap of *minutes* rather than seconds.
+
+## What exists in code (as of Step 5)
 
 Everything lives in `TimeTracker/Services/MCP/`:
 
@@ -377,12 +423,13 @@ Everything lives in `TimeTracker/Services/MCP/`:
 | `MCPSessionCoordinator.swift` | Owns the `Server` + transport pair, rebuilds on `initialize` (decision #14) |
 | `MCPHTTPChannelHandler.swift` | NIO `HTTPServerRequestPart` ⇄ `MCP.HTTPRequest`/`HTTPResponse` |
 | `MCPDataReading.swift` / `SwiftDataMCPDataStore.swift` | Background-actor SwiftData reads (decision #16) |
-| `MCPToolCatalog.swift` | `ListTools` / `CallTool` registration — **where tools #3-#4 plug in** |
+| `MCPToolCatalog.swift` | `ListTools` / `CallTool` registration — **where tool #4 plugs in** |
 | `Tools/MCPPeriodArgument.swift` | The shared period argument: schema fragment, tolerant parsing, `Resolved.trackedTime(for:)` (decisions #23-24) |
 | `Tools/MCPToolResponse.swift` | JSON encoding + the success/failure envelopes, shared by every tool |
 | `Tools/ListTasksAndTagsTool.swift`, `Tools/ListTasksAndTagsPayload.swift` | Tool #5 |
 | `Tools/TimeForTaskTool.swift`, `Tools/TimeForTaskPayload.swift` | Tool #1 |
 | `Tools/TimeForPeriodTool.swift`, `Tools/TimeForPeriodPayload.swift` | Tool #2 |
+| `Tools/ReportBreakdownTool.swift`, `Tools/ReportBreakdownPayload.swift` | Tool #3 (+ `ReportBreakdownPreferences`, the Sendable preference snapshot) |
 
 Plus `App/MCPServerServiceHolder.swift`, wiring in `TimeTrackerApp.swift` and
 `App/AppDelegate.swift`, and `Services/LocalStorage/SwiftDataItemMapper.swift`.
@@ -397,11 +444,19 @@ tool/payload pairs above, plus `DailyTimeAggregator.total(...)`. It needed **no*
 `MCPDataReading`, `SwiftDataMCPDataStore`, `MockMCPDataStore` or any preference — neither
 tool touches rates, rounding or currency.
 
+Step 5 added the two `ReportBreakdown*` files above, made `UserPreferencesService` `Sendable`
+(decision #28), and threaded `preferences` through `MCPSessionCoordinator` and
+`MCPToolCatalog`. It needed **no** change to `MCPDataReading`, `SwiftDataMCPDataStore`,
+`DefaultReportBuilderService`, `TimeTrackerApp` or `AppDelegate`.
+
 Tests in `TimeTrackerTests/Services/MCP/` (payload builder, tool handlers, the period
 argument, server lifecycle + preference-driven configuration),
 `TimeTrackerTests/Presentation/Settings/` (the MCP section), and mocks
 `MockMCPDataStore.swift` / `MockMCPServerService.swift`. The Step 4 tools reuse
-`MockDateProvider` to pin `now`.
+`MockDateProvider` to pin `now`. Step 5 added `ReportBreakdownToolTests.swift` and
+`ReportBreakdownParityTests.swift` — the latter is `@MainActor`, drives a real
+`ReportViewModel` and the tool from one `MockUserPreferencesService`, and is the thing
+standing between a rounding/rate change and a wrong invoice.
 
 **Registering the client** (the app must be running; port from Settings):
 ```
@@ -436,11 +491,27 @@ tolerantly instead of failing. **Still to confirm by hand**: natural-language ro
 real Claude Code session — whether the descriptions actually send "how much on X?" to #1 and
 "what did I track this month?" to #2 — which needs a session started while the app is up.
 
+**Verified in Step 5** (514 tests passing, 0 failing): against the running app over HTTP,
+`tools/list` returns all four tools with the expected schemas. `get_billable_report` on
+`last_month` returns 22 tasks totalling **151h 37m / €3,942.39** at €26/h with rounding off,
+and cross-checks clean against the other tools: identical task set and identical per-task
+raw seconds versus `get_time_for_period` per_task, and the same formatted total from both.
+On `all_time`, all three tools agree per task (86 tasks) — `get_billable_report` 2,978,613s
+vs 2,978,569s from both `get_time_for_period` and the sum of `list_tasks_and_tags`, the 44s
+being decision #30's truncation dust and **not** a per-task disagreement. `include_zero_time`
+widens 22 → 86 tasks, `include_daily_breakdown` returns ascending dated day rows, a custom
+1–15 July range gives 14 tasks / 74h 49m, and every error path names its fix (missing period,
+`custom` without dates, unknown period, `01/07/2026`), while `"This Month"` resolves
+tolerantly. **Still to confirm by hand**: the visual row-by-row comparison against the Report
+screen and an exported PDF for the same period, and that a live `timeRounding` change in
+Settings is picked up without relaunch (read fresh per call by construction, and covered by
+unit tests, but not exercised against the running app).
+
 ## MCP tool catalog
 
 Five tools. All are **read-only** except #4, whose only write is the PDF file itself —
-no tool ever modifies tracked time data. Names and schemas are settled for #5, #1 and #2;
-#3 and #4 are still TBD.
+no tool ever modifies tracked time data. Names and schemas are settled for #5, #1, #2 and
+#3; #4 is still TBD.
 
 ### The shared period argument (#1, #2, and #3/#4 when they land)
 Implemented in `Services/MCP/Tools/MCPPeriodArgument.swift` — see decisions #23-24 for the
@@ -527,16 +598,66 @@ three visibly different shapes (decision #25):
 - `today` and `this_week` are ordinary periods here — see decision #24 for why the
   `LocalStorageService` fast path was dropped.
 
-### 3. Report / invoice-style breakdown
-Same period argument as #2 — reuse `MCPPeriodArgument` rather than re-deriving it. Returns
-the report data grouped by task, with rounding and
-hourly-rate/amount calculation applied — i.e. the numbers behind the PDF, but as
-structured data rather than a file. Call
-`DefaultReportBuilderService.buildReport(_:)` with a `ReportRequest` built via its
-`preferences:` convenience init, and serialize the resulting `ReportData` — the
-per-task summaries, their `days` breakdown, and the totals are all already there.
-`currencySymbol` / `businessName` come from `UserPreferencesService` if the response
-should carry them (they're display-only and not needed for the maths).
+### 3. Report / invoice-style breakdown — **IMPLEMENTED (Step 5)**
+The numbers behind the PDF as structured data: rounding applied, rates resolved, amounts
+computed. Runs through `DefaultReportBuilderService.buildReport(_:)` via `ReportRequest`'s
+`preferences:` convenience init and serializes the resulting `ReportData`, so it cannot
+disagree with the Report screen or the PDF.
+
+**Name**: `get_billable_report`. Annotated `readOnlyHint: true`, `openWorldHint: false`.
+
+Named for *billing* rather than "breakdown", because `get_time_for_period` already owns the
+word `breakdown` as an argument value — the two would have collided on exactly the question
+they need to be told apart on. Its description draws the line explicitly: this tool for
+billing / invoicing / rates / amounts / rounded hours / "the report", `get_time_for_period`
+for raw tracked time. (Step 7 reviews all descriptions as a set.)
+
+**Input schema** — `period` (required) plus the rest of the shared period argument, and:
+```json
+"include_zero_time":       { "type": "boolean" },
+"include_daily_breakdown": { "type": "boolean" }
+```
+`additionalProperties: false`. Both default to **false** — `include_zero_time` matching the
+Report screen's own toggle, `include_daily_breakdown` per decision #31. Malformed period
+arguments return `isError: true` via `MCPPeriodArgument.Failure.message`; nothing else in
+this tool is a caller error.
+
+**Output**:
+```
+{ period, startDate?, endDate?,
+  businessName?, currencySymbol, roundingMinutes,
+  defaultHourlyRate?, defaultHourlyRateFormatted?, showAmountColumn,
+  taskCount,
+  tasks: [{ id, title,
+            rawTimeSeconds, rawTimeFormatted,
+            roundedTimeSeconds, roundedTimeFormatted,
+            hourlyRate?, hourlyRateFormatted?,
+            amount?, amountFormatted?,
+            days? }],                                  // days only when asked for
+            // days: [{ date, rawTimeSeconds, roundedTimeSeconds,
+            //          roundedTimeFormatted, amount?, amountFormatted? }]
+  totalRoundedTimeSeconds, totalRoundedTimeFormatted,
+  totalAmount?, totalAmountFormatted?,
+  note }                                               // always present
+```
+- Money appears **twice**: the exact `Double` the screen computed, and the
+  `CurrencyFormatting.amount(_:symbol:)` string the PDF prints. Nothing is re-rounded or
+  re-formatted, so neither can drift from the screen.
+- `roundingMinutes` is `0` when rounding is off, so the caller can state what was applied.
+- `rawTimeSeconds` per task is the same figure `get_time_for_period` reports, so the two
+  tools can be reconciled. There is deliberately **no raw total** — the screen has no such
+  number and #2 already answers that question.
+- Tasks are descending by raw time, matching `ReportViewModel.recomputeRows()`; zero-time
+  tasks are dropped unless asked for; day rows are ascending, dated `yyyy-MM-dd` in the
+  report's calendar.
+- `note` is always present — see decision #30 for why re-adding the rows is not safe.
+- `businessName` is omitted when the preference is blank; `startDate`/`endDate` are omitted
+  for `all_time`, as in #1/#2.
+
+**Code**: `Services/MCP/Tools/ReportBreakdownTool.swift` (MCP envelope) +
+`ReportBreakdownPayload.swift` (the `Encodable` payload, the pure
+`ReportBreakdownPayloadBuilder`, and `ReportBreakdownPreferences`). Same split as the other
+tools, so the tested logic holds no MCP types.
 
 ### 4. Generate PDF report and save to disk
 The motivating use case: the user wants to later build a skill that generates a report
@@ -615,9 +736,9 @@ Recorded so future sessions don't re-litigate these:
   ever added, a timer-status tool becomes genuinely necessary again.
 
 ## Known open items (not yet decided — to fill in during future sessions)
-- Exact MCP tool names, argument schemas, and return shapes for tools **#3 and #4**. (#5,
-  #1 and #2 are settled — see their catalog entries. #3/#4 inherit the period argument from
-  `MCPPeriodArgument`.)
+- Exact MCP tool name, argument schema, and return shape for tool **#4**. (#5, #1, #2 and #3
+  are settled — see their catalog entries. #4 inherits the period argument from
+  `MCPPeriodArgument`, and can reuse #3's `include_zero_time` handling.)
 - Actually flip `ENABLE_APP_SANDBOX` to `NO` in `project.pbxproj` (both Debug/Release
   configs) as part of implementing the PDF tool. **Warning discovered in Step 2:**
   disabling the sandbox relocates the SwiftData store from
@@ -633,8 +754,12 @@ Recorded so future sessions don't re-litigate these:
   provides), optional filename override (default via
   `ReportPeriod.defaultFilename(startDate:endDate:)`), and what the tool should
   return (e.g. the saved file path) to confirm success back to the caller.
-- Error/edge-case behavior for **#3 and #4**. (#1/#2's is settled: ambiguous and no-match
-  searches, invalid and inverted date ranges — decisions #23 and #25.)
+- Error/edge-case behavior for **#4** — non-existent parent directory, unwritable location,
+  path pointing at a directory, `~` expansion. (#1/#2's is settled by decisions #23 and #25;
+  #3's is settled too: malformed period arguments are its only caller errors.)
+- A **task-filter argument**. #4's catalog entry wants one; #3 shipped without it, since the
+  Report screen's filter is a UI tick-box selection with no headless equivalent. Design it
+  once in Step 6 and decide then whether #3 should gain it for symmetry.
 
 ## Build order
 The feature is broken into 7 sequential steps, with a ready-to-paste prompt for each,

@@ -1,6 +1,9 @@
 import Foundation
 
-protocol UserPreferencesService {
+/// `Sendable` because the MCP request handlers read preferences off the main actor — see
+/// `ReportBreakdownTool`. Unlike `LocalStorageService` there is nothing main-actor-bound to
+/// protect here, so no separate MCP-facing protocol was needed.
+protocol UserPreferencesService: Sendable {
     var currencySymbol: String { get }
     func setCurrencySymbol(_ value: String)
 

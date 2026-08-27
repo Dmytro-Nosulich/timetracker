@@ -1,7 +1,9 @@
 import Foundation
 @testable import TimeTracker
 
-final class MockUserPreferencesService: UserPreferencesService {
+/// `@unchecked Sendable` for the same reason as `MockMCPDataStore`: the protocol is
+/// `Sendable`, and the mutable stub state is only ever touched from one test at a time.
+final class MockUserPreferencesService: UserPreferencesService, @unchecked Sendable {
     var stubbedCurrencySymbol: String = "$"
     var setCurrencySymbolCallCount = 0
     var setCurrencySymbolLastValue: String?
