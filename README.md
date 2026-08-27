@@ -139,7 +139,7 @@ claude mcp add --transport http timetracker http://127.0.0.1:8427/mcp    # this 
 
 Check which scope a registration is in with `claude mcp get timetracker`, and remove it with `claude mcp remove timetracker -s user`.
 
-**Any other MCP client** — expand **Configuration for other AI clients** in Settings and copy the block, or paste this into your client's config file (Claude Desktop, Cursor and Windsurf all read the `mcpServers` key; VS Code wants the same object under `servers`):
+**3. Other MCP clients** — expand **Configuration for other AI clients** in Settings and copy the block, or paste this into your client's config file. Clients that speak HTTP natively — Cursor, and Claude Code's own `.mcp.json` — take it as-is; VS Code wants the same object under `servers` rather than `mcpServers`:
 
 ```json
 {
@@ -151,6 +151,34 @@ Check which scope a registration is in with `claude mcp get timetracker`, and re
   }
 }
 ```
+
+### Claude Desktop needs a bridge
+
+Claude Desktop is the exception, and it fails in two confusing ways if you don't know that:
+
+- **Settings → Connectors → Add custom connector rejects the address**, insisting it start with `https://`. That dialog is built for remote connectors and will never accept a `127.0.0.1` URL.
+- **The JSON above won't work there either.** Claude Desktop's `claude_desktop_config.json` launches MCP servers over **stdio** — `command` and `args` — and does not take a `url`.
+
+The fix is [`mcp-remote`](https://www.npmjs.com/package/mcp-remote), a small stdio↔HTTP bridge that needs [Node.js](https://nodejs.org/). Open **Settings → Developer → Edit Config** and add:
+
+```json
+{
+  "mcpServers": {
+    "timetracker": {
+      "command": "npx",
+      "args": [
+        "-y", "mcp-remote@latest",
+        "http://127.0.0.1:8427/mcp",
+        "--allow-http", "--transport", "http-only"
+      ]
+    }
+  }
+}
+```
+
+`--allow-http` is required — without it the bridge refuses a non-HTTPS address, the same wall the connector dialog puts up. Then **quit Claude Desktop completely and reopen it**; closing the window is not enough.
+
+If the server doesn't appear, the usual cause is that Claude Desktop launches with a minimal `PATH` and cannot find `npx`. Replace `"npx"` with its absolute path — `which npx` will tell you, e.g. `/opt/homebrew/opt/node@24/bin/npx`. Connection failures are logged to `~/Library/Logs/Claude/mcp.log`.
 
 ### Available Tools
 
