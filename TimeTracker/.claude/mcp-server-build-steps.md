@@ -28,7 +28,7 @@ context.
 - [x] Step 3 — Settings UI (port + enable toggle)
 - [x] Step 4 — Tools: task search & date-range time
 - [x] Step 5 — Tool: report / invoice breakdown
-- [ ] Step 6 — Tool: PDF export to disk (+ disable App Sandbox)
+- [x] Step 6 — Tool: PDF export to disk (+ disable App Sandbox)
 - [ ] Step 7 — Docs, client registration, monthly-report skill
 
 ---

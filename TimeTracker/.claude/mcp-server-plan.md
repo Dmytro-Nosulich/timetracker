@@ -1,8 +1,10 @@
 # TimeTracker Local MCP Server — Implementation Spec
 
-Status: implementation in progress. Steps 1-5 are done — the server runs inside the app on a
-user-configurable port, is toggleable from Settings, and serves tools #5, #1, #2 and #3
-end-to-end against live data. Steps 6-7 remain.
+Status: implementation in progress. Steps 1-6 are done — the server runs inside the app on a
+user-configurable port, is toggleable from Settings, and serves **all five tools**
+end-to-end against live data, including writing PDF files to disk. The App Sandbox is off
+(architecture decision #6). Step 7 (docs, tool-description review, monthly-report skill)
+remains.
 
 ## Goal
 Expose an MCP server embedded inside the running TimeTracker app so an AI tool
@@ -29,7 +31,7 @@ transcript. Typical flow:
    arrive in `errors`; no log parsing needed.
 3. `RunAllTests(tabIdentifier:)` → `{counts: {passed, failed, ...}, results[], summary}`.
    **Failed tests are listed first**, and results are truncated to 100 of N with the full
-   list at `fullSummaryPath`. As of Step 5 the baseline is **514 passing, 0 failing** — a
+   list at `fullSummaryPath`. As of Step 6 the baseline is **557 passing, 0 failing** — a
    materially lower total means tests silently stopped being compiled, not that they passed.
 4. `RunSomeTests(tabIdentifier:, tests: [{targetName, testIdentifier}])` for a focused
    re-run; get identifiers from `GetTestList` (`targetName` is `TimeTrackerTests`, and
@@ -53,8 +55,8 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
   under `TimeTracker/` or `TimeTrackerTests/` — new subdirectories included — is enough.
   The project file now *does* have a `PBXBuildFile` section, but it holds only the four
   SPM product links added in Step 2; source files still never appear there.
-- **Test baseline is now 514 passing, 0 failing** (373 after Step 1, +25 in Step 2, +23 in
-  Step 3, +66 in Step 4, +27 in Step 5).
+- **Test baseline is now 557 passing, 0 failing** (373 after Step 1, +25 in Step 2, +23 in
+  Step 3, +66 in Step 4, +27 in Step 5, +43 in Step 6).
 - Two files are deliberately excluded via `membershipExceptions`:
   `TimeTrackerTests/Services/LocalStorage/SwiftDataLocalStorageServiceTests.swift` (not
   compiled into the test target — don't model new tests on it or expect it to run) and
@@ -130,21 +132,42 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
    Settings since Step 3. `DefaultMCPServerService` no longer takes a `port:` parameter at
    all — see decision #18.
 5. **Tool scope for v1**: five capabilities, detailed in the "MCP tool catalog"
-   section below. The server is **read-only** — the only thing it writes is the PDF
-   file produced by tool #4; it never modifies tracked time data. See "Considered and
-   deliberately left out of v1".
-6. **App Sandbox: to be disabled.** The app currently has `ENABLE_APP_SANDBOX = YES`
-   in `TimeTracker.xcodeproj/project.pbxproj` (both Debug and Release configs, no
-   custom entitlements file present) with no other file-access entitlements. Today
-   `ReportViewModel.exportPDF()` can only write to disk because `NSSavePanel` itself
-   grants temporary write access to whatever the user picks — a sandboxed app cannot
-   write to an arbitrary path with no dialog involved, which an MCP tool call would
-   need. Since this app is for personal/local use only (not Mac App Store
-   distribution), the user decided to **disable App Sandbox entirely** rather than
-   build a "pick a reports folder once, use a security-scoped bookmark" workaround.
-   This lets the PDF-export tool (and any other tool that writes files) accept an
-   arbitrary destination path supplied by the calling skill/AI, matching the "save it
-   somewhere" use case directly. Not yet implemented — see open items.
+   section below — all five now implemented. The server is **read-only** — the only thing it
+   writes is the PDF file produced by tool #4; it never modifies tracked time data. See
+   "Considered and deliberately left out of v1".
+6. **App Sandbox: DISABLED (done in Step 6).** `ENABLE_APP_SANDBOX = NO` in both Debug and
+   Release of the `TimeTracker` target. `ReportViewModel.exportPDF()` could only write to
+   disk because `NSSavePanel` itself grants temporary write access to whatever the user
+   picks — a sandboxed app cannot write to an arbitrary path with no dialog involved, which
+   is exactly what an unattended MCP tool call needs. Since this app is personal/local-only
+   (not Mac App Store distribution), the sandbox came off entirely rather than building a
+   "pick a reports folder once, use a security-scoped bookmark" workaround. Verified after
+   the flip: `codesign -d --entitlements` no longer lists `com.apple.security.app-sandbox`.
+   - **The migration this required was bigger than originally noted.** Disabling the sandbox
+     relocates **two** things, not one:
+     - the SwiftData store, from
+       `~/Library/Containers/dmytro.TimeTracker/Data/Library/Application Support/` to
+       `~/Library/Application Support/` — and a **stale 73 KB store from Sep 2025 was
+       already sitting at the destination**, so the app would have silently opened that and
+       looked nearly empty. The migration had to overwrite it, not copy into empty space.
+     - **UserDefaults**, from the container's `Library/Preferences/` to
+       `~/Library/Preferences/dmytro.TimeTracker.plist`. This is not cosmetic: with the
+       prefs lost, `defaultHourlyRate` reads `nil` and **every report comes out with no
+       amounts at all**, plus currency back to `$`, rounding back to `none`, blank business
+       name and the MCP port back to 8427.
+   - The migration ran as a one-off script (quit the app so cfprefsd flushes the plist, back
+     up both sides, copy `default.store`/`-wal`/`-shm` and the plist across, `killall
+     cfprefsd`, then read the values back). It needs a terminal with **Full Disk Access** —
+     the app container is TCC-protected and unreadable otherwise. Verified afterwards that
+     the running app holds open `~/Library/Application Support/default.store` with zero
+     container references, and that `get_billable_report` on `last_month` still returns the
+     Step 5 figures (22 tasks, 151h 37m, €3,942.39 at €26/h).
+   - **TCC replaces the sandbox as the thing that can block a write.** An un-sandboxed app
+     still needs user consent for `~/Desktop`, `~/Documents` and `~/Downloads`, and that
+     consent arrives as an interactive dialog — the one thing this tool must never depend
+     on. In practice the first `~/Desktop` write went through without a prompt on this
+     machine, but a fresh machine or a reset TCC database may prompt once. Grant it
+     deliberately rather than letting a scheduled skill discover it.
 7. **Report logic extracted into `ReportBuilderService`** (Step 1, done). Protocol
    `ReportBuilderService: Sendable` + `final class DefaultReportBuilderService`, both in
    `TimeTracker/Services/Report/`. No `@MainActor`, no AppKit — callable from an MCP
@@ -225,13 +248,19 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
     server runs **non-strict** (`Configuration.default`), which means tool calls succeed
     whether or not an `initialize` preceded them — so a client whose session got replaced
     by another client keeps working. **Don't "simplify" this back to a single server.**
-15. **App Sandbox stays on; `ENABLE_INCOMING_NETWORK_CONNECTIONS = YES`.** A sandboxed app
-    cannot `listen()` without `com.apple.security.network.server`, loopback included. The
-    project has no entitlements file, so this is set as a build setting in both Debug and
-    Release of the `TimeTracker` target and Xcode folds it into the generated entitlements
-    (verified with `codesign -d --entitlements`). The setting permits listening in general
-    — the loopback-only guarantee comes from binding `127.0.0.1` explicitly, never
-    `0.0.0.0`. Step 6 still disables the sandbox outright, for file writes.
+15. **`ENABLE_INCOMING_NETWORK_CONNECTIONS = YES`** (added in Step 2, when the sandbox was
+    still on: a sandboxed app cannot `listen()` without `com.apple.security.network.server`,
+    loopback included). The project has no entitlements file, so this is a build setting in
+    both Debug and Release, folded into the generated entitlements by Xcode. The setting
+    permits listening in general — the loopback-only guarantee comes from binding
+    `127.0.0.1` explicitly, never `0.0.0.0`.
+    - **Step 6 deliberately kept this**, contrary to the original plan to drop it once the
+      sandbox went. It is inert without the sandbox, and it is the single setting whose
+      absence would silently break the server if the sandbox were ever re-enabled — a
+      failure mode that cost real debugging time in Step 2. Keeping an inert setting is
+      cheaper than rediscovering why `listen()` fails. `com.apple.security.network.server`
+      is still present in the built app's entitlements; `com.apple.security.app-sandbox` is
+      not.
 16. **SwiftData thread-safety: a dedicated actor with a fresh `ModelContext` per read.**
     `SwiftDataMCPDataStore` is a plain `actor` holding the same `ModelContainer` the UI
     uses, and every read creates its own `ModelContext`. Two properties make it safe: the
@@ -412,7 +441,63 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
     would be thousands of JSON rows on every call. When it is asked for, the `note` gains the
     decision-#9 caveat, since per-day rounding opens a gap of *minutes* rather than seconds.
 
-## What exists in code (as of Step 5)
+### Step 6 decisions (the PDF-export tool)
+
+32. **`destination_path` accepts a folder *or* a full `.pdf` path, and never guesses.**
+    "Save it to ~/Desktop" and "save it to ~/Desktop/July.pdf" are both things a caller
+    produces naturally, so both resolve; `~` is expanded and relative paths are rejected
+    (the server has no meaningful working directory). The rules, in `ReportPDFDestination`:
+    - an existing directory → the report is named automatically inside it;
+    - a last component ending `.pdf` → that exact file, whose folder must already exist;
+    - anything else → **an error naming the ambiguity**, never a guess. A non-existent
+      `~/Desktop/reports` could equally be a folder to create or a file to write, and
+      picking one silently is how next month's report ends up somewhere nobody looks.
+    - **Folders are never created.** A path that does not exist is far more likely a typo
+      than an instruction.
+    - `filename` applies only to the folder form; passing it alongside a full `.pdf` path
+      is an error rather than a silent override, since ignoring one of two names the caller
+      supplied is exactly the kind of surprise this tool cannot afford.
+33. **Collisions rename, never overwrite.** An existing file makes the next report
+    `Time Report - July 2026 (2).pdf`, counting up to `ReportPDFDestination.maximumCollisionAttempts`
+    (99) before erroring. The motivating use case is a *monthly re-running skill*, and
+    silently replacing a PDF the user has already invoiced from is unrecoverable, whereas an
+    extra file is trivially deleted. The response carries `renamedToAvoidOverwrite` and the
+    `requestedFilename`, and the `note` tells the caller to report the path it was given
+    rather than the one it asked for.
+34. **An empty report is an error, not an empty PDF.** Two cases return `isError`: a
+    `task_query` that matches no task, and a period with no tracked time. This stretches the
+    decision-#25 rule that "nothing matched is an answer, not an error" — but #25 is about
+    *reporting a number*, and this tool's product is a **file**. Saving a blank document that
+    looks like the user's month is a worse outcome than failing loudly, especially unattended.
+    Both messages name the next tool to call to find out what went wrong.
+35. **The task filter is free-text `task_query`, reusing `TaskSearch.filter`** — the same
+    predicate as `get_time_for_task` and the Main Window search field, matching title and
+    description case-insensitively. Chosen over a `task_ids` array because it is what an AI
+    naturally has ("the Acme report") without a two-call dance, and because reusing the
+    existing predicate means the filter cannot drift from the search users already know.
+    - **Tool #3 deliberately did not gain one.** It ships without a filter and nothing about
+      Step 6 changed that; the argument for symmetry did not outweigh adding schema surface
+      to a settled, verified tool. Revisit only if a caller actually wants it.
+36. **`ReportPDFService` is now `Sendable`, and the render hops to the main actor.** Two
+    separate things, both required:
+    - `SWIFT_STRICT_CONCURRENCY = complete` means the tool cannot hold an
+      `any ReportPDFService` otherwise. `CoreGraphicsReportPDFService`'s stored properties
+      are five immutable `CGFloat`s so it conforms as-is; `MockReportPDFService` needed
+      `@unchecked Sendable` for its recording vars. Same precedent as decision #28 —
+      constrains conformers, not callers, so `ReportViewModel` was untouched.
+    - The implementation draws almost entirely with `NSFont`/`NSColor`/`NSAttributedString`,
+      which are not documented safe off the main thread, and the handler runs on a NIO event
+      loop. So `SaveReportPDFTool` wraps the call in `await MainActor.run { … }`. The render
+      is fast and infrequent; the hop costs nothing. **Do not "optimise" this away.**
+37. **The parity test compares the `ReportPDFConfig`, not the file.** Decision #10 rules out
+    byte comparison (CoreGraphics stamps a creation timestamp), and the config fully
+    determines the rendered page. `SaveReportPDFParityTests` builds the config
+    `ReportViewModel.exportPDF()` would produce — same four lines, minus the save panel,
+    which cannot run in a test — and asserts equality row by row against the one the tool
+    hands to the PDF service, at three rounding settings. `generatedDate` is injected
+    identically into both sides, since it is the one field legitimately "now" on each.
+
+## What exists in code (as of Step 6)
 
 Everything lives in `TimeTracker/Services/MCP/`:
 
@@ -423,13 +508,16 @@ Everything lives in `TimeTracker/Services/MCP/`:
 | `MCPSessionCoordinator.swift` | Owns the `Server` + transport pair, rebuilds on `initialize` (decision #14) |
 | `MCPHTTPChannelHandler.swift` | NIO `HTTPServerRequestPart` ⇄ `MCP.HTTPRequest`/`HTTPResponse` |
 | `MCPDataReading.swift` / `SwiftDataMCPDataStore.swift` | Background-actor SwiftData reads (decision #16) |
-| `MCPToolCatalog.swift` | `ListTools` / `CallTool` registration — **where tool #4 plugs in** |
+| `MCPToolCatalog.swift` | `ListTools` / `CallTool` registration for all five tools |
 | `Tools/MCPPeriodArgument.swift` | The shared period argument: schema fragment, tolerant parsing, `Resolved.trackedTime(for:)` (decisions #23-24) |
 | `Tools/MCPToolResponse.swift` | JSON encoding + the success/failure envelopes, shared by every tool |
 | `Tools/ListTasksAndTagsTool.swift`, `Tools/ListTasksAndTagsPayload.swift` | Tool #5 |
 | `Tools/TimeForTaskTool.swift`, `Tools/TimeForTaskPayload.swift` | Tool #1 |
 | `Tools/TimeForPeriodTool.swift`, `Tools/TimeForPeriodPayload.swift` | Tool #2 |
 | `Tools/ReportBreakdownTool.swift`, `Tools/ReportBreakdownPayload.swift` | Tool #3 (+ `ReportBreakdownPreferences`, the Sendable preference snapshot) |
+| `Tools/SaveReportPDFTool.swift`, `Tools/SaveReportPDFPayload.swift` | Tool #4 |
+| `Tools/ReportPDFDestination.swift` | Pure path resolution + collision renaming (decisions #32-33) |
+| `Tools/MCPFileWriting.swift` | The filesystem seam (`isDirectory`/`fileExists`/`write`) + `DefaultMCPFileWriter` |
 
 Plus `App/MCPServerServiceHolder.swift`, wiring in `TimeTrackerApp.swift` and
 `App/AppDelegate.swift`, and `Services/LocalStorage/SwiftDataItemMapper.swift`.
@@ -449,6 +537,13 @@ Step 5 added the two `ReportBreakdown*` files above, made `UserPreferencesServic
 `MCPToolCatalog`. It needed **no** change to `MCPDataReading`, `SwiftDataMCPDataStore`,
 `DefaultReportBuilderService`, `TimeTrackerApp` or `AppDelegate`.
 
+Step 6 added the four files above, flipped `ENABLE_APP_SANDBOX` to `NO` in both configs, and
+made `ReportPDFService` `Sendable` (decision #36). Because the new tool's remaining
+dependencies all have production defaults, registration was two lines in `MCPToolCatalog`
+and it needed **no** change to `MCPSessionCoordinator`, `DefaultMCPServerService`,
+`MCPDataReading`, `SwiftDataMCPDataStore`, `DefaultReportBuilderService`,
+`CoreGraphicsReportPDFService`, `ReportViewModel`, `TimeTrackerApp` or `AppDelegate`.
+
 Tests in `TimeTrackerTests/Services/MCP/` (payload builder, tool handlers, the period
 argument, server lifecycle + preference-driven configuration),
 `TimeTrackerTests/Presentation/Settings/` (the MCP section), and mocks
@@ -456,7 +551,11 @@ argument, server lifecycle + preference-driven configuration),
 `MockDateProvider` to pin `now`. Step 5 added `ReportBreakdownToolTests.swift` and
 `ReportBreakdownParityTests.swift` — the latter is `@MainActor`, drives a real
 `ReportViewModel` and the tool from one `MockUserPreferencesService`, and is the thing
-standing between a rounding/rate change and a wrong invoice.
+standing between a rounding/rate change and a wrong invoice. Step 6 added
+`ReportPDFDestinationTests.swift` (the path rules, driven by the new
+`Mocks/MockMCPFileWriter.swift`), `SaveReportPDFToolTests.swift` (writes into a real
+temporary directory — the write path and its error messages are the product, so they are
+exercised against an actual filesystem) and `SaveReportPDFParityTests.swift` (decision #37).
 
 **Registering the client** (the app must be running; port from Settings):
 ```
@@ -507,11 +606,31 @@ screen and an exported PDF for the same period, and that a live `timeRounding` c
 Settings is picked up without relaunch (read fresh per call by construction, and covered by
 unit tests, but not exercised against the running app).
 
+**Verified in Step 6** (557 tests passing, 0 failing): after the sandbox flip and the data
+migration, the running app holds open `~/Library/Application Support/default.store` with no
+container references, binds `127.0.0.1:8427` only, and `get_billable_report` on `last_month`
+still returns the Step 5 figures unchanged — 22 tasks, 151h 37m, €3,942.39 at €26/h, with
+business name, currency and rate all intact. Over HTTP, `tools/list` returns **five** tools
+with `save_report_pdf` advertising `readOnlyHint: false`. `save_report_pdf` on `last_month`
+to `~/Desktop` wrote a 31 KB PDF with **no dialog of any kind**; its extracted text carries
+the header ("Dmytro Nosulich", "TIME REPORT", "Period: 1. July 2026 – 31. July 2026"), dated
+per-day rows, and a footer reading `RATE €26/h` / `TOTAL 151h 37m` — the same total the tool
+and `get_billable_report` report. A second identical call landed as
+`Time Report - July 2026 (2).pdf` with `renamedToAvoidOverwrite: true`, leaving the first
+file untouched. `task_query: "Paywall"` narrowed it to 2 tasks / 53h 35m / €1,393.47 with a
+`filename` override honored, and a custom 1–15 July range gave **14 tasks / 74h 49m**,
+matching Step 5's figure for the same range. Every error path returned a message naming its
+fix: non-existent folder, `/System/Library` (carrying the OS's own permission wording), a
+`task_query` matching nothing, `today` (no time tracked), a relative path, and `filename`
+passed alongside a full `.pdf` path. **Still to confirm by hand**: that the Report screen's
+own `NSSavePanel` export still works post-sandbox (a GUI interaction), and the visual
+side-by-side of a tool-generated PDF against a manually exported one.
+
 ## MCP tool catalog
 
-Five tools. All are **read-only** except #4, whose only write is the PDF file itself —
-no tool ever modifies tracked time data. Names and schemas are settled for #5, #1, #2 and
-#3; #4 is still TBD.
+Five tools, all implemented. All are **read-only** except #4, whose only write is the PDF
+file itself — no tool ever modifies tracked time data. Names and schemas are settled for
+all five.
 
 ### The shared period argument (#1, #2, and #3/#4 when they land)
 Implemented in `Services/MCP/Tools/MCPPeriodArgument.swift` — see decisions #23-24 for the
@@ -659,23 +778,59 @@ this tool is a caller error.
 `ReportBreakdownPayloadBuilder`, and `ReportBreakdownPreferences`). Same split as the other
 tools, so the tested logic holds no MCP types.
 
-### 4. Generate PDF report and save to disk
-The motivating use case: the user wants to later build a skill that generates a report
-every month unattended, so **this tool must never require an interactive dialog**.
-- **Input**: period (same argument as #2/#3), destination path, optional filename
-  override, optional task filter.
-- **Behavior**: compute the same `ReportData` as #3, pass it through
-  `DefaultReportBuilderService.makePDFConfig(for:presentation:)`, hand the result to the
-  existing `CoreGraphicsReportPDFService.generatePDF(config:)` (already a pure
-  `ReportPDFConfig -> Data` function), and write the bytes to the given path — no
-  `NSSavePanel`, unlike the UI flow. This is exactly what `ReportViewModel.exportPDF()`
-  now does after the save panel returns, so copy those four lines.
-- Default filename comes from the existing
-  `ReportPeriod.defaultFilename(startDate:endDate:)` helper.
-- **Returns** the absolute path of the written file so the calling skill can confirm
-  success / attach it elsewhere.
-- Depends on App Sandbox being disabled (architecture decision #6) to write to an
-  arbitrary path.
+### 4. Generate PDF report and save to disk — **IMPLEMENTED (Step 6)**
+The motivating use case: a skill that generates the report every month unattended, so
+**this tool never shows a dialog of any kind**. The only tool on the server that writes
+anything, and the reason the app gave up its App Sandbox (decision #6).
+
+**Name**: `save_report_pdf`. Annotated `readOnlyHint: false`, `destructiveHint: false`,
+`idempotentHint: false`, `openWorldHint: false` — it writes, but never replaces (decision
+#33), and calling twice leaves two files rather than one.
+
+Its description draws the line against #3 explicitly: **this one produces a file**, #3
+returns the numbers. Triggers on "export", "save", "generate the PDF", or any named
+destination. (Step 7 reviews all five descriptions as a set.)
+
+**Input schema** — `period` and `destination_path` both required, plus the rest of the
+shared period argument, and:
+```json
+"destination_path": { "type": "string" },   // folder, or a full path ending in .pdf; ~ expanded
+"filename":         { "type": "string" },   // folder form only; ".pdf" appended if missing
+"task_query":       { "type": "string" }    // optional; TaskSearch, same as get_time_for_task
+```
+`additionalProperties: false`. Resolution rules are decision #32, collisions #33.
+
+**Behavior**: identical to #3 up to the numbers — `TaskSearch.filter` (when `task_query` is
+given) → `DefaultReportBuilderService.buildReport` with `includeZeroTime: false`, which is
+the Report screen's own default → `makePDFConfig(for:presentation:)` with `businessName`
+and `currencySymbol` read fresh from preferences → `CoreGraphicsReportPDFService.generatePDF`
+→ write. No `NSSavePanel`, unlike the UI flow. Cheap failures are checked before the render,
+so a bad destination never costs a PDF.
+
+**Output**:
+```
+{ path, filename, directory,
+  renamedToAvoidOverwrite, requestedFilename?,     // requestedFilename only when renamed
+  period, startDate?, endDate?, taskQuery?,
+  taskCount, totalRoundedTimeFormatted, totalAmountFormatted?,
+  fileSizeBytes, note }
+```
+- `path` is where the file **actually landed**, which is not always where it was asked for
+  — hence `note`, which tells the caller to report the path as given.
+- The totals are carried in the PDF's own formatting so a skill can summarise what it
+  produced without a second `get_billable_report` call. There are deliberately no per-task
+  rows: that is #3's job, and this response is meant to stay small.
+- `taskQuery` is echoed only when a filter was applied, so the caller can say what the
+  document covers rather than implying it covers everything.
+
+**Errors** — malformed period arguments (via `MCPPeriodArgument.Failure`), every
+destination rule in decision #32, a failed write (carrying the OS's own message and the
+path), and the two empty-report cases from decision #34.
+
+**Code**: `Services/MCP/Tools/SaveReportPDFTool.swift` (MCP envelope) +
+`SaveReportPDFPayload.swift` (payload + pure builder) + `ReportPDFDestination.swift` (the
+pure path resolver) + `MCPFileWriting.swift` (the filesystem seam, so resolution is
+testable without a real disk). Same split as the other tools.
 
 ### 5. List tasks / list tags — **IMPLEMENTED (Step 2)**
 A discovery tool, so the AI can orient itself before querying rather than guessing. Its
@@ -710,7 +865,7 @@ rather than erroring, and the response echoes the filter actually applied.
 **Code**: `Services/MCP/Tools/ListTasksAndTagsTool.swift` (MCP envelope) +
 `ListTasksAndTagsPayload.swift` (`ListTasksFilter`, the `Encodable` payload, and the pure
 `ListTasksAndTagsPayloadBuilder`). The split keeps the tested logic free of MCP types.
-Registered in `Services/MCP/MCPToolCatalog.swift`, which is where tools #1-#4 plug in.
+Registered in `Services/MCP/MCPToolCatalog.swift`, alongside the other four.
 Reads through `MCPDataReading` (decision #16), not `LocalStorageService` — but the queries
 themselves are still just `fetchTasks()` / `fetchTags()`, no new logic.
 
@@ -736,30 +891,20 @@ Recorded so future sessions don't re-litigate these:
   ever added, a timer-status tool becomes genuinely necessary again.
 
 ## Known open items (not yet decided — to fill in during future sessions)
-- Exact MCP tool name, argument schema, and return shape for tool **#4**. (#5, #1, #2 and #3
-  are settled — see their catalog entries. #4 inherits the period argument from
-  `MCPPeriodArgument`, and can reuse #3's `include_zero_time` handling.)
-- Actually flip `ENABLE_APP_SANDBOX` to `NO` in `project.pbxproj` (both Debug/Release
-  configs) as part of implementing the PDF tool. **Warning discovered in Step 2:**
-  disabling the sandbox relocates the SwiftData store from
-  `~/Library/Containers/dmytro.TimeTracker/Data/Library/Application Support/` to
-  `~/Library/Application Support/` — the app will look **empty** unless the existing store
-  is moved across. Plan that migration before flipping the flag, and back the store up
-  first. Also drop `ENABLE_INCOMING_NETWORK_CONNECTIONS` at the same time, since it's
-  meaningless without the sandbox.
-- Design the PDF tool's exact arguments once the above is done: period (reusing
-  `ReportPeriod` cases) or explicit custom start/end, optional task filter (default:
-  all tasks with time > 0 in range, matching current non-UI default), destination
-  path (now that sandbox is going away, this can be any absolute path the caller
-  provides), optional filename override (default via
-  `ReportPeriod.defaultFilename(startDate:endDate:)`), and what the tool should
-  return (e.g. the saved file path) to confirm success back to the caller.
-- Error/edge-case behavior for **#4** — non-existent parent directory, unwritable location,
-  path pointing at a directory, `~` expansion. (#1/#2's is settled by decisions #23 and #25;
-  #3's is settled too: malformed period arguments are its only caller errors.)
-- A **task-filter argument**. #4's catalog entry wants one; #3 shipped without it, since the
-  Report screen's filter is a UI tick-box selection with no headless equivalent. Design it
-  once in Step 6 and decide then whether #3 should gain it for symmetry.
+All five tools are designed, built and verified; nothing about the tool surface is
+outstanding. What remains is Step 7:
+- **Review all five tool names and descriptions as a set.** Each was written when its own
+  tool landed, so they have never been read side by side. The pairs most likely to misroute
+  are #2 vs #3 (raw time vs rounded/billable amounts) and #3 vs #4 (data vs file).
+- **Natural-language routing has still never been confirmed from a real Claude Code
+  session** — it needs a session started while the app is running, and has been carried
+  forward as "still to confirm" since Step 4. Step 7's verification is the place to settle
+  it for all five at once.
+- **README documentation** and the **unattended monthly-report skill** that motivated the
+  whole feature.
+- Confirm by hand that the Report screen's `NSSavePanel` export still works now the sandbox
+  is off, and eyeball a tool-generated PDF against a manually exported one for the same
+  period.
 
 ## Build order
 The feature is broken into 7 sequential steps, with a ready-to-paste prompt for each,
