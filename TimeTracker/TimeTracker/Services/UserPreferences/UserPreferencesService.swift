@@ -42,4 +42,10 @@ protocol UserPreferencesService {
 
     var targetDailyHours: TimeInterval { get }
     func setTargetDailyHours(_ value: TimeInterval)
+
+    var mcpServerEnabled: Bool { get }
+    func setMCPServerEnabled(_ value: Bool)
+
+    var mcpServerPort: Int { get }
+    func setMCPServerPort(_ value: Int)
 }

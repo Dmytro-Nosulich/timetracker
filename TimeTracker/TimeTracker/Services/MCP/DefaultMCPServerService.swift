@@ -8,9 +8,13 @@ import SwiftData
 
 /// Hosts the MCP server inside the running app, bound to loopback.
 ///
-/// Main-actor isolated for its *state* only — observable status the menu bar and (from
-/// Step 3) the Settings screen read synchronously. The actual socket work happens on
-/// NIO's event loops and the SDK's actors, so nothing here blocks the UI.
+/// Main-actor isolated for its *state* only — observable status the menu bar and the
+/// Settings screen read synchronously. The actual socket work happens on NIO's event loops
+/// and the SDK's actors, so nothing here blocks the UI.
+///
+/// Preferences are the single source of truth for whether the server should be running and
+/// on which port; nothing is cached across a bind. That's what lets `AppDelegate` call
+/// `start()` unconditionally at launch and get auto-start-when-enabled for free.
 @Observable
 @MainActor
 final class DefaultMCPServerService: MCPServerService {
@@ -18,7 +22,7 @@ final class DefaultMCPServerService: MCPServerService {
     private(set) var status: MCPServerStatus = .stopped
 
     @ObservationIgnored private let coordinator: MCPSessionCoordinator
-    @ObservationIgnored private let port: Int
+    @ObservationIgnored private let userPreferences: UserPreferencesService
     @ObservationIgnored private let logger = Logger(
         subsystem: "dmytro.TimeTracker",
         category: "MCPServer"
@@ -26,21 +30,29 @@ final class DefaultMCPServerService: MCPServerService {
 
     @ObservationIgnored private var channel: (any Channel)?
 
-    convenience init(container: ModelContainer, port: Int = MCPServerConfiguration.defaultPort) {
-        self.init(dataStore: SwiftDataMCPDataStore(container: container), port: port)
+    convenience init(container: ModelContainer, userPreferences: UserPreferencesService) {
+        self.init(
+            dataStore: SwiftDataMCPDataStore(container: container),
+            userPreferences: userPreferences
+        )
     }
 
     /// Testing seam — lets a caller supply a data store without a `ModelContainer`.
-    init(dataStore: any MCPDataReading, port: Int = MCPServerConfiguration.defaultPort) {
+    init(dataStore: any MCPDataReading, userPreferences: UserPreferencesService) {
         self.coordinator = MCPSessionCoordinator(dataStore: dataStore)
-        self.port = port
+        self.userPreferences = userPreferences
     }
 
     // MARK: - Lifecycle
 
     func start() async {
         guard channel == nil else { return }
+        guard userPreferences.mcpServerEnabled else {
+            status = .stopped
+            return
+        }
 
+        let port = userPreferences.mcpServerPort
         await coordinator.prepare()
 
         let coordinator = self.coordinator
@@ -64,7 +76,7 @@ final class DefaultMCPServerService: MCPServerService {
                 .bind(host: MCPServerConfiguration.host, port: port)
                 .get()
             status = .running(port: port)
-            logger.info("MCP server listening on \(MCPServerConfiguration.url(port: self.port), privacy: .public)")
+            logger.info("MCP server listening on \(MCPServerConfiguration.url(port: port), privacy: .public)")
         } catch {
             await coordinator.shutdown()
             fail(Self.bindFailureReason(error, port: port))
@@ -84,6 +96,25 @@ final class DefaultMCPServerService: MCPServerService {
         if boundChannel != nil {
             logger.info("MCP server stopped")
         }
+    }
+
+    /// Called by the Settings screen after it writes a preference, so a toggle or a port
+    /// change takes effect without an app relaunch.
+    func applyPreferences() async {
+        guard userPreferences.mcpServerEnabled else {
+            await stop()
+            return
+        }
+
+        // Already exactly what preferences ask for. Note this deliberately does *not* match
+        // on `.failed`: re-applying settings after a bind failure retries the bind, which is
+        // what the Settings screen's Retry button relies on.
+        if case .running(let boundPort) = status, boundPort == userPreferences.mcpServerPort {
+            return
+        }
+
+        await stop()
+        await start()
     }
 
     // MARK: - Failure reporting

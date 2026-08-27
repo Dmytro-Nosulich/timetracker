@@ -1,8 +1,8 @@
 # TimeTracker Local MCP Server — Implementation Spec
 
-Status: implementation in progress. Steps 1-2 are done — the server runs inside the app on
-a hardcoded port and serves tool #5 end-to-end, verified from a real Claude Code session.
-Steps 3-7 remain.
+Status: implementation in progress. Steps 1-3 are done — the server runs inside the app on a
+user-configurable port, is toggleable from Settings, and serves tool #5 end-to-end, verified
+from a real Claude Code session. Steps 4-7 remain.
 
 ## Goal
 Expose an MCP server embedded inside the running TimeTracker app so an AI tool
@@ -29,7 +29,7 @@ transcript. Typical flow:
    arrive in `errors`; no log parsing needed.
 3. `RunAllTests(tabIdentifier:)` → `{counts: {passed, failed, ...}, results[], summary}`.
    **Failed tests are listed first**, and results are truncated to 100 of N with the full
-   list at `fullSummaryPath`. As of Step 2 the baseline is **398 passing, 0 failing** — a
+   list at `fullSummaryPath`. As of Step 3 the baseline is **421 passing, 0 failing** — a
    materially lower total means tests silently stopped being compiled, not that they passed.
 4. `RunSomeTests(tabIdentifier:, tests: [{targetName, testIdentifier}])` for a focused
    re-run; get identifiers from `GetTestList` (`targetName` is `TimeTrackerTests`, and
@@ -52,7 +52,7 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
   under `TimeTracker/` or `TimeTrackerTests/` — new subdirectories included — is enough.
   The project file now *does* have a `PBXBuildFile` section, but it holds only the four
   SPM product links added in Step 2; source files still never appear there.
-- **Test baseline is now 398 passing, 0 failing** (373 after Step 1, +25 in Step 2).
+- **Test baseline is now 421 passing, 0 failing** (373 after Step 1, +25 in Step 2, +23 in Step 3).
 - Two files are deliberately excluded via `membershipExceptions`:
   `TimeTrackerTests/Services/LocalStorage/SwiftDataLocalStorageServiceTests.swift` (not
   compiled into the test target — don't model new tests on it or expect it to run) and
@@ -124,11 +124,9 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
 3. **Client connection model**: User registers the local server once with their MCP
    client, e.g. `claude mcp add --transport http timetracker http://127.0.0.1:PORT/mcp`.
    If the app isn't running, the connection simply fails (same as Figma).
-4. **Port**: default **8427**, currently hardcoded as `MCPServerConfiguration.defaultPort`.
-   Step 3 makes it configurable via an app Settings screen, along with a toggle to
-   enable/disable the server entirely. `DefaultMCPServerService.init` already takes a
-   `port:` parameter, so Step 3 only has to feed it from preferences. Exact UI/UX not yet
-   designed.
+4. **Port**: default **8427** (`MCPServerConfiguration.defaultPort`), user-configurable in
+   Settings since Step 3. `DefaultMCPServerService` no longer takes a `port:` parameter at
+   all — see decision #18.
 5. **Tool scope for v1**: five capabilities, detailed in the "MCP tool catalog"
    section below. The server is **read-only** — the only thing it writes is the PDF
    file produced by tool #4; it never modifies tracked time data. See "Considered and
@@ -248,8 +246,9 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
       `Services/LocalStorage/SwiftDataItemMapper.swift`, so the main-actor service and the
       background actor cannot drift. Pure move, no behavior change.
 17. **Lifecycle lives in `AppDelegate`.** `TimeTrackerApp.init()` constructs
-    `DefaultMCPServerService(container:)` and parks it in `MCPServerServiceHolder` (same
-    pattern as `TimerServiceHolder`); `applicationDidFinishLaunching` starts it,
+    `DefaultMCPServerService(container:userPreferences:)` and parks it in
+    `MCPServerServiceHolder` (same pattern as `TimerServiceHolder`);
+    `applicationDidFinishLaunching` starts it,
     `applicationWillTerminate` stops it best-effort. The service is
     `@Observable @MainActor` — main-actor for its *state* only, since the socket work runs
     on NIO's event loops and the SDK's actors. That's what lets `AppDelegate.buildMenu`
@@ -262,14 +261,62 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
       machine during testing, so **verify server state through `status`/tests, not the
       unified log.**
 
-## What exists in code (as of Step 2)
+### Step 3 decisions (Settings UI, persistence, auto-start)
+
+18. **Preferences are the single source of truth for enabled + port.**
+    `DefaultMCPServerService` takes `userPreferences` (like `DefaultTimerService`,
+    `DefaultIdleMonitorService` and `DefaultTrackingReminderService` already do) and has **no
+    `port:` init parameter** — it reads `mcpServerPort` fresh at every bind and gates on
+    `mcpServerEnabled`. Nothing is cached across a bind, so there is exactly one answer to
+    "what should be running". The alternative — threading the values through `AppDelegate` —
+    would have needed a third global holder just for `UserPreferencesService`.
+    - Two new preferences in `UserPreferencesService` / `UserDefaultsUserPreferencesService`:
+      `mcpServerEnabled` (Bool, **defaults to `true`**) and `mcpServerPort` (Int, defaults to
+      `MCPServerConfiguration.defaultPort`). Enabled-by-default preserves Step 2's always-on
+      behavior and means an unattended skill works without visiting Settings first.
+    - `mcpServerPort`'s **getter is range-guarded**: a stored value outside
+      `MCPServerConfiguration.validPortRange` returns the default. Without it a corrupt or
+      legacy value (0, a privileged port) would leave the server permanently unable to bind
+      with no way back except editing defaults. Verified by hand: a persisted `80` falls back
+      to 8427 rather than failing.
+19. **Auto-start on launch when enabled — yes.** `start()` opens with
+    `guard userPreferences.mcpServerEnabled`, so `AppDelegate.applicationDidFinishLaunching`
+    keeps calling `start()` unconditionally and **`AppDelegate` needed no change at all**.
+    A disabled server simply leaves `status == .stopped` and binds nothing.
+20. **`applyPreferences()` is the one live-reconfiguration entry point** (on the
+    `MCPServerService` protocol). Settings writes the preference, then calls it; it stops,
+    starts or rebinds to match. Idempotent when already running on the configured port, and
+    it deliberately does **not** short-circuit on `.failed` — re-applying retries the bind,
+    which is exactly what the Settings screen's Retry button is.
+21. **Port commits via an explicit Apply button, not per-keystroke.** Every other setting in
+    `SettingsViewModel` auto-saves in `didSet`, but rebinding a socket on every keystroke is
+    not the same as writing a `UserDefaults` key ("8", "84", "842" are all invalid en route
+    to "8427"). So `mcpServerPortText` is free text whose `didSet` only clears a stale error;
+    `applyPort()` validates, and only on success persists and rebinds. `.onSubmit` (Return)
+    triggers it too, and Apply is disabled while the field matches the saved port.
+    - **Validation**: `MCPServerConfiguration.validPortRange = 1024...65535`. Privileged
+      ports are rejected in the UI rather than surfacing as an unfixable bind error.
+    - **The URL row always shows the saved port**, never the typed one, so an uncommitted
+      edit can't advertise a URL nothing is listening on.
+22. **The Settings section's final shape** — `Section("MCP Server")`, between Notifications
+    and Tags: an enable toggle with a caption saying it's local-only; then, when enabled, a
+    port field + Apply, the validation error in red, a status row (colored dot + "Running on
+    port N" / "Stopped" / "Not running" / "Failed: …", with a Retry button on failure), and
+    the `http://127.0.0.1:<PORT>/mcp` URL — monospaced, selectable, with a copy button that
+    flips to a checkmark for 2s. The pasteboard write lives in the **view**, not the view
+    model, so unit tests never touch the real clipboard. The menu-bar
+    `⚠ MCP server: …` failure item from Step 2 stays as a second, always-visible signal.
+    - Testing seam: `SettingsViewModel.pendingMCPServerUpdate` retains the fire-and-forget
+      `Task` so tests can await a rebind deterministically. The UI never reads it.
+
+## What exists in code (as of Step 3)
 
 Everything lives in `TimeTracker/Services/MCP/`:
 
 | File | Role |
 |---|---|
-| `MCPServerService.swift` | `MCPServerConfiguration` (host/port/path/name), `MCPServerStatus`, the `@MainActor` protocol |
-| `DefaultMCPServerService.swift` | `@Observable @MainActor`; NIO `ServerBootstrap` bind/close, status, graceful bind failure |
+| `MCPServerService.swift` | `MCPServerConfiguration` (host/defaultPort/path/name/`validPortRange`), `MCPServerStatus`, the `@MainActor` protocol (`start`/`stop`/`applyPreferences`) |
+| `DefaultMCPServerService.swift` | `@Observable @MainActor`; NIO `ServerBootstrap` bind/close, status, graceful bind failure, preference-driven enable/port |
 | `MCPSessionCoordinator.swift` | Owns the `Server` + transport pair, rebuilds on `initialize` (decision #14) |
 | `MCPHTTPChannelHandler.swift` | NIO `HTTPServerRequestPart` ⇄ `MCP.HTTPRequest`/`HTTPResponse` |
 | `MCPDataReading.swift` / `SwiftDataMCPDataStore.swift` | Background-actor SwiftData reads (decision #16) |
@@ -279,10 +326,16 @@ Everything lives in `TimeTracker/Services/MCP/`:
 Plus `App/MCPServerServiceHolder.swift`, wiring in `TimeTrackerApp.swift` and
 `App/AppDelegate.swift`, and `Services/LocalStorage/SwiftDataItemMapper.swift`.
 
-Tests in `TimeTrackerTests/Services/MCP/` (payload builder, tool handler, server
-lifecycle) and `TimeTrackerTests/Mocks/MockMCPDataStore.swift`.
+Step 3 added the `mcpServerEnabled` / `mcpServerPort` pairs to
+`Services/UserPreferences/{UserPreferencesService,UserDefaultsUserPreferencesService}.swift`
+and the MCP section to `Presentation/Settings/{SettingsViewModel,SettingsView}.swift`
+(+ a `mcpServerService:` parameter on `SettingsModuleBuilder`).
 
-**Registering the client** (the app must be running):
+Tests in `TimeTrackerTests/Services/MCP/` (payload builder, tool handler, server
+lifecycle + preference-driven configuration), `TimeTrackerTests/Presentation/Settings/`
+(the MCP section), and mocks `MockMCPDataStore.swift` / `MockMCPServerService.swift`.
+
+**Registering the client** (the app must be running; port from Settings):
 ```
 claude mcp add --transport http timetracker http://127.0.0.1:8427/mcp
 ```
@@ -292,6 +345,15 @@ to the machine's LAN address is refused; `GET /mcp` → 405, unknown path → 40
 `initialize` succeeds; `claude mcp list` reports Connected; a real Claude Code session
 lists and calls the tool and gets back the live 86 tasks / 4 tags; quitting the app makes
 the connection fail cleanly.
+
+**Verified in Step 3** (421 tests passing, 0 failing): with no preference keys written at
+all the server auto-starts on 8427 and a real Claude Code session calls the tool; a
+persisted `mcpServerPort = 9000` auto-binds 9000 (and only 9000) on relaunch, serves
+`initialize` + `tools/list` over HTTP, and is refused on the LAN address; a persisted
+`mcpServerEnabled = false` leaves the app with **no listening socket at all**; a persisted
+privileged port (`80`) falls back to 8427 instead of failing; and launching with the port
+already squatted leaves the app alive with no listener. The live toggle/Apply paths and the
+copy button are UI interactions and were left for manual confirmation.
 
 ## MCP tool catalog
 
@@ -446,12 +508,8 @@ Recorded so future sessions don't re-litigate these:
   provides), optional filename override (default via
   `ReportPeriod.defaultFilename(startDate:endDate:)`), and what the tool should
   return (e.g. the saved file path) to confirm success back to the caller.
-- Whether the server auto-starts on app launch *when enabled in settings*, or only when
-  the user turns it on each session. (As of Step 2 it always auto-starts, since there is
-  no setting yet.)
 - Error/edge-case behavior for tools #1-#4: ambiguous task name matches, no tasks found,
   invalid date ranges, task search returning multiple candidates.
-- Settings UI/UX for the port field and enable/disable toggle.
 
 ## Build order
 The feature is broken into 7 sequential steps, with a ready-to-paste prompt for each,

@@ -16,12 +16,17 @@ final class UserDefaultsUserPreferencesService: UserPreferencesService {
     private let taskReminderDurationKey = "taskReminderDuration"
     private let taskReminderModeKey = "taskReminderMode"
     private let targetDailyHoursKey = "targetDailyHours"
+    private let mcpServerEnabledKey = "mcpServerEnabled"
+    private let mcpServerPortKey = "mcpServerPort"
 
     static let defaultIdleTimeoutMinutes = 10
     static let defaultSubtractIdleTimeFromTrackedTime = false
     static let defaultTrackingReminderTimeSeconds: TimeInterval = 9 * 3600 // 09:00
     static let defaultTrackingReminderDays = [2, 3, 4, 5, 6] // Mon-Fri (Calendar weekday)
     static let defaultTargetDailyHoursSeconds: TimeInterval = 8 * 3600
+    /// On by default so the server keeps auto-starting for anyone who was using it before
+    /// the setting existed, and so an unattended skill works without visiting Settings.
+    static let defaultMCPServerEnabled = true
 
     init(userDefaults: UserDefaults = .standard) {
         self.userDefaults = userDefaults
@@ -170,5 +175,31 @@ final class UserDefaultsUserPreferencesService: UserPreferencesService {
 
     func setTargetDailyHours(_ value: TimeInterval) {
         userDefaults.set(value, forKey: targetDailyHoursKey)
+    }
+
+    var mcpServerEnabled: Bool {
+        guard userDefaults.object(forKey: mcpServerEnabledKey) != nil else {
+            return Self.defaultMCPServerEnabled
+        }
+        return userDefaults.bool(forKey: mcpServerEnabledKey)
+    }
+
+    func setMCPServerEnabled(_ value: Bool) {
+        userDefaults.set(value, forKey: mcpServerEnabledKey)
+    }
+
+    /// Range-guarded on read: a stored value the server could never bind (0, a privileged
+    /// port, something out of range) falls back to the default rather than leaving the
+    /// server permanently unable to start.
+    var mcpServerPort: Int {
+        guard let stored = userDefaults.object(forKey: mcpServerPortKey) as? Int,
+              MCPServerConfiguration.validPortRange.contains(stored) else {
+            return MCPServerConfiguration.defaultPort
+        }
+        return stored
+    }
+
+    func setMCPServerPort(_ value: Int) {
+        userDefaults.set(value, forKey: mcpServerPortKey)
     }
 }

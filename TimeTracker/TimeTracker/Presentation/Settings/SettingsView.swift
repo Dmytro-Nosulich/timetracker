@@ -1,13 +1,16 @@
+import AppKit
 import SwiftUI
 
 struct SettingsView: View {
     @State var viewModel: SettingsViewModel
+    @State private var didCopyServerURL = false
 
     var body: some View {
         Form {
             generalSection
             idleDetectionSection
             notificationsSection
+            mcpServerSection
             tagsSection
         }
         .formStyle(.grouped)
@@ -120,6 +123,112 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+        }
+    }
+
+    // MARK: - MCP Server
+
+    private var mcpServerSection: some View {
+        Section("MCP Server") {
+            VStack(alignment: .leading, spacing: 4) {
+                Toggle("Enable MCP server", isOn: $viewModel.mcpServerEnabled)
+                Text("Lets an AI client (Claude Code, Claude Desktop) read your tracked time while this app is running. Listens on this Mac only — never on the network.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            if viewModel.mcpServerEnabled {
+                portRow
+                statusRow
+                serverURLRow
+            }
+        }
+    }
+
+    private var portRow: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            LabeledContent("Port") {
+                HStack(spacing: 8) {
+                    TextField("Port", text: $viewModel.mcpServerPortText)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 90)
+                        .monospacedDigit()
+                        .onSubmit { viewModel.applyPort() }
+
+                    Button("Apply") {
+                        viewModel.applyPort()
+                    }
+                    .disabled(!viewModel.hasPendingPortChange)
+                }
+            }
+
+            if let error = viewModel.portValidationError {
+                Text(error)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+        }
+    }
+
+    private var statusRow: some View {
+        LabeledContent("Status") {
+            HStack(spacing: 8) {
+                Circle()
+                    .fill(statusColor)
+                    .frame(width: 8, height: 8)
+
+                Text(viewModel.mcpServerStatusText)
+                    .foregroundStyle(viewModel.mcpServerStatusIsError ? Color.red : Color.primary)
+
+                if viewModel.mcpServerStatusIsError {
+                    Button("Retry") {
+                        viewModel.retryMCPServer()
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
+            }
+        }
+    }
+
+    private var statusColor: Color {
+        if viewModel.mcpServerStatusIsError { return .red }
+        return viewModel.mcpServerIsRunning ? .green : .secondary
+    }
+
+    /// The exact string to paste into `claude mcp add --transport http timetracker <url>`.
+    private var serverURLRow: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            LabeledContent("URL") {
+                HStack(spacing: 8) {
+                    Text(viewModel.mcpServerURL)
+                        .font(.system(.body, design: .monospaced))
+                        .textSelection(.enabled)
+
+                    Button {
+                        copyServerURL()
+                    } label: {
+                        Image(systemName: didCopyServerURL ? "checkmark" : "doc.on.doc")
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Copy the registration URL")
+                }
+            }
+
+            Text("Register it once with: claude mcp add --transport http timetracker <URL>")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .textSelection(.enabled)
+        }
+    }
+
+    private func copyServerURL() {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(viewModel.mcpServerURL, forType: .string)
+        didCopyServerURL = true
+        Task {
+            try? await Task.sleep(for: .seconds(2))
+            didCopyServerURL = false
         }
     }
 

@@ -197,4 +197,32 @@ final class MockUserPreferencesService: UserPreferencesService {
         setTargetDailyHoursLastValue = value
         stubbedTargetDailyHours = value
     }
+
+    var stubbedMCPServerEnabled: Bool = true
+    var setMCPServerEnabledCallCount = 0
+    var setMCPServerEnabledLastValue: Bool?
+
+    var mcpServerEnabled: Bool {
+        stubbedMCPServerEnabled
+    }
+
+    func setMCPServerEnabled(_ value: Bool) {
+        setMCPServerEnabledCallCount += 1
+        setMCPServerEnabledLastValue = value
+        stubbedMCPServerEnabled = value
+    }
+
+    var stubbedMCPServerPort: Int = MCPServerConfiguration.defaultPort
+    var setMCPServerPortCallCount = 0
+    var setMCPServerPortLastValue: Int?
+
+    var mcpServerPort: Int {
+        stubbedMCPServerPort
+    }
+
+    func setMCPServerPort(_ value: Int) {
+        setMCPServerPortCallCount += 1
+        setMCPServerPortLastValue = value
+        stubbedMCPServerPort = value
+    }
 }

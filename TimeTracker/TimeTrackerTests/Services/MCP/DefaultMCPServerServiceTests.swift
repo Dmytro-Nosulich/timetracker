@@ -7,12 +7,16 @@ import Foundation
 @MainActor
 struct DefaultMCPServerServiceTests {
 
-    private func makeService(port: Int) -> DefaultMCPServerService {
-        DefaultMCPServerService(dataStore: MockMCPDataStore(), port: port)
+    private func makeService(port: Int, enabled: Bool = true) -> (DefaultMCPServerService, MockUserPreferencesService) {
+        let prefs = MockUserPreferencesService()
+        prefs.stubbedMCPServerPort = port
+        prefs.stubbedMCPServerEnabled = enabled
+        let service = DefaultMCPServerService(dataStore: MockMCPDataStore(), userPreferences: prefs)
+        return (service, prefs)
     }
 
     @Test func startsStoppedAndReportsRunningOnceBound() async {
-        let service = makeService(port: 8531)
+        let (service, _) = makeService(port: 8531)
         #expect(service.status == .stopped)
 
         await service.start()
@@ -23,7 +27,7 @@ struct DefaultMCPServerServiceTests {
     }
 
     @Test func startingTwiceKeepsTheOriginalListener() async {
-        let service = makeService(port: 8532)
+        let (service, _) = makeService(port: 8532)
         await service.start()
         await service.start()
 
@@ -33,11 +37,11 @@ struct DefaultMCPServerServiceTests {
 
     /// The requirement: a busy port must never take the app down with it.
     @Test func aBusyPortFailsVisiblyInsteadOfCrashing() async {
-        let occupier = makeService(port: 8533)
+        let (occupier, _) = makeService(port: 8533)
         await occupier.start()
         #expect(occupier.status == .running(port: 8533))
 
-        let blocked = makeService(port: 8533)
+        let (blocked, _) = makeService(port: 8533)
         await blocked.start()
 
         guard case .failed(let reason) = blocked.status else {
@@ -58,9 +62,9 @@ struct DefaultMCPServerServiceTests {
         #expect(blocked.status == .stopped)
     }
 
-    /// Step 3's toggle restarts the server in place, so a stopped server must rebind.
+    /// The Settings toggle restarts the server in place, so a stopped server must rebind.
     @Test func aStoppedServerCanBeStartedAgain() async {
-        let service = makeService(port: 8535)
+        let (service, _) = makeService(port: 8535)
         await service.start()
         await service.stop()
 
@@ -70,8 +74,103 @@ struct DefaultMCPServerServiceTests {
     }
 
     @Test func stoppingAServerThatNeverStartedIsANoOp() async {
-        let service = makeService(port: 8534)
+        let (service, _) = makeService(port: 8534)
         await service.stop()
         #expect(service.status == .stopped)
+    }
+
+    // MARK: - Preference-driven configuration
+
+    /// The auto-start gate: AppDelegate calls start() unconditionally at launch, so the
+    /// preference is what decides whether anything binds.
+    @Test func startDoesNothingWhenDisabledInPreferences() async {
+        let (service, _) = makeService(port: 8536, enabled: false)
+
+        await service.start()
+
+        #expect(service.status == .stopped)
+    }
+
+    @Test func applyPreferencesStartsAServerThatWasTurnedOn() async {
+        let (service, prefs) = makeService(port: 8537, enabled: false)
+        await service.start()
+        #expect(service.status == .stopped)
+
+        prefs.stubbedMCPServerEnabled = true
+        await service.applyPreferences()
+
+        #expect(service.status == .running(port: 8537))
+        await service.stop()
+    }
+
+    @Test func applyPreferencesStopsAServerThatWasTurnedOff() async {
+        let (service, prefs) = makeService(port: 8538)
+        await service.start()
+        #expect(service.status == .running(port: 8538))
+
+        prefs.stubbedMCPServerEnabled = false
+        await service.applyPreferences()
+
+        #expect(service.status == .stopped)
+    }
+
+    @Test func applyPreferencesRebindsOnANewPort() async {
+        let (service, prefs) = makeService(port: 8539)
+        await service.start()
+        #expect(service.status == .running(port: 8539))
+
+        prefs.stubbedMCPServerPort = 8540
+        await service.applyPreferences()
+
+        #expect(service.status == .running(port: 8540))
+        await service.stop()
+    }
+
+    /// The old port must actually be released, otherwise a rebind back onto it would fail.
+    @Test func rebindingReleasesThePreviousPort() async {
+        let (service, prefs) = makeService(port: 8541)
+        await service.start()
+
+        prefs.stubbedMCPServerPort = 8542
+        await service.applyPreferences()
+        #expect(service.status == .running(port: 8542))
+
+        let (other, _) = makeService(port: 8541)
+        await other.start()
+        #expect(other.status == .running(port: 8541))
+
+        await other.stop()
+        await service.stop()
+    }
+
+    @Test func applyPreferencesIsANoOpWhenAlreadyRunningOnTheConfiguredPort() async {
+        let (service, _) = makeService(port: 8543)
+        await service.start()
+
+        await service.applyPreferences()
+
+        #expect(service.status == .running(port: 8543))
+        await service.stop()
+    }
+
+    /// What the Settings screen's Retry button relies on: re-applying unchanged preferences
+    /// after a bind failure tries the bind again.
+    @Test func applyPreferencesRetriesAFailedBind() async {
+        let (occupier, _) = makeService(port: 8544)
+        await occupier.start()
+
+        let (blocked, _) = makeService(port: 8544)
+        await blocked.start()
+        guard case .failed = blocked.status else {
+            Issue.record("Expected a bind failure, got \(blocked.status)")
+            await occupier.stop()
+            return
+        }
+
+        await occupier.stop()
+        await blocked.applyPreferences()
+
+        #expect(blocked.status == .running(port: 8544))
+        await blocked.stop()
     }
 }
