@@ -552,10 +552,18 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
     app. `schedule/run-monthly-report.sh` + a `StartCalendarInterval` LaunchAgent (1st of the
     month, 09:00) are shipped next to the skill but **not installed**; `schedule/README.md`
     carries the `launchctl bootstrap` command. Two things the script has to do that are easy
-    to miss: `cd` into the project directory (the server is registered at **local** MCP scope,
-    so it is invisible from anywhere else, and the skill lives in this project's
-    `.claude/skills`), and pass `--allowed-tools` (without it the run blocks on a permission
-    prompt nobody is there to answer).
+    to miss: `cd` into the project directory (the skill is a **project** skill in this repo's
+    `.claude/skills`, so it is only found from here), and pass `--allowed-tools` (without it
+    the run blocks on a permission prompt nobody is there to answer).
+    - **The server itself is registered at `-s user` scope**, so it is reachable from any
+      directory on the machine (see decision #43). Only the skill is project-bound.
+43. **The client registration lives at user scope, not local.** Step 7 originally registered
+    with a bare `claude mcp add`, which is **local** scope — private to one project directory.
+    That is the wrong shape for this server: it is a personal, machine-wide utility answering
+    questions about the user's own time, not a dependency of the TimeTracker codebase, and the
+    questions it answers ("how much did I bill last month?") get asked from wherever the user
+    happens to be. Re-registered with `-s user` and verified answering from `~`. The README
+    leads with the `-s user` form for the same reason.
 42. **A build predating this feature has no server in it at all.** `/Applications/TimeTracker.app`
     was still a June 29 build with `com.apple.security.app-sandbox` — it has neither the MCP
     code nor the entitlement, so `claude mcp list` reports `ConnectionRefused` while the app is

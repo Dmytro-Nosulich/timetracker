@@ -8,8 +8,9 @@
 
 set -uo pipefail
 
-# The MCP server is registered at local scope, i.e. against this project directory, and the
-# skill itself lives in this project's .claude/skills. Both are found only from here.
+# The /monthly-report skill is a project skill living in this project's .claude/skills, so
+# it is only found from here. (The MCP server itself is registered at user scope and would
+# be reachable from anywhere — but the skill is what this job runs.)
 PROJECT_DIR="$HOME/Projects/TimeTracker/timetracker/TimeTracker"
 LOG_FILE="$HOME/Library/Logs/timetracker-monthly-report.log"
 

@@ -121,7 +121,7 @@ Because the server runs **inside** the running app rather than as a separate pro
 **2. Register it with Claude Code** — once, from a terminal:
 
 ```bash
-claude mcp add --transport http timetracker http://127.0.0.1:8427/mcp
+claude mcp add -s user --transport http timetracker http://127.0.0.1:8427/mcp
 ```
 
 Change the port if you changed it in Settings. Then check it:
@@ -130,11 +130,13 @@ Change the port if you changed it in Settings. Then check it:
 claude mcp list      # timetracker: http://127.0.0.1:8427/mcp (HTTP) - ✔ Connected
 ```
 
-That registers the server for the **current project directory only**. To use it from anywhere on your Mac, add `-s user`:
+`-s user` makes it available in **every directory on your Mac**, which is usually what you want — the questions it answers ("how much did I bill last month?") aren't tied to any one project. Drop the `-s user` to register it for the current project directory only:
 
 ```bash
-claude mcp add -s user --transport http timetracker http://127.0.0.1:8427/mcp
+claude mcp add --transport http timetracker http://127.0.0.1:8427/mcp    # this project only
 ```
+
+Check which scope a registration is in with `claude mcp get timetracker`, and remove it with `claude mcp remove timetracker -s user`.
 
 ### Available Tools
 

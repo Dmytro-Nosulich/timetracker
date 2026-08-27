@@ -58,6 +58,9 @@ rm ~/Library/LaunchAgents/com.dmytro.timetracker.monthly-report.plist
   the permission, so the unattended run never meets a dialog.
 - **Paths are absolute and personal.** Both the plist and the script hardcode
   `/Users/dmytronosulich/...`. Change them if the project moves.
+- **The script must run from the project directory.** `/monthly-report` is a project skill
+  in `.claude/skills/`, so it is only found from here. (The MCP server is registered at user
+  scope and is reachable from anywhere; the skill is the part that is project-bound.)
 
 ## Changing the schedule
 
