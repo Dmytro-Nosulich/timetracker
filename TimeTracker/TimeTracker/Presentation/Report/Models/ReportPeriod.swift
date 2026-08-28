@@ -1,6 +1,7 @@
 import Foundation
 
 enum ReportPeriod: String, CaseIterable, Identifiable {
+    case today = "Today"
     case thisWeek = "This Week"
     case lastWeek = "Last Week"
     case thisMonth = "This Month"
@@ -13,6 +14,11 @@ enum ReportPeriod: String, CaseIterable, Identifiable {
 
     func dateRange(calendar: Calendar = .current, now: Date = Date()) -> (start: Date, end: Date) {
         switch self {
+        case .today:
+            let startOfToday = calendar.startOfDay(for: now)
+            let endOfToday = calendar.date(bySettingHour: 23, minute: 59, second: 59, of: now)!
+            return (startOfToday, endOfToday)
+
         case .thisWeek:
             let weekday = calendar.component(.weekday, from: now)
             let daysFromMonday = (weekday + 5) % 7
@@ -73,6 +79,9 @@ enum ReportPeriod: String, CaseIterable, Identifiable {
         let formatter = DateFormatter()
 
         switch self {
+        case .today:
+            formatter.dateFormat = "MMM d yyyy"
+            return "Time Report - \(formatter.string(from: startDate))"
         case .thisMonth, .lastMonth:
             formatter.dateFormat = "MMMM yyyy"
             return "Time Report - \(formatter.string(from: startDate))"

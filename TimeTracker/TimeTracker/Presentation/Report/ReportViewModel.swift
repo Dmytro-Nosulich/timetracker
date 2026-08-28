@@ -8,6 +8,7 @@ final class ReportViewModel {
     private let localStorageService: LocalStorageService
     private let userPreferencesService: UserPreferencesService
     private let pdfService: ReportPDFService
+    private let reportBuilder: ReportBuilderService
 
     var businessName: String = ""
     var selectedPeriod: ReportPeriod = .thisMonth {
@@ -53,18 +54,16 @@ final class ReportViewModel {
         userPreferencesService.currencySymbol
     }
 
-    private var roundingInterval: TimeRoundingInterval {
-        TimeRoundingInterval(rawString: userPreferencesService.timeRounding)
-    }
-
     init(
         localStorageService: LocalStorageService,
         userPreferencesService: UserPreferencesService,
-        pdfService: ReportPDFService
+        pdfService: ReportPDFService,
+        reportBuilder: ReportBuilderService
     ) {
         self.localStorageService = localStorageService
         self.userPreferencesService = userPreferencesService
         self.pdfService = pdfService
+        self.reportBuilder = reportBuilder
     }
 
     func onAppear() {
@@ -118,69 +117,13 @@ final class ReportViewModel {
 
         guard panel.runModal() == .OK, let url = panel.url else { return }
 
-        let selectedTasks = taskRows.filter(\.isSelected)
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "dd.MM.yyyy"
-        let calendar = Calendar.current
-        let rounding = roundingInterval
-
-        var dayRows: [(date: Date, row: ReportPDFTaskRow)] = []
-
-        for row in selectedTasks {
-            guard let task = allTasks.first(where: { $0.id == row.id }) else { continue }
-
-            let relevantEntries = task.timeEntries.filter { entry in
-                let entryEnd = entry.endDate ?? Date()
-                return entry.startDate < endDate && entryEnd > startDate
-            }
-
-            var dayMap: [DateComponents: TimeInterval] = [:]
-            for entry in relevantEntries {
-                let effectiveStart = max(entry.startDate, startDate)
-                let effectiveEnd = min(entry.endDate ?? Date(), endDate)
-                guard effectiveEnd > effectiveStart else { continue }
-                let dayComponents = calendar.dateComponents([.year, .month, .day], from: entry.startDate)
-                dayMap[dayComponents, default: 0] += effectiveEnd.timeIntervalSince(effectiveStart)
-            }
-
-            for (dayComponents, rawDayTime) in dayMap {
-                let roundedDayTime = rawDayTime.rounded(to: rounding)
-                let dayDate = calendar.date(from: dayComponents) ?? startDate
-                let dayAmount: Double? = row.hourlyRate.map { roundedDayTime / 3600.0 * $0 }
-
-                dayRows.append((
-                    date: dayDate,
-                    row: ReportPDFTaskRow(
-                        formattedDate: dateFormatter.string(from: dayDate),
-                        title: row.title,
-                        formattedTime: roundedDayTime.formattedHoursMinutes,
-                        formattedAmount: dayAmount.map { formatCurrency($0) }
-                    )
-                ))
-            }
-        }
-
-        dayRows.sort { $0.date < $1.date }
-        let pdfRows = dayRows.map(\.row)
-
-        let showAmount = selectedTasks.contains { $0.hourlyRate != nil }
-        let totalTime = selectedTasks.reduce(0.0) { $0 + $1.roundedTime }
-        let amounts = selectedTasks.compactMap(\.amount)
-        let totalAmountValue: Double? = amounts.isEmpty ? nil : amounts.reduce(0, +)
-        let defaultRate = userPreferencesService.defaultHourlyRate
-        let totalRate: String? = defaultRate.map { "\(currencySymbol)\(formatNumber($0))/h" }
-
-        let config = ReportPDFConfig(
-            businessName: businessName,
-            startDate: startDate,
-            endDate: endDate,
-            generatedDate: Date(),
-            tasks: pdfRows,
-            currencySymbol: currencySymbol,
-            showAmountColumn: showAmount,
-            totalTime: totalTime.formattedHoursMinutes,
-            totalAmount: totalAmountValue.map { formatCurrency($0) },
-            totalRate: totalRate
+        let config = reportBuilder.makePDFConfig(
+            for: buildReport(tasks: selectedTasks(), includeZeroTime: true),
+            presentation: ReportPresentation(
+                businessName: businessName,
+                currencySymbol: currencySymbol,
+                generatedDate: Date()
+            )
         )
 
         let data = pdfService.generatePDF(config: config)
@@ -189,32 +132,38 @@ final class ReportViewModel {
 
     // MARK: - Private
 
+    private func buildReport(tasks: [TaskItem], includeZeroTime: Bool) -> ReportData {
+        reportBuilder.buildReport(
+            ReportRequest(
+                tasks: tasks,
+                startDate: startDate,
+                endDate: endDate,
+                includeZeroTime: includeZeroTime,
+                preferences: userPreferencesService
+            )
+        )
+    }
+
+    /// The tasks behind the currently ticked rows, in their underlying storage order.
+    private func selectedTasks() -> [TaskItem] {
+        let selectedIds = Set(taskRows.filter(\.isSelected).map(\.id))
+        return allTasks.filter { selectedIds.contains($0.id) }
+    }
+
     private func recomputeRows() {
-        let defaultRate = userPreferencesService.defaultHourlyRate
-        let rounding = roundingInterval
+        let report = buildReport(tasks: allTasks, includeZeroTime: includeZeroTime)
 
-        var rows = allTasks.map { task -> ReportTaskRowItem in
-            let rawTime = trackedTime(for: task, from: startDate, to: endDate)
-            let rounded = rawTime.rounded(to: rounding)
-            let rate = task.hourlyRate ?? defaultRate
-            let amount: Double? = rate.map { rounded / 3600.0 * $0 }
-
-            return ReportTaskRowItem(
-                id: task.id,
-                title: task.title,
-                timeForPeriod: rawTime,
-                roundedTime: rounded,
-                hourlyRate: rate,
-                amount: amount,
+        var rows = report.taskSummaries.map { summary in
+            ReportTaskRowItem(
+                id: summary.id,
+                title: summary.title,
+                timeForPeriod: summary.rawTime,
+                roundedTime: summary.roundedTime,
+                hourlyRate: summary.hourlyRate,
+                amount: summary.amount,
                 isSelected: true
             )
         }
-
-        if !includeZeroTime {
-            rows = rows.filter { $0.timeForPeriod > 0 }
-        }
-
-        rows.sort { $0.timeForPeriod > $1.timeForPeriod }
 
         let previousSelections = Set(taskRows.filter(\.isSelected).map(\.id))
         if !taskRows.isEmpty {
@@ -226,22 +175,9 @@ final class ReportViewModel {
         taskRows = rows
     }
 
-    private func trackedTime(for task: TaskItem, from periodStart: Date, to periodEnd: Date) -> TimeInterval {
-        task.timeEntries
-            .filter { entry in
-                let entryEnd = entry.endDate ?? Date()
-                return entry.startDate < periodEnd && entryEnd > periodStart
-            }
-            .reduce(0) { total, entry in
-                let effectiveStart = max(entry.startDate, periodStart)
-                let effectiveEnd = min(entry.endDate ?? Date(), periodEnd)
-                return total + max(0, effectiveEnd.timeIntervalSince(effectiveStart))
-            }
-    }
-
     func formattedRate(for row: ReportTaskRowItem) -> String? {
         guard let rate = row.hourlyRate else { return nil }
-        return "\(currencySymbol)\(formatNumber(rate))/h"
+        return CurrencyFormatting.rate(rate, symbol: currencySymbol)
     }
 
     func formattedAmount(for row: ReportTaskRowItem) -> String? {
@@ -250,19 +186,6 @@ final class ReportViewModel {
     }
 
     func formatCurrency(_ value: Double) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.minimumFractionDigits = 2
-        formatter.maximumFractionDigits = 2
-        formatter.groupingSeparator = ","
-        let formatted = formatter.string(from: NSNumber(value: value)) ?? String(format: "%.2f", value)
-        return "\(currencySymbol)\(formatted)"
-    }
-
-    private func formatNumber(_ value: Double) -> String {
-        if value == value.rounded() && value < 10000 {
-            return String(format: "%.0f", value)
-        }
-        return String(format: "%.2f", value)
+        CurrencyFormatting.amount(value, symbol: currencySymbol)
     }
 }

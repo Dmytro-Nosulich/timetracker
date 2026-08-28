@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.dmytro.timetracker.monthly-report</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <!-- Absolute path required: launchd does not expand ~ -->
+        <string>/Users/dmytronosulich/Projects/TimeTracker/timetracker/TimeTracker/.claude/skills/monthly-report/schedule/run-monthly-report.sh</string>
+    </array>
+
+    <!-- 09:00 on the 1st of every month, reporting the month that just ended. -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Day</key>
+        <integer>1</integer>
+        <key>Hour</key>
+        <integer>9</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <!-- Don't fire on install or login — only on the schedule above. (If the Mac is asleep
+         at 09:00, launchd runs the job when it next wakes rather than skipping the month.) -->
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/dmytronosulich/Library/Logs/timetracker-monthly-report.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/dmytronosulich/Library/Logs/timetracker-monthly-report.err.log</string>
+</dict>
+</plist>

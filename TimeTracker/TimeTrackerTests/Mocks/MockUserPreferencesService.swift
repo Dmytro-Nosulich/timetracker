@@ -1,7 +1,9 @@
 import Foundation
 @testable import TimeTracker
 
-final class MockUserPreferencesService: UserPreferencesService {
+/// `@unchecked Sendable` for the same reason as `MockMCPDataStore`: the protocol is
+/// `Sendable`, and the mutable stub state is only ever touched from one test at a time.
+final class MockUserPreferencesService: UserPreferencesService, @unchecked Sendable {
     var stubbedCurrencySymbol: String = "$"
     var setCurrencySymbolCallCount = 0
     var setCurrencySymbolLastValue: String?
@@ -196,5 +198,35 @@ final class MockUserPreferencesService: UserPreferencesService {
         setTargetDailyHoursCallCount += 1
         setTargetDailyHoursLastValue = value
         stubbedTargetDailyHours = value
+    }
+
+    /// Mirrors `UserDefaultsUserPreferencesService.defaultMCPServerEnabled` so a test can't
+    /// pass against a default production never uses. Tests that need it on set it explicitly.
+    var stubbedMCPServerEnabled: Bool = false
+    var setMCPServerEnabledCallCount = 0
+    var setMCPServerEnabledLastValue: Bool?
+
+    var mcpServerEnabled: Bool {
+        stubbedMCPServerEnabled
+    }
+
+    func setMCPServerEnabled(_ value: Bool) {
+        setMCPServerEnabledCallCount += 1
+        setMCPServerEnabledLastValue = value
+        stubbedMCPServerEnabled = value
+    }
+
+    var stubbedMCPServerPort: Int = MCPServerConfiguration.defaultPort
+    var setMCPServerPortCallCount = 0
+    var setMCPServerPortLastValue: Int?
+
+    var mcpServerPort: Int {
+        stubbedMCPServerPort
+    }
+
+    func setMCPServerPort(_ value: Int) {
+        setMCPServerPortCallCount += 1
+        setMCPServerPortLastValue = value
+        stubbedMCPServerPort = value
     }
 }

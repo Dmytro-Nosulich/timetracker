@@ -28,7 +28,8 @@ struct ReportViewModelTests {
         let vm = ReportViewModel(
             localStorageService: ls,
             userPreferencesService: prefs,
-            pdfService: pdf
+            pdfService: pdf,
+            reportBuilder: DefaultReportBuilderService()
         )
         return (vm, ls, prefs, pdf)
     }

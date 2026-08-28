@@ -278,4 +278,38 @@ struct UserDefaultsUserPreferencesServiceTests {
         service.setTargetDailyHours(second)
         #expect(service.targetDailyHours == second)
     }
+
+    // MARK: - MCP server
+
+    /// The server exposes tracked time over a local port, so a fresh install must not be
+    /// serving anything until the user opts in.
+    @Test func mcpServerIsDisabledByDefault() {
+        let (service, _) = makeService()
+        #expect(service.mcpServerEnabled == false)
+    }
+
+    @Test func setMCPServerEnabledPersistsValue() {
+        let (service, _) = makeService()
+        service.setMCPServerEnabled(true)
+        #expect(service.mcpServerEnabled == true)
+
+        service.setMCPServerEnabled(false)
+        #expect(service.mcpServerEnabled == false)
+    }
+
+    /// An explicit `false` and a never-written key both read as off, but only the first is
+    /// a decision — the read goes through the stored value rather than assuming the default.
+    @Test func anExplicitFalseIsStoredRatherThanLeftUnset() {
+        let (service, defaults) = makeService()
+        #expect(defaults.object(forKey: "mcpServerEnabled") == nil)
+
+        service.setMCPServerEnabled(false)
+        #expect(defaults.object(forKey: "mcpServerEnabled") != nil)
+        #expect(service.mcpServerEnabled == false)
+    }
+
+    @Test func mcpServerPortDefaultsToTheConfiguredPort() {
+        let (service, _) = makeService()
+        #expect(service.mcpServerPort == MCPServerConfiguration.defaultPort)
+    }
 }

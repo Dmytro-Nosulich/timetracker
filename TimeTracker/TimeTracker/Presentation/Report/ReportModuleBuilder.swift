@@ -7,10 +7,12 @@ struct ReportModuleBuilder {
         userPreferencesService: UserPreferencesService
     ) -> some View {
         let pdfService = CoreGraphicsReportPDFService()
+        let reportBuilder = DefaultReportBuilderService()
         let viewModel = ReportViewModel(
             localStorageService: localStorageService,
             userPreferencesService: userPreferencesService,
-            pdfService: pdfService
+            pdfService: pdfService,
+            reportBuilder: reportBuilder
         )
         return ReportView(viewModel: viewModel)
     }

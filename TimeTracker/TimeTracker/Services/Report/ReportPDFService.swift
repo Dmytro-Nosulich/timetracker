@@ -20,6 +20,10 @@ struct ReportPDFTaskRow {
     let formattedAmount: String?
 }
 
-protocol ReportPDFService {
+/// `Sendable` so `save_report_pdf` can hold one off the main actor — the same reason
+/// `UserPreferencesService` is. It constrains conformers, not callers, so the Report
+/// screen is unaffected. Note the rendering itself is still hopped onto the main actor by
+/// that tool, because the implementation draws with AppKit types.
+protocol ReportPDFService: Sendable {
     func generatePDF(config: ReportPDFConfig) -> Data
 }
