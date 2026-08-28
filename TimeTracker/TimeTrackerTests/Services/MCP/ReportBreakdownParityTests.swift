@@ -116,9 +116,8 @@ struct ReportBreakdownParityTests {
         )
         viewModel.onAppear()
         viewModel.selectedPeriod = .customRange
-        viewModel.startDate = rangeStart
-        viewModel.endDate = rangeEnd
-        viewModel.onEndDateChanged()
+        viewModel.setStartDate(rangeStart)
+        viewModel.setEndDate(rangeEnd)
         return viewModel
     }
 

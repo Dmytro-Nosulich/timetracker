@@ -59,21 +59,21 @@ struct ReportView: View {
             HStack(spacing: 12) {
                 DatePicker(
                     "From",
-                    selection: $viewModel.startDate,
+                    selection: Binding(
+                        get: { viewModel.startDate },
+                        set: { viewModel.setStartDate($0) }
+                    ),
                     displayedComponents: .date
                 )
-                .onChange(of: viewModel.startDate) {
-                    viewModel.onStartDateChanged()
-                }
 
                 DatePicker(
                     "To",
-                    selection: $viewModel.endDate,
+                    selection: Binding(
+                        get: { viewModel.endDate },
+                        set: { viewModel.setEndDate($0) }
+                    ),
                     displayedComponents: .date
                 )
-                .onChange(of: viewModel.endDate) {
-                    viewModel.onEndDateChanged()
-                }
             }
         }
     }

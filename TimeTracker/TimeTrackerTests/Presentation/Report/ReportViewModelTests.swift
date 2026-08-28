@@ -354,8 +354,7 @@ struct ReportViewModelTests {
         let (vm, _, _, _) = makeVM()
         vm.onAppear()
         #expect(vm.selectedPeriod == .thisMonth)
-        vm.startDate = Calendar.current.date(byAdding: .month, value: -3, to: Date())!
-        vm.onStartDateChanged()
+        vm.setStartDate(Calendar.current.date(byAdding: .month, value: -3, to: Date())!)
         #expect(vm.selectedPeriod == .customRange)
     }
 
@@ -363,9 +362,47 @@ struct ReportViewModelTests {
         let (vm, _, _, _) = makeVM()
         vm.onAppear()
         #expect(vm.selectedPeriod == .thisMonth)
-        vm.endDate = Calendar.current.date(byAdding: .month, value: 3, to: Date())!
-        vm.onEndDateChanged()
+        vm.setEndDate(Calendar.current.date(byAdding: .month, value: 3, to: Date())!)
         #expect(vm.selectedPeriod == .customRange)
+    }
+
+    @Test func datesSeededToThisMonthBeforeOnAppear() {
+        let (vm, _, _, _) = makeVM()
+        let expected = ReportPeriod.thisMonth.dateRange()
+        #expect(vm.selectedPeriod == .thisMonth)
+        #expect(vm.startDate == expected.start)
+        #expect(vm.endDate == expected.end)
+    }
+
+    @Test func onAppearKeepsThisMonthSelected() {
+        let (vm, _, _, _) = makeVM()
+        vm.onAppear()
+        let expected = ReportPeriod.thisMonth.dateRange()
+        #expect(vm.selectedPeriod == .thisMonth)
+        #expect(vm.startDate == expected.start)
+        #expect(vm.endDate == expected.end)
+    }
+
+    @Test func redundantDateWriteKeepsNamedPeriod() {
+        let (vm, _, _, _) = makeVM()
+        vm.onAppear()
+        vm.selectedPeriod = .lastMonth
+        // A picker re-writing the value it already holds must not read as a manual edit.
+        vm.setStartDate(vm.startDate)
+        vm.setEndDate(vm.endDate)
+        #expect(vm.selectedPeriod == .lastMonth)
+    }
+
+    @Test func onAppearPreservesCustomRange() {
+        let (vm, _, _, _) = makeVM()
+        vm.onAppear()
+        let customStart = Calendar.current.date(byAdding: .month, value: -3, to: Date())!
+        vm.setStartDate(customStart)
+        #expect(vm.selectedPeriod == .customRange)
+
+        vm.onAppear()
+        #expect(vm.selectedPeriod == .customRange)
+        #expect(vm.startDate == customStart)
     }
 
     // MARK: - Period time calculation

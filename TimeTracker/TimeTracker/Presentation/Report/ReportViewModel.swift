@@ -21,8 +21,8 @@ final class ReportViewModel {
             recomputeRows()
         }
     }
-    var startDate: Date = Date()
-    var endDate: Date = Date()
+    private(set) var startDate: Date = Date()
+    private(set) var endDate: Date = Date()
     var includeZeroTime: Bool = false {
         didSet { recomputeRows() }
     }
@@ -64,14 +64,20 @@ final class ReportViewModel {
         self.userPreferencesService = userPreferencesService
         self.pdfService = pdfService
         self.reportBuilder = reportBuilder
+
+        let range = selectedPeriod.dateRange()
+        startDate = range.start
+        endDate = range.end
     }
 
     func onAppear() {
         businessName = userPreferencesService.businessName
 
-        let range = selectedPeriod.dateRange()
-        startDate = range.start
-        endDate = range.end
+        if selectedPeriod != .customRange {
+            let range = selectedPeriod.dateRange()
+            startDate = range.start
+            endDate = range.end
+        }
 
         loadTasks()
     }
@@ -81,20 +87,16 @@ final class ReportViewModel {
         recomputeRows()
     }
 
-    func onStartDateChanged() {
-        if selectedPeriod != .customRange {
-            selectedPeriod = .customRange
-        } else {
-            recomputeRows()
-        }
+    func setStartDate(_ date: Date) {
+        guard date != startDate else { return }
+        startDate = date
+        switchToCustomRange()
     }
 
-    func onEndDateChanged() {
-        if selectedPeriod != .customRange {
-            selectedPeriod = .customRange
-        } else {
-            recomputeRows()
-        }
+    func setEndDate(_ date: Date) {
+        guard date != endDate else { return }
+        endDate = date
+        switchToCustomRange()
     }
 
     func toggleTask(_ id: UUID) {
@@ -131,6 +133,14 @@ final class ReportViewModel {
     }
 
     // MARK: - Private
+
+    private func switchToCustomRange() {
+        if selectedPeriod != .customRange {
+            selectedPeriod = .customRange // didSet recomputes, and leaves the dates alone
+        } else {
+            recomputeRows()
+        }
+    }
 
     private func buildReport(tasks: [TaskItem], includeZeroTime: Bool) -> ReportData {
         reportBuilder.buildReport(
