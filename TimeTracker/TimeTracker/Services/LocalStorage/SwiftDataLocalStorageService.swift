@@ -162,37 +162,12 @@ final class SwiftDataLocalStorageService: LocalStorageService {
 
     // MARK: - Mapping
 
-    private func mapTask(_ task: TaskEntity) -> TaskItem {
-        TaskItem(
-            id: task.id,
-            title: task.title,
-            taskDescription: task.taskDescription,
-            createdAt: task.createdAt,
-            isArchived: task.isArchived,
-            hourlyRate: task.hourlyRate,
-            tags: task.tags.map { mapTag($0) },
-            timeEntries: task.timeEntries.map { mapTimeEntry($0) },
-            totalTrackedTime: task.totalTrackedTime,
-            trackedTimeToday: task.trackedTimeToday
-        )
-    }
+    /// Shared with `SwiftDataMCPDataStore` — see `SwiftDataItemMapper`.
+    private func mapTask(_ task: TaskEntity) -> TaskItem { SwiftDataItemMapper.task(task) }
 
     private func mapTimeEntry(_ entry: TimeEntryEntity) -> TimeEntryItem {
-        TimeEntryItem(
-            id: entry.id,
-            startDate: entry.startDate,
-            endDate: entry.endDate,
-            isManual: entry.isManual,
-            note: entry.note
-        )
+        SwiftDataItemMapper.timeEntry(entry)
     }
 
-    private func mapTag(_ tag: TagEntity) -> TagItem {
-        TagItem(
-            id: tag.id,
-            name: tag.name,
-            colorHex: tag.colorHex,
-            createdAt: tag.createdAt
-        )
-    }
+    private func mapTag(_ tag: TagEntity) -> TagItem { SwiftDataItemMapper.tag(tag) }
 }

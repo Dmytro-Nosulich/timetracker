@@ -6,6 +6,17 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		C3AA00312F5A000000000031 /* MCP in Frameworks */ = {isa = PBXBuildFile; productRef = C3AA00112F5A000000000011 /* MCP */; };
+		C3AA00322F5A000000000032 /* NIOCore in Frameworks */ = {isa = PBXBuildFile; productRef = C3AA00122F5A000000000012 /* NIOCore */; };
+		C3AA00332F5A000000000033 /* NIOPosix in Frameworks */ = {isa = PBXBuildFile; productRef = C3AA00132F5A000000000013 /* NIOPosix */; };
+		C3AA00342F5A000000000034 /* NIOHTTP1 in Frameworks */ = {isa = PBXBuildFile; productRef = C3AA00142F5A000000000014 /* NIOHTTP1 */; };
+		C3AA00412F5A000000000041 /* MCP in Frameworks */ = {isa = PBXBuildFile; productRef = C3AA00212F5A000000000021 /* MCP */; };
+		C3AA00422F5A000000000042 /* NIOCore in Frameworks */ = {isa = PBXBuildFile; productRef = C3AA00222F5A000000000022 /* NIOCore */; };
+		C3AA00432F5A000000000043 /* NIOPosix in Frameworks */ = {isa = PBXBuildFile; productRef = C3AA00232F5A000000000023 /* NIOPosix */; };
+		C3AA00442F5A000000000044 /* NIOHTTP1 in Frameworks */ = {isa = PBXBuildFile; productRef = C3AA00242F5A000000000024 /* NIOHTTP1 */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		C35FCB372F1D84D10021B973 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -62,6 +73,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C3AA00312F5A000000000031 /* MCP in Frameworks */,
+				C3AA00322F5A000000000032 /* NIOCore in Frameworks */,
+				C3AA00332F5A000000000033 /* NIOPosix in Frameworks */,
+				C3AA00342F5A000000000034 /* NIOHTTP1 in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -69,6 +84,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C3AA00412F5A000000000041 /* MCP in Frameworks */,
+				C3AA00422F5A000000000042 /* NIOCore in Frameworks */,
+				C3AA00432F5A000000000043 /* NIOPosix in Frameworks */,
+				C3AA00442F5A000000000044 /* NIOHTTP1 in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -113,6 +132,10 @@
 			);
 			name = TimeTracker;
 			packageProductDependencies = (
+				C3AA00112F5A000000000011 /* MCP */,
+				C3AA00122F5A000000000012 /* NIOCore */,
+				C3AA00132F5A000000000013 /* NIOPosix */,
+				C3AA00142F5A000000000014 /* NIOHTTP1 */,
 			);
 			productName = TimeTracker;
 			productReference = C35FCB272F1D84D10021B973 /* TimeTracker.app */;
@@ -136,6 +159,10 @@
 			);
 			name = TimeTrackerTests;
 			packageProductDependencies = (
+				C3AA00212F5A000000000021 /* MCP */,
+				C3AA00222F5A000000000022 /* NIOCore */,
+				C3AA00232F5A000000000023 /* NIOPosix */,
+				C3AA00242F5A000000000024 /* NIOHTTP1 */,
 			);
 			productName = TimeTrackerTests;
 			productReference = C35FCB362F1D84D10021B973 /* TimeTrackerTests.xctest */;
@@ -169,6 +196,10 @@
 			);
 			mainGroup = C35FCB1E2F1D84D10021B973;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				C3AA00012F5A000000000001 /* XCRemoteSwiftPackageReference "swift-sdk" */,
+				C3AA00022F5A000000000002 /* XCRemoteSwiftPackageReference "swift-nio" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C35FCB282F1D84D10021B973 /* Products */;
 			projectDirPath = "";
@@ -357,9 +388,9 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 3T8F5HX53K;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
@@ -403,9 +434,9 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 3T8F5HX53K;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
@@ -514,6 +545,68 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C3AA00012F5A000000000001 /* XCRemoteSwiftPackageReference "swift-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/modelcontextprotocol/swift-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.12.1;
+			};
+		};
+		C3AA00022F5A000000000002 /* XCRemoteSwiftPackageReference "swift-nio" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-nio.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.65.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C3AA00112F5A000000000011 /* MCP */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C3AA00012F5A000000000001 /* XCRemoteSwiftPackageReference "swift-sdk" */;
+			productName = MCP;
+		};
+		C3AA00122F5A000000000012 /* NIOCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C3AA00022F5A000000000002 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOCore;
+		};
+		C3AA00132F5A000000000013 /* NIOPosix */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C3AA00022F5A000000000002 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOPosix;
+		};
+		C3AA00142F5A000000000014 /* NIOHTTP1 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C3AA00022F5A000000000002 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOHTTP1;
+		};
+		C3AA00212F5A000000000021 /* MCP */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C3AA00012F5A000000000001 /* XCRemoteSwiftPackageReference "swift-sdk" */;
+			productName = MCP;
+		};
+		C3AA00222F5A000000000022 /* NIOCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C3AA00022F5A000000000002 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOCore;
+		};
+		C3AA00232F5A000000000023 /* NIOPosix */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C3AA00022F5A000000000002 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOPosix;
+		};
+		C3AA00242F5A000000000024 /* NIOHTTP1 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C3AA00022F5A000000000002 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOHTTP1;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C35FCB1F2F1D84D10021B973 /* Project object */;
 }

@@ -5,12 +5,14 @@ enum SettingsModuleBuilder {
     static func build(
         localStorageService: LocalStorageService,
         userPreferencesService: UserPreferencesService,
-        reminderService: TrackingReminderService
+        reminderService: TrackingReminderService,
+        mcpServerService: MCPServerService
     ) -> some View {
         let viewModel = SettingsViewModel(
             userPreferences: userPreferencesService,
             localStorage: localStorageService,
-            reminderService: reminderService
+            reminderService: reminderService,
+            mcpServer: mcpServerService
         )
         return SettingsView(viewModel: viewModel)
     }

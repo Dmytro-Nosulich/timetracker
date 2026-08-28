@@ -7,6 +7,7 @@ final class SettingsViewModel {
     private let userPreferences: UserPreferencesService
     private let localStorage: LocalStorageService
     private let reminderService: TrackingReminderService
+    private let mcpServer: MCPServerService
 
     // MARK: - General
 
@@ -131,6 +132,104 @@ final class SettingsViewModel {
         }
     }
 
+    // MARK: - MCP Server
+
+    /// Starts at the same value production defaults to, so `loadSettings()` on a fresh
+    /// install doesn't flip it and fire a pointless rebind through `didSet`.
+    var mcpServerEnabled: Bool = UserDefaultsUserPreferencesService.defaultMCPServerEnabled {
+        didSet {
+            guard mcpServerEnabled != oldValue else { return }
+            userPreferences.setMCPServerEnabled(mcpServerEnabled)
+            applyMCPServerPreferences()
+        }
+    }
+
+    /// Free text until the user commits it with Apply — typing must never rebind a socket,
+    /// and a half-typed port ("8", "84") must never be persisted.
+    var mcpServerPortText: String = "" {
+        didSet {
+            guard mcpServerPortText != oldValue else { return }
+            portValidationError = nil
+        }
+    }
+
+    private(set) var portValidationError: String?
+
+    /// The Apply button is live only while the field differs from what's actually saved.
+    var hasPendingPortChange: Bool {
+        mcpServerPortText.trimmingCharacters(in: .whitespaces) != String(userPreferences.mcpServerPort)
+    }
+
+    /// Always built from the *saved* port, so an uncommitted edit can't display a URL that
+    /// nothing is listening on.
+    var mcpServerURL: String {
+        MCPServerConfiguration.url(port: userPreferences.mcpServerPort)
+    }
+
+    /// The config block for clients that are set up by pasting JSON rather than by running a
+    /// command. Built from the *saved* port for the same reason `mcpServerURL` is — an
+    /// uncommitted edit must never hand out a config pointing at a port nothing is bound to.
+    var mcpServerConfigJSON: String {
+        MCPServerConfiguration.clientConfigurationJSON(port: userPreferences.mcpServerPort)
+    }
+
+    var mcpServerStatusText: String {
+        guard mcpServerEnabled else { return "Not running" }
+        switch mcpServer.status {
+        case .running(let port):
+            return "Running on port \(port)"
+        case .stopped:
+            return "Stopped"
+        case .failed(let reason):
+            return "Failed: \(reason)"
+        }
+    }
+
+    var mcpServerStatusIsError: Bool {
+        guard mcpServerEnabled else { return false }
+        if case .failed = mcpServer.status { return true }
+        return false
+    }
+
+    var mcpServerIsRunning: Bool {
+        if case .running = mcpServer.status { return true }
+        return false
+    }
+
+    /// Validates the typed port and, only if it's usable, persists it and rebinds.
+    func applyPort() {
+        let trimmed = mcpServerPortText.trimmingCharacters(in: .whitespaces)
+
+        guard let port = Int(trimmed), !trimmed.isEmpty else {
+            portValidationError = "Enter a port number."
+            return
+        }
+
+        guard MCPServerConfiguration.validPortRange.contains(port) else {
+            portValidationError = "Port must be between \(MCPServerConfiguration.validPortRange.lowerBound) and \(MCPServerConfiguration.validPortRange.upperBound). Ports below \(MCPServerConfiguration.validPortRange.lowerBound) are reserved."
+            return
+        }
+
+        portValidationError = nil
+        mcpServerPortText = String(port)
+        userPreferences.setMCPServerPort(port)
+        applyMCPServerPreferences()
+    }
+
+    /// Re-attempts the bind after a failure, without the user having to change anything.
+    func retryMCPServer() {
+        applyMCPServerPreferences()
+    }
+
+    /// Retained only so tests can await the rebind deterministically — the UI never reads it.
+    @ObservationIgnored private(set) var pendingMCPServerUpdate: Task<Void, Never>?
+
+    private func applyMCPServerPreferences() {
+        pendingMCPServerUpdate = Task { @MainActor [mcpServer] in
+            await mcpServer.applyPreferences()
+        }
+    }
+
     // MARK: - Tags
 
     private(set) var tags: [TagItem] = []
@@ -148,11 +247,13 @@ final class SettingsViewModel {
     init(
         userPreferences: UserPreferencesService,
         localStorage: LocalStorageService,
-        reminderService: TrackingReminderService
+        reminderService: TrackingReminderService,
+        mcpServer: MCPServerService
     ) {
         self.userPreferences = userPreferences
         self.localStorage = localStorage
         self.reminderService = reminderService
+        self.mcpServer = mcpServer
     }
 
     func loadSettings() {
@@ -184,6 +285,12 @@ final class SettingsViewModel {
         let savedSeconds = userPreferences.trackingReminderTime
         trackingReminderTime = Self.dateFromSeconds(savedSeconds)
         trackingReminderDays = Set(userPreferences.trackingReminderDays)
+
+        // Assigning the toggle here can fire its didSet, but applyPreferences() is
+        // idempotent — a server already running on the configured port stays untouched.
+        mcpServerEnabled = userPreferences.mcpServerEnabled
+        mcpServerPortText = String(userPreferences.mcpServerPort)
+        portValidationError = nil
 
         loadTags()
     }

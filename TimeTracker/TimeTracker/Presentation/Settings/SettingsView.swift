@@ -1,13 +1,18 @@
+import AppKit
 import SwiftUI
 
 struct SettingsView: View {
     @State var viewModel: SettingsViewModel
+    @State private var didCopyServerURL = false
+    @State private var didCopyConfigJSON = false
+    @State private var showsConfigJSON = false
 
     var body: some View {
         Form {
             generalSection
             idleDetectionSection
             notificationsSection
+            mcpServerSection
             tagsSection
         }
         .formStyle(.grouped)
@@ -120,6 +125,159 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+        }
+    }
+
+    // MARK: - MCP Server
+
+    private var mcpServerSection: some View {
+        Section("MCP Server") {
+            VStack(alignment: .leading, spacing: 4) {
+                Toggle("Enable MCP server", isOn: $viewModel.mcpServerEnabled)
+                Text("Lets an AI assistant read your tracked time while this app is running. Listens on this Mac only — never on the network.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            if viewModel.mcpServerEnabled {
+                portRow
+                statusRow
+                serverURLRow
+                configJSONRow
+            }
+        }
+    }
+
+    private var portRow: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            LabeledContent("Port") {
+                HStack(spacing: 8) {
+                    TextField("Port", text: $viewModel.mcpServerPortText)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 90)
+                        .monospacedDigit()
+                        .onSubmit { viewModel.applyPort() }
+
+                    Button("Apply") {
+                        viewModel.applyPort()
+                    }
+                    .disabled(!viewModel.hasPendingPortChange)
+                }
+            }
+
+            if let error = viewModel.portValidationError {
+                Text(error)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+        }
+    }
+
+    private var statusRow: some View {
+        LabeledContent("Status") {
+            HStack(spacing: 8) {
+                Circle()
+                    .fill(statusColor)
+                    .frame(width: 8, height: 8)
+
+                Text(viewModel.mcpServerStatusText)
+                    .foregroundStyle(viewModel.mcpServerStatusIsError ? Color.red : Color.primary)
+
+                if viewModel.mcpServerStatusIsError {
+                    Button("Retry") {
+                        viewModel.retryMCPServer()
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
+            }
+        }
+    }
+
+    private var statusColor: Color {
+        if viewModel.mcpServerStatusIsError { return .red }
+        return viewModel.mcpServerIsRunning ? .green : .secondary
+    }
+
+    /// The address to register, for clients configured by URL or by a CLI command.
+    private var serverURLRow: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            LabeledContent("URL") {
+                HStack(spacing: 8) {
+                    Text(viewModel.mcpServerURL)
+                        .font(.system(.body, design: .monospaced))
+                        .textSelection(.enabled)
+
+                    Button {
+                        copy(viewModel.mcpServerURL, marking: $didCopyServerURL)
+                    } label: {
+                        Image(systemName: didCopyServerURL ? "checkmark" : "doc.on.doc")
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Copy the registration URL")
+                }
+            }
+
+            Text("Register this URL with your AI client, or copy the configuration below.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .textSelection(.enabled)
+        }
+    }
+
+    /// The same connection details as a paste-ready config block, for the many clients that
+    /// are set up by editing a JSON file rather than by running a command. Collapsed by
+    /// default — it's needed once per client, and the section is already tall.
+    private var configJSONRow: some View {
+        DisclosureGroup("Configuration for other AI clients", isExpanded: $showsConfigJSON) {
+            VStack(alignment: .leading, spacing: 6) {
+                // The copy button lives in the content rather than the disclosure's label:
+                // a button in the label competes with the label's own tap-to-expand gesture,
+                // and copying is only wanted once the block is open anyway.
+                HStack {
+                    Text("Paste into your client's MCP config file.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    Spacer()
+
+                    Button {
+                        copy(viewModel.mcpServerConfigJSON, marking: $didCopyConfigJSON)
+                    } label: {
+                        Label(
+                            didCopyConfigJSON ? "Copied" : "Copy",
+                            systemImage: didCopyConfigJSON ? "checkmark" : "doc.on.doc"
+                        )
+                        .font(.caption)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .help("Copy the configuration JSON")
+                }
+
+                Text(viewModel.mcpServerConfigJSON)
+                    .font(.system(.caption, design: .monospaced))
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(.quaternary)
+                    )
+            }
+            .padding(.top, 4)
+        }
+    }
+
+    /// Writes to the pasteboard and flips the button to a checkmark for two seconds. Lives
+    /// in the view rather than the view model so unit tests never touch the real clipboard.
+    private func copy(_ string: String, marking didCopy: Binding<Bool>) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(string, forType: .string)
+        didCopy.wrappedValue = true
+        Task {
+            try? await Task.sleep(for: .seconds(2))
+            didCopy.wrappedValue = false
         }
     }
 

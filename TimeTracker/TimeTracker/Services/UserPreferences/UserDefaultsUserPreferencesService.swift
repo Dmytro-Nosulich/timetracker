@@ -1,6 +1,8 @@
 import Foundation
 
-final class UserDefaultsUserPreferencesService: UserPreferencesService {
+/// `@unchecked Sendable` because the only stored property is a `UserDefaults`, which is
+/// documented thread-safe — every accessor below is a plain read or write through it.
+final class UserDefaultsUserPreferencesService: UserPreferencesService, @unchecked Sendable {
     private let userDefaults: UserDefaults
     private let currencySymbolKey = "currencySymbol"
     private let currencyCodeKey = "currencyCode"
@@ -16,12 +18,19 @@ final class UserDefaultsUserPreferencesService: UserPreferencesService {
     private let taskReminderDurationKey = "taskReminderDuration"
     private let taskReminderModeKey = "taskReminderMode"
     private let targetDailyHoursKey = "targetDailyHours"
+    private let mcpServerEnabledKey = "mcpServerEnabled"
+    private let mcpServerPortKey = "mcpServerPort"
 
     static let defaultIdleTimeoutMinutes = 10
     static let defaultSubtractIdleTimeFromTrackedTime = false
     static let defaultTrackingReminderTimeSeconds: TimeInterval = 9 * 3600 // 09:00
     static let defaultTrackingReminderDays = [2, 3, 4, 5, 6] // Mon-Fri (Calendar weekday)
     static let defaultTargetDailyHoursSeconds: TimeInterval = 8 * 3600
+    /// Off by default: the server opens a local port and exposes tracked time to whatever
+    /// connects to it, so it is opt-in rather than something a user discovers running.
+    /// Anything that depends on it — a registered client, the monthly-report skill, the
+    /// scheduled job — needs the toggle turned on in Settings first.
+    static let defaultMCPServerEnabled = false
 
     init(userDefaults: UserDefaults = .standard) {
         self.userDefaults = userDefaults
@@ -170,5 +179,31 @@ final class UserDefaultsUserPreferencesService: UserPreferencesService {
 
     func setTargetDailyHours(_ value: TimeInterval) {
         userDefaults.set(value, forKey: targetDailyHoursKey)
+    }
+
+    var mcpServerEnabled: Bool {
+        guard userDefaults.object(forKey: mcpServerEnabledKey) != nil else {
+            return Self.defaultMCPServerEnabled
+        }
+        return userDefaults.bool(forKey: mcpServerEnabledKey)
+    }
+
+    func setMCPServerEnabled(_ value: Bool) {
+        userDefaults.set(value, forKey: mcpServerEnabledKey)
+    }
+
+    /// Range-guarded on read: a stored value the server could never bind (0, a privileged
+    /// port, something out of range) falls back to the default rather than leaving the
+    /// server permanently unable to start.
+    var mcpServerPort: Int {
+        guard let stored = userDefaults.object(forKey: mcpServerPortKey) as? Int,
+              MCPServerConfiguration.validPortRange.contains(stored) else {
+            return MCPServerConfiguration.defaultPort
+        }
+        return stored
+    }
+
+    func setMCPServerPort(_ value: Int) {
+        userDefaults.set(value, forKey: mcpServerPortKey)
     }
 }

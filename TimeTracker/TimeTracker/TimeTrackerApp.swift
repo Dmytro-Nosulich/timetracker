@@ -12,6 +12,7 @@ struct TimeTrackerApp: App {
     let userPreferencesService: UserPreferencesService
     let idleMonitorService: DefaultIdleMonitorService
     let trackingReminderService: DefaultTrackingReminderService
+    let mcpServerService: DefaultMCPServerService
 
     init() {
         let schema = Schema([
@@ -47,6 +48,16 @@ struct TimeTrackerApp: App {
         let reminder = DefaultTrackingReminderService(userPreferences: preferences, timerService: timer)
         self.trackingReminderService = reminder
         reminder.rescheduleNotifications()
+
+        // Reads the same store as the UI, but through its own background context — see
+        // SwiftDataMCPDataStore. AppDelegate starts it once the app has finished launching;
+        // whether it actually binds, and on which port, comes from preferences.
+        let mcpServer = DefaultMCPServerService(
+            container: sharedModelContainer,
+            userPreferences: preferences
+        )
+        self.mcpServerService = mcpServer
+        MCPServerServiceHolder.shared = mcpServer
     }
 
     var body: some Scene {
@@ -105,7 +116,8 @@ struct TimeTrackerApp: App {
             SettingsModuleBuilder.build(
                 localStorageService: localStorageService,
                 userPreferencesService: userPreferencesService,
-                reminderService: trackingReminderService
+                reminderService: trackingReminderService,
+                mcpServerService: mcpServerService
             )
         }
     }
