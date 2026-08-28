@@ -3,7 +3,7 @@
 > A native macOS time tracking app for freelancers — track time, manage tasks, and generate professional PDF reports.
 
 ![macOS](https://img.shields.io/badge/macOS-15%2B-blue?logo=apple)
-![Swift](https://img.shields.io/badge/Swift-6-orange?logo=swift)
+![Swift](https://img.shields.io/badge/Swift-5-orange?logo=swift)
 ![SwiftUI](https://img.shields.io/badge/UI-SwiftUI-blue)
 ![SwiftData](https://img.shields.io/badge/Storage-SwiftData-green)
 
