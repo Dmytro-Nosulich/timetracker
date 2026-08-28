@@ -26,9 +26,11 @@ final class UserDefaultsUserPreferencesService: UserPreferencesService, @uncheck
     static let defaultTrackingReminderTimeSeconds: TimeInterval = 9 * 3600 // 09:00
     static let defaultTrackingReminderDays = [2, 3, 4, 5, 6] // Mon-Fri (Calendar weekday)
     static let defaultTargetDailyHoursSeconds: TimeInterval = 8 * 3600
-    /// On by default so the server keeps auto-starting for anyone who was using it before
-    /// the setting existed, and so an unattended skill works without visiting Settings.
-    static let defaultMCPServerEnabled = true
+    /// Off by default: the server opens a local port and exposes tracked time to whatever
+    /// connects to it, so it is opt-in rather than something a user discovers running.
+    /// Anything that depends on it — a registered client, the monthly-report skill, the
+    /// scheduled job — needs the toggle turned on in Settings first.
+    static let defaultMCPServerEnabled = false
 
     init(userDefaults: UserDefaults = .standard) {
         self.userDefaults = userDefaults

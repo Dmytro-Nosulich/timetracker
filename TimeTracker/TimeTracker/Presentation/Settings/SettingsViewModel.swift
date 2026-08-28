@@ -134,7 +134,9 @@ final class SettingsViewModel {
 
     // MARK: - MCP Server
 
-    var mcpServerEnabled: Bool = true {
+    /// Starts at the same value production defaults to, so `loadSettings()` on a fresh
+    /// install doesn't flip it and fire a pointless rebind through `didSet`.
+    var mcpServerEnabled: Bool = UserDefaultsUserPreferencesService.defaultMCPServerEnabled {
         didSet {
             guard mcpServerEnabled != oldValue else { return }
             userPreferences.setMCPServerEnabled(mcpServerEnabled)

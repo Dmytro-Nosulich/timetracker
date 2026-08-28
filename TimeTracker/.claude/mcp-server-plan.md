@@ -310,9 +310,8 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
     "what should be running". The alternative — threading the values through `AppDelegate` —
     would have needed a third global holder just for `UserPreferencesService`.
     - Two new preferences in `UserPreferencesService` / `UserDefaultsUserPreferencesService`:
-      `mcpServerEnabled` (Bool, **defaults to `true`**) and `mcpServerPort` (Int, defaults to
-      `MCPServerConfiguration.defaultPort`). Enabled-by-default preserves Step 2's always-on
-      behavior and means an unattended skill works without visiting Settings first.
+      `mcpServerEnabled` (Bool, **defaults to `false`** — see decision #45) and
+      `mcpServerPort` (Int, defaults to `MCPServerConfiguration.defaultPort`).
     - `mcpServerPort`'s **getter is range-guarded**: a stored value outside
       `MCPServerConfiguration.validPortRange` returns the default. Without it a corrupt or
       legacy value (0, a privileged port) would leave the server permanently unable to bind
@@ -583,6 +582,26 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
     - Consequence: `run-monthly-report.sh` no longer `cd`s into the project. That `cd` existed
       solely because the skill was project-bound, and a hard-coded repo path that serves no
       purpose can only break the job if the repo moves.
+45. **The server is off by default — it is opt-in.** Decision #18 originally shipped
+    `mcpServerEnabled = true` so the server kept auto-starting for anyone using it before the
+    setting existed, and so an unattended skill worked without visiting Settings. Reversed at
+    the user's request, and the security argument is the stronger one: the server opens a
+    local port and serves tracked time to whatever connects, which is not something a user
+    should discover already running. Everything downstream — a registered client, the
+    `/monthly-report` skill, the scheduled job — now requires the toggle first, and the README
+    and `schedule/README.md` say so.
+    - `SettingsViewModel.mcpServerEnabled` initialises from
+      `UserDefaultsUserPreferencesService.defaultMCPServerEnabled` rather than a hardcoded
+      literal. It was `true`, which after the flip meant `loadSettings()` changed the value on
+      every fresh install and fired a pointless rebind through `didSet`. Three
+      `SettingsViewModelTests` caught this — two because status text guards on `enabled`, one
+      because the stray async `applyPreferences` inflated a call count.
+    - `MockUserPreferencesService.stubbedMCPServerEnabled` mirrors the production default for
+      the same reason: a mock defaulting to `true` lets a test pass against a state production
+      never starts in. Tests needing it on now say so explicitly.
+    - **Upgrade note**: this flips behavior for an existing install that never wrote the key.
+      The preference is only consulted when absent, so anyone who had the server running
+      implicitly gets it switched off by the update and has to re-enable it once.
 
 ## What exists in code (as of Step 6)
 
@@ -671,7 +690,9 @@ lists and calls the tool and gets back the live 86 tasks / 4 tags; quitting the 
 the connection fail cleanly.
 
 **Verified in Step 3** (421 tests passing, 0 failing): with no preference keys written at
-all the server auto-starts on 8427 and a real Claude Code session calls the tool; a
+all the server auto-starts on 8427 and a real Claude Code session calls the tool — **this
+part no longer holds: decision #45 flipped the default to off, so a fresh install now binds
+nothing until the toggle is turned on.** The rest stands: a
 persisted `mcpServerPort = 9000` auto-binds 9000 (and only 9000) on relaunch, serves
 `initialize` + `tools/list` over HTTP, and is refused on the LAN address; a persisted
 `mcpServerEnabled = false` leaves the app with **no listening socket at all**; a persisted

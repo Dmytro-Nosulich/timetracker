@@ -113,7 +113,7 @@ Because the server runs **inside** the running app rather than as a separate pro
 
 | Control | What it does |
 |---|---|
-| **Enable MCP server** | On by default. Turning it off stops the server immediately — no relaunch needed. |
+| **Enable MCP server** | **Off by default — turn this on first.** The server is opt-in, so nothing is listening until you enable it. Toggling takes effect immediately, no relaunch. |
 | **Port** | Defaults to `8427`. Type a new one and press **Apply** (or Return); any port from 1024 to 65535. |
 | **Status** | Green *Running on port N*, grey *Stopped*, or red *Failed* with a **Retry** button — most often because something else already holds the port. |
 | **URL** | The exact address to register, with a copy button. |

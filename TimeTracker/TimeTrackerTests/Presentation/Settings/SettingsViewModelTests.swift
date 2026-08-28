@@ -425,7 +425,8 @@ struct SettingsViewModelTests {
     }
 
     @Test func statusTextReportsRunningPort() {
-        let (vm, _, _, _, server) = makeViewModel()
+        let (vm, prefs, _, _, server) = makeViewModel()
+        prefs.stubbedMCPServerEnabled = true
         vm.loadSettings()
         server.stubbedStatus = .running(port: 8427)
         #expect(vm.mcpServerStatusText == "Running on port 8427")
@@ -434,7 +435,8 @@ struct SettingsViewModelTests {
     }
 
     @Test func statusTextReportsBindFailureAsAnError() {
-        let (vm, _, _, _, server) = makeViewModel()
+        let (vm, prefs, _, _, server) = makeViewModel()
+        prefs.stubbedMCPServerEnabled = true
         vm.loadSettings()
         server.stubbedStatus = .failed(reason: "port 8427 is already in use")
         #expect(vm.mcpServerStatusText.contains("already in use"))

@@ -48,6 +48,9 @@ rm ~/Library/LaunchAgents/com.dmytro.timetracker.monthly-report.plist
 
 ## Requirements
 
+- **The MCP server must be enabled.** It is **off by default** — Settings → MCP Server →
+  *Enable MCP server*. Without it the app runs but binds nothing, and every run fails with
+  the skill reporting that TimeTracker isn't reachable.
 - **TimeTracker must be running.** The script launches it if it isn't and waits 15s for the
   server to bind, but enabling **Launch at Login** in Settings is more reliable.
 - **The `claude` CLI must be on `PATH`** at the location the script resolves. launchd gives

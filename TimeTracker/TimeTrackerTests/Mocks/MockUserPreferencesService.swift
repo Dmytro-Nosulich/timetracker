@@ -200,7 +200,9 @@ final class MockUserPreferencesService: UserPreferencesService, @unchecked Senda
         stubbedTargetDailyHours = value
     }
 
-    var stubbedMCPServerEnabled: Bool = true
+    /// Mirrors `UserDefaultsUserPreferencesService.defaultMCPServerEnabled` so a test can't
+    /// pass against a default production never uses. Tests that need it on set it explicitly.
+    var stubbedMCPServerEnabled: Bool = false
     var setMCPServerEnabledCallCount = 0
     var setMCPServerEnabledLastValue: Bool?
 
