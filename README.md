@@ -195,7 +195,6 @@ The billable tools read your live **Settings**: time rounding, default hourly ra
 ### Good to know
 
 - **The app must be running.** The server lives inside it. Quit the app and the connection simply fails; start it again and the next question works. Turn on **Launch at Login** in Settings if you want it always available.
-- **Run a current build.** A build from before this feature has no server in it at all — if `claude mcp list` says `ConnectionRefused` while the app is clearly running, check you are not launching an older copy.
 - **First write to a protected folder may prompt once.** The app runs un-sandboxed so it can save a PDF without a dialog. macOS still guards `~/Desktop`, `~/Documents` and `~/Downloads`, so the very first save into one of those may ask for permission. Grant it once and unattended saves work from then on.
 - **Reports are never overwritten.** Saving a report whose name is taken produces `Time Report - July 2026 (2).pdf` instead of replacing the original.
 
@@ -227,7 +226,7 @@ A symlink rather than a copy, so the skill stays version-controlled here while b
 
 | Layer | Technology |
 |---|---|
-| Language | Swift 6 |
+| Language | Swift 5 |
 | UI Framework | SwiftUI |
 | Data Persistence | SwiftData |
 | Observable State | `@Observable` (Observation framework) |
