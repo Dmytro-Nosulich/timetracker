@@ -16,20 +16,14 @@ protocol MCPFileWriting: Sendable {
 }
 
 struct DefaultMCPFileWriter: MCPFileWriting {
-    private let fileManager: FileManager
-
-    init(fileManager: FileManager = .default) {
-        self.fileManager = fileManager
-    }
-
     func isDirectory(_ url: URL) -> Bool {
         var isDirectory: ObjCBool = false
-        let exists = fileManager.fileExists(atPath: url.path, isDirectory: &isDirectory)
+        let exists = FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory)
         return exists && isDirectory.boolValue
     }
 
     func fileExists(_ url: URL) -> Bool {
-        fileManager.fileExists(atPath: url.path)
+        FileManager.default.fileExists(atPath: url.path)
     }
 
     func write(_ data: Data, to url: URL) throws {

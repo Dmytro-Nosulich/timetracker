@@ -8,7 +8,7 @@ private enum MenuAction: Int {
     case quit
 }
 
-@preconcurrency
+@MainActor
 class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var statusItem: NSStatusItem?
     private var iconUpdateTimer: Timer?
@@ -42,7 +42,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         return false
     }
 
-    @MainActor
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         if !flag {
             openMainWindow()
@@ -53,7 +52,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
 
-    @MainActor
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         guard let timerService = TimerServiceHolder.shared,
               timerService.state == .running else {
@@ -84,7 +82,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     // MARK: - Status Bar
 
-    @MainActor
     private func setupStatusBar() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         updateStatusIcon()
@@ -101,7 +98,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
 
-    @MainActor
     private func updateStatusIconIfNeeded() {
         guard let timerService = TimerServiceHolder.shared else { return }
         let state = timerService.state
@@ -111,7 +107,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
 
-    @MainActor
     private func updateStatusIcon() {
         guard let button = statusItem?.button else { return }
         let state = TimerServiceHolder.shared?.state ?? .idle
@@ -136,7 +131,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         buildMenu(menu)
     }
 
-    @MainActor
     private func buildMenu(_ menu: NSMenu) {
         menu.removeAllItems()
         guard let timerService = TimerServiceHolder.shared else {
@@ -196,7 +190,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     /// The only place a failed MCP server is visible until the Settings screen gains a
     /// status row. Silent when the server started, so the menu stays as it was.
-    @MainActor
     private func addMCPServerFailureItem(_ menu: NSMenu) {
         guard case .failed(let reason) = MCPServerServiceHolder.shared?.status else { return }
         menu.addItem(NSMenuItem.separator())
@@ -212,7 +205,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(item)
     }
 
-    @MainActor
     @objc private func menuItemSelected(_ sender: NSMenuItem) {
         guard let action = MenuAction(rawValue: sender.tag) else { return }
         switch action {
@@ -241,8 +233,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
 
-	@MainActor
-	@objc private func quitApp() {
+    @objc private func quitApp() {
         NSApplication.shared.terminate(nil)
     }
 }
