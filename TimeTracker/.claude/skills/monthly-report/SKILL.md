@@ -64,7 +64,8 @@ client's invoice will show them. A "corrected" total here is a wrong invoice.
 
 A good summary looks like:
 
-> Saved **Time Report - August 2026.pdf** to the Desktop — 22 tasks, 151h 37m, €3,942.39.
+> Saved **Time Report - August 2026.pdf** to the Desktop — <taskCount> tasks,
+> <totalRoundedTimeFormatted>, <totalAmountFormatted>.
 
 Mention the rename only when `renamedToAvoidOverwrite` is `true`:
 

@@ -80,7 +80,7 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
   never uses `@Suite`); `@Test func camelCaseName()`; `#expect` only; `@MainActor` on the
   struct when the type under test has it; private `make…` fixture factories; mocks in
   `TimeTrackerTests/Mocks/` follow `stubbed<X>` / `<method>CallCount` / `<method>Last<Param>`.
-- **The dev machine's locale formats decimals with a comma** (`$1,225,50`). Don't pin
+- **The dev machine's locale formats decimals with a comma** (`$1,234,56`). Don't pin
   currency literals in tests — compare against `CurrencyFormatting.amount(_:symbol:)` or
   assert on structure. `String(format:)`-based output (rates, `formattedHoursMinutes`) is
   locale-independent and safe to pin.
@@ -169,7 +169,10 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
      the app container is TCC-protected and unreadable otherwise. Verified afterwards that
      the running app holds open `~/Library/Application Support/default.store` with zero
      container references, and that `get_billable_report` on `last_month` still returns the
-     Step 5 figures (22 tasks, 151h 37m, €3,942.39 at €26/h).
+     Step 5 figures unchanged, with business name, currency and rate intact.
+   - **The sandbox was also providing namespacing, and losing it cost a day's data — see
+     decision #46.** Moving the store was planned for; the fact that the *destination* is a
+     shared namespace was not.
    - **TCC replaces the sandbox as the thing that can block a write.** An un-sandboxed app
      still needs user consent for `~/Desktop`, `~/Documents` and `~/Downloads`, and that
      consent arrives as an interactive dialog — the one thing this tool must never depend
@@ -383,7 +386,7 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
     - **`all_time` is the one exception**: `MCPPeriodArgument.Resolved.trackedTime(for:)`
       returns `task.totalTrackedTime` rather than aggregating `distantPast…end of today`.
       That's the same number `list_tasks_and_tags` reports (verified live: both give
-      2,978,569s across 86 tasks), and it also counts an entry dated in the future, which a
+      the same all-time total across every task), and it also counts an entry dated in the future, which a
       range ending today never would.
     - Consequence worth knowing: a range ending 23:59:59 loses **one second** off work that
       runs through midnight. That is pre-existing `ReportPeriod` behavior in every case, so
@@ -427,24 +430,24 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
     to `buildReport`, because that is exactly what the Report screen's "All Time" does and
     matching the screen is the entire point of the tool. Consequence: an entry dated in the
     **future** counts in `get_time_for_period` on `all_time` but not here. Verified live that
-    no such entry currently exists — all 86 tasks report identical per-task seconds across
+    no such entry currently exists — every task reports identical per-task seconds across
     both tools. (`DailyTimeAggregator` clips per entry, so a `distantPast` start costs nothing.)
 30. **Integer seconds are truncated the way the screen truncates, not summed** — the opposite
     of decision #26, deliberately. `totalRoundedTimeSeconds` is `Int(report.totalRoundedTime)`:
     one truncation over the whole sum, which is what `ReportViewModel.totalSelectedTime`
     produces. Each task row truncates its own sub-second fraction separately, so **the rows can
-    come out a few seconds short of the total** — 10s over 22 tasks for a real July, 44s over
-    86 tasks for all-time. The two cannot both be exact, and screen parity wins, so:
+    come out a few seconds short of the total** — 10s over a real month, 44s over all-time. The two cannot both be exact, and screen parity wins, so:
     - the payload carries an **always-present `note`** telling the caller to report totals as
       given rather than re-adding rows (a caller "fixing" the total would be changing an
       invoice figure);
-    - both tools still format to the **same** displayed string — live July gives `151h 37m`
-      from `get_billable_report` and `get_time_for_period` alike, which is all the user sees.
+    - both tools still format to the **same** displayed string — a live month gives an
+      identical `Xh YYm` from `get_billable_report` and `get_time_for_period` alike, which is
+      all the user sees.
     - This was found by the live run, not by the tests: whole-second fixtures hide it, so
       `ReportBreakdownParityTests` now uses fractional-second entries and
       `theFixtureCarriesSubSecondDust` fails if they ever stop mattering.
 31. **`include_daily_breakdown` is opt-in, default off.** The default response mirrors the
-    Report screen exactly and stays small; the PDF's day grid is a wide month × 86 tasks and
+    Report screen exactly and stays small; the PDF's day grid is a wide month × every task and
     would be thousands of JSON rows on every call. When it is asked for, the `note` gains the
     decision-#9 caveat, since per-day rounding opens a gap of *minutes* rather than seconds.
 
@@ -603,6 +606,40 @@ Its output is enormous — grep for `Failing tests|\*\* |error:`.
       The preference is only consulted when absent, so anyone who had the server running
       implicitly gets it switched off by the update and has to re-enable it once.
 
+### Post-Step-7 decisions (fallout from disabling the sandbox)
+
+46. **The SwiftData store has an explicit, namespaced URL:
+    `Application Support/TimeTracker/default.store`.** Set via `ModelConfiguration(schema:url:)`
+    in `TimeTrackerApp.storeURL()`, which also creates the directory (`ModelContainer` will not
+    create intermediate directories, and a missing one would hit the `fatalError` in `init`).
+
+    **This was written after losing the live database once — read it before touching store
+    configuration.** SwiftData's default is `Application Support/default.store`, with no app
+    name anywhere in the path. That is perfectly safe *while sandboxed*, because the container
+    gives every app its own private Application Support — which is why the app shipped this way
+    for months. The moment decision #6 removed the sandbox, the same line started resolving to
+    the real, shared `~/Library/Application Support/default.store`: a generic filename in a
+    directory every application on the machine can reach. Days after the flip the store was
+    found emptied — every entity table cleared and its primary-key counters reset, with the
+    schema itself intact, which is a store that has been re-initialised rather than edited.
+    `default.store` was recovered from the migration backup and moved into its own
+    `TimeTracker/` subfolder, which is what this decision installs.
+    - The exact trigger was **never identified**. The app's own code has only per-record
+      `modelContext.delete` calls and no wipe path; the machine's other SwiftData projects all
+      use the same default configuration but are `SDKROOT = iphoneos`, so they should run
+      against Simulator containers. **The generic path was fixed as a hazard in its own right,
+      not because it was proven to be the culprit** — an unnamespaced filename holding
+      billing-grade data is worth removing either way. If the data is ever lost again, this
+      decision is the first thing to re-examine, because it did not demonstrably close the hole.
+    - Recovery technique worth keeping: copy `.store` **and** `-wal`, never the `-shm` (stale
+      shared-memory state), then `PRAGMA wal_checkpoint(TRUNCATE)` to fold the log into the main
+      file so the result is self-contained. Verify the entity row counts and
+      `pragma_integrity_check` on a copy before installing anything. The sandbox container was
+      only ever read by the migration, so it remains a fallback independent of the backup.
+    - **Any future change to the store's location is a data migration**, not a config edit.
+      Quit the app first so SQLite checkpoints, move the file, verify the row counts at the new
+      path, and only then launch.
+
 ## What exists in code (as of Step 6)
 
 Everything lives in `TimeTracker/Services/MCP/`:
@@ -686,7 +723,7 @@ in step if the port default, the tool set or the Settings wording ever changes.
 **Verified in Step 2**: `lsof` shows `127.0.0.1:8427 (LISTEN)`, never `*:8427`; a request
 to the machine's LAN address is refused; `GET /mcp` → 405, unknown path → 404; repeated
 `initialize` succeeds; `claude mcp list` reports Connected; a real Claude Code session
-lists and calls the tool and gets back the live 86 tasks / 4 tags; quitting the app makes
+lists and calls the tool and gets back the live task and tag list; quitting the app makes
 the connection fail cleanly.
 
 **Verified in Step 3** (421 tests passing, 0 failing): with no preference keys written at
@@ -706,7 +743,7 @@ with a combined total, and a no-match result carrying no total at all; `get_time
 answers `today` / `this_week` / `this_month` / a custom July range / `all_time`, in both
 breakdowns, with the per-task rows summing exactly to the reported total. Cross-check that
 pins decision #24: `get_time_for_period` on `all_time` and the sum of
-`list_tasks_and_tags`'s per-task totals both give **2,978,569s across 86 tasks**. Every
+`list_tasks_and_tags`'s per-task totals give **the same total across the same task count**. Every
 error path returns a message naming the fix (missing/unknown period, `custom` without
 dates, `01/07/2026`, missing query), and `"This Month"` + `breakdown: "nonsense"` resolve
 tolerantly instead of failing. **Still to confirm by hand**: natural-language routing from a
@@ -715,14 +752,14 @@ real Claude Code session — whether the descriptions actually send "how much on
 
 **Verified in Step 5** (514 tests passing, 0 failing): against the running app over HTTP,
 `tools/list` returns all four tools with the expected schemas. `get_billable_report` on
-`last_month` returns 22 tasks totalling **151h 37m / €3,942.39** at €26/h with rounding off,
+`last_month` returns the month's tasks with amounts, at the configured rate with rounding off,
 and cross-checks clean against the other tools: identical task set and identical per-task
 raw seconds versus `get_time_for_period` per_task, and the same formatted total from both.
-On `all_time`, all three tools agree per task (86 tasks) — `get_billable_report` 2,978,613s
-vs 2,978,569s from both `get_time_for_period` and the sum of `list_tasks_and_tags`, the 44s
+On `all_time`, all three tools agree per task — `get_billable_report`'s total sits **44s**
+above the figure from both `get_time_for_period` and the sum of `list_tasks_and_tags`, that
 being decision #30's truncation dust and **not** a per-task disagreement. `include_zero_time`
-widens 22 → 86 tasks, `include_daily_breakdown` returns ascending dated day rows, a custom
-1–15 July range gives 14 tasks / 74h 49m, and every error path names its fix (missing period,
+widens the list to every task, `include_daily_breakdown` returns ascending dated day rows, a
+custom part-month range narrows it as expected, and every error path names its fix (missing period,
 `custom` without dates, unknown period, `01/07/2026`), while `"This Month"` resolves
 tolerantly. **Still to confirm by hand**: the visual row-by-row comparison against the Report
 screen and an exported PDF for the same period, and that a live `timeRounding` change in
@@ -730,19 +767,17 @@ Settings is picked up without relaunch (read fresh per call by construction, and
 unit tests, but not exercised against the running app).
 
 **Verified in Step 6** (557 tests passing, 0 failing): after the sandbox flip and the data
-migration, the running app holds open `~/Library/Application Support/default.store` with no
-container references, binds `127.0.0.1:8427` only, and `get_billable_report` on `last_month`
-still returns the Step 5 figures unchanged — 22 tasks, 151h 37m, €3,942.39 at €26/h, with
-business name, currency and rate all intact. Over HTTP, `tools/list` returns **five** tools
-with `save_report_pdf` advertising `readOnlyHint: false`. `save_report_pdf` on `last_month`
-to `~/Desktop` wrote a 31 KB PDF with **no dialog of any kind**; its extracted text carries
-the header ("Dmytro Nosulich", "TIME REPORT", "Period: 1. July 2026 – 31. July 2026"), dated
-per-day rows, and a footer reading `RATE €26/h` / `TOTAL 151h 37m` — the same total the tool
-and `get_billable_report` report. A second identical call landed as
-`Time Report - July 2026 (2).pdf` with `renamedToAvoidOverwrite: true`, leaving the first
-file untouched. `task_query: "Paywall"` narrowed it to 2 tasks / 53h 35m / €1,393.47 with a
-`filename` override honored, and a custom 1–15 July range gave **14 tasks / 74h 49m**,
-matching Step 5's figure for the same range. Every error path returned a message naming its
+migration, the running app holds open the migrated store with no container references, binds
+`127.0.0.1:8427` only, and `get_billable_report` on `last_month` still returns the Step 5
+figures unchanged, with business name, currency and rate all intact. Over HTTP, `tools/list`
+returns **five** tools with `save_report_pdf` advertising `readOnlyHint: false`.
+`save_report_pdf` on `last_month` to `~/Desktop` wrote a ~31 KB PDF with **no dialog of any
+kind**; its extracted text carries the expected header (business name, "TIME REPORT", the
+period), dated per-day rows, and a rate/total footer matching what the tool and
+`get_billable_report` report. A second identical call landed as `… (2).pdf` with
+`renamedToAvoidOverwrite: true`, leaving the first file untouched. A `task_query` narrowed the
+report to the matching tasks with a `filename` override honored, and a custom part-month range
+reproduced Step 5's figure for the same range. Every error path returned a message naming its
 fix: non-existent folder, `/System/Library` (carrying the OS's own permission wording), a
 `task_query` matching nothing, `today` (no time tracked), a relative path, and `filename`
 passed alongside a full `.pdf` path.
@@ -766,14 +801,13 @@ reading back which tool each one actually called:
 | "what tasks do I have?" | `list_tasks_and_tags` ✓ |
 | "how much do I bill for the Reply to menu option task last month?" | `get_billable_report` (+ `get_time_for_task` for that task's share) — **not** hours reported as money, which is decision #38's gap |
 
-The skill runs end-to-end unattended: `claude -p "/monthly-report"` produced August 2026 on the
-Desktop with **no dialog or prompt of any kind**, and — because an August report was already
-there — exercised the collision path, landing as `… (2).pdf` and reporting the rename rather
-than the requested name. Its figures (12 tasks, 36h 42m, €954,25 at €26/h) match
-`get_billable_report` on `this_month` exactly, and the PDF's own extracted text carries the same
-`RATE €26/h` / `TOTAL 36h 42m` / `€954,25` footer under a `Period: 1. August 2026 – 31. August
-2026` header. `/monthly-report last month` returned the unchanged Step 5/6 July figures (22
-tasks, 151h 37m, €3,942.39). Finally `schedule/run-monthly-report.sh` was run directly — the
+The skill runs end-to-end unattended: `claude -p "/monthly-report"` produced the current month
+on the Desktop with **no dialog or prompt of any kind**, and — because a report for that month
+was already there — exercised the collision path, landing as `… (2).pdf` and reporting the
+rename rather than the requested name. Its figures match `get_billable_report` on `this_month`
+exactly, and the PDF's own extracted text carries the same rate/total footer under the matching
+period header. `/monthly-report last month` returned the unchanged Step 5/6 figures for that
+month. Finally `schedule/run-monthly-report.sh` was run directly — the
 exact command line launchd will execute — and completed with exit 0, the PDF written and the
 run logged.
 

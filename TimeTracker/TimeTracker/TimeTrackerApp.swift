@@ -20,7 +20,7 @@ struct TimeTrackerApp: App {
             TimeEntryEntity.self,
             TagEntity.self,
         ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        let modelConfiguration = ModelConfiguration(schema: schema, url: Self.storeURL())
 
         do {
             sharedModelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
@@ -58,6 +58,25 @@ struct TimeTrackerApp: App {
         )
         self.mcpServerService = mcpServer
         MCPServerServiceHolder.shared = mcpServer
+    }
+
+    /// The SwiftData store's explicit location: `Application Support/TimeTracker/default.store`.
+    ///
+    /// SwiftData's default is `Application Support/default.store` — an **unnamespaced** path.
+    /// That was private while the app was sandboxed, because the container gave every app its
+    /// own Application Support. Since the sandbox came off that
+    /// directory is the real, shared `~/Library/Application Support`, where `default.store` is
+    /// a name any other SwiftData app using the default configuration would also claim. Owning
+    /// a named subdirectory restores the isolation the container used to provide, and makes it
+    /// obvious on disk which file holds this app's billing data.
+    ///
+    /// The directory is created here because `ModelContainer` will not create intermediate
+    /// directories, and a missing one would hit the `fatalError` above on a fresh install.
+    private static func storeURL() -> URL {
+        let directory = URL.applicationSupportDirectory
+            .appending(path: "TimeTracker", directoryHint: .isDirectory)
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        return directory.appending(path: "default.store")
     }
 
     var body: some Scene {
