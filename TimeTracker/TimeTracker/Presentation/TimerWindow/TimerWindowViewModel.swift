@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 @Observable
 @MainActor
@@ -6,6 +7,7 @@ final class TimerWindowViewModel {
     private let localStorageService: LocalStorageService
     private let timerService: TimerService
     private let userPreferences: UserPreferencesService
+    private var cancellables = Set<AnyCancellable>()
 
     var tasks: [TaskItem] = []
 
@@ -63,6 +65,15 @@ final class TimerWindowViewModel {
         self.localStorageService = localStorageService
         self.timerService = timerService
         self.userPreferences = userPreferences
+
+        NotificationCenter.default
+            .publisher(for: .taskDetailDidSave)
+            .sink { [weak self] _ in
+                Task { @MainActor in
+                    self?.loadTasks()
+                }
+            }
+            .store(in: &cancellables)
     }
 
     func loadTasks() {

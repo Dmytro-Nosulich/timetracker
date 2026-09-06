@@ -216,4 +216,30 @@ struct TimerWindowViewModelTests {
 
         #expect(vm.state == .pausedByInactivity)
     }
+
+    // MARK: - taskDetailDidSave
+
+    @Test func taskDetailDidSaveReloadsTasks() async throws {
+        let taskId = UUID()
+        let timerMock = makeTimerMock()
+        timerMock.stubbedCurrentTaskId = taskId
+
+        let mock = makeMock()
+        mock.stubbedTasks = [makeTask(id: taskId, title: "Old Name")]
+
+        let vm = makeVM(storage: mock, timer: timerMock)
+        vm.loadTasks()
+        #expect(vm.currentTask?.title == "Old Name")
+
+        mock.stubbedTasks = [makeTask(id: taskId, title: "New Name")]
+        NotificationCenter.default.post(name: .taskDetailDidSave, object: nil)
+
+        // The subscription hops onto the main actor asynchronously,
+        // so give it a chance to run before asserting.
+        for _ in 0..<50 where vm.currentTask?.title != "New Name" {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+
+        #expect(vm.currentTask?.title == "New Name")
+    }
 }
