@@ -74,7 +74,7 @@ final class DefaultIdleMonitorService: IdleMonitorService {
 
     private func observeSleepWake() {
         let workspace = NSWorkspace.shared
-        NotificationCenter.default.addObserver(
+        workspace.notificationCenter.addObserver(
             forName: NSWorkspace.willSleepNotification,
             object: workspace,
             queue: .main
@@ -83,7 +83,7 @@ final class DefaultIdleMonitorService: IdleMonitorService {
                 self?.handleWillSleep()
             }
         }
-        NotificationCenter.default.addObserver(
+        workspace.notificationCenter.addObserver(
             forName: NSWorkspace.didWakeNotification,
             object: workspace,
             queue: .main
